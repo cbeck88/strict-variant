@@ -1,0 +1,20 @@
+project : default-build <optimization>off debug <cxxflags>"-std=c++11" ;
+# project : default-build <optimization>speed release <cxxflags>"-std=c++11" ;
+
+INSTALL_LOC = <location>stage/ ;
+
+### Setup safe_variant target
+
+alias safe_variant : : : : <include>../include/  ;
+
+### Setup test harness
+
+alias test_harness : : : : <include>include/ ;
+
+### Build tests
+
+STRICT = <cxxflags>"-Wall -Werror -Wextra -pedantic " ;
+
+exe variant : variant.cpp safe_variant test_harness : $(STRICT) ;
+
+install install-bin : variant : $(INSTALL_LOC) ;
