@@ -1,4 +1,5 @@
 sudo: false
+dist: trusty
 language: cpp
 
 cache:
@@ -26,6 +27,15 @@ matrix:
             - g++-5
             - gdb
       env: COMPILER=g++-5
+    - compiler: clang
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - clang++-3.5
+            - gdb
+      env: COMPILER=clang++-3.5
     - compiler: clang
       addons:
         apt:
