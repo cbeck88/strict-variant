@@ -52,8 +52,10 @@ install:
 script:
   - $CC --version
   - $CXX --version
+  - |-
+    JAM="using clang \: \: ${CXX} ;"
 
   - cd test
   - touch project-config.jam
-  - echo "using clang : : ${CXX} ;" > project-config.jam
-  - ./test.sh
+  - echo "${JAM}" > project-config.jam
+  - ./test.sh --toolset=clang
