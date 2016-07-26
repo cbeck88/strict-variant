@@ -124,37 +124,38 @@ Forward-facing includes:
   Defines customization points within `boost::spirit` so that `safe_variant::variant` can be used just like `boost::variant` in your `qi` grammars.
 
 All the library definitions are made within the namespace `safe_variant`.
+
 I guess I recommend you to use a namespace alias for that, e.g. `namespace util = safe_variant;`, or
 use a series of using declarations. In another project that uses this library, I did this:
 
 
-``
-// util/variant_fwd.hpp
+```
+    // util/variant_fwd.hpp
+    
+    #include <safe_variant/variant_fwd.hpp>
 
-#include <safe_variant/variant_fwd.hpp>
+    namespace util {
+      using variant = safe_variant::variant;
+    }
+```
 
-namespace util {
-  using variant = safe_variant::variant;
-}
-``
+```
+    // util/variant.hpp
+    #include <safe_variant/variant.hpp>
+    #include <safe_variant/static_visitor.hpp>
+    #include <safe_variant/recursive_wrapper.hpp>
 
-``
-// util/variant.hpp
-#include <safe_variant/variant.hpp>
-#include <safe_variant/static_visitor.hpp>
-#include <safe_variant/recursive_wrapper.hpp>
-
-namespace util {
-  using safe_variant::variant;
-  using safe_variant::get;
-  using safe_variant::apply_visitor;
-  using safe_variant::get_or_default;
-}
-``
+    namespace util {
+      using safe_variant::variant;
+      using safe_variant::get;
+      using safe_variant::apply_visitor;
+      using safe_variant::get_or_default;
+    }
+```
 
 ...
 
-but you can do it however you like of course.
+but you should be able to do it however you like of course.
 
 
 Licensing and Distribution
