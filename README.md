@@ -65,11 +65,11 @@ Instead, it uses a very simple iterative strategy.
 
 - When the variant is constructed from a value, each type is checked one by one, to see if a *safe* conversion to that type is possible.
   If so, it is selected. If not, we check the next type. If no safe conversion is possible, then a compile-time error results.  
-  This means that usually, you simply list your integral types in increasing order of rank, roughly, and it does the right thing.
+  This means that usually, when you declare your variants you simply list your integral types in "increasing" order, and it does the right thing.
 
 - What conversions are safe?  
   I wrote a type trait that implements a strict notion of safety which was appropriate for the project in which
-  I developed this. (See [1](include/safe_variant/conversion_rank.hpp), [2](include/safe_variant/safely_convertible.hpp)).
+  I developed this. (See [1](include/safe_variant/conversion_rank.hpp), [2](include/safe_variant/safely_constructible.hpp)).
   - Conversions are not permitted between any two of the following classes:  
   Integral types, Floating point types, Character types, Boolean, Pointer types, and `wchar_t`.
   - If an integral or floating point conversion *could* be narrowing on some conforming implementation of C++, then it is not safe.  
@@ -86,7 +86,9 @@ exception-safety, or make only a "rarely empty" guarantee.
 This is enforced using static asserts, but sometimes that can be a pain if you are forced to use e.g. GCC 4-series versions of the C++ standard library which
 are not C++11 conforming. So there is also a flag to turn the static asserts off, see `static constexpr bool assume_no_throw_move_constructible`.
 
-The actual interface is in most ways the same as `boost::variant`, which strongly inspired this. (However, my interface is exception-free, if you want to have
+The actual interface is in most ways the same as `boost::variant`, which strongly inspired this.  
+
+(However, my interface is exception-free, if you want to have
 analogues of the throwing functions in `boost::variant` you'll have to write them, which is pretty easy to do on top of the exception-free interface.)
 
 So, keep in mind, this is not a drop-in replacement for `boost::variant` or one of the other versions, its semantics are fundamentally different.
@@ -109,20 +111,20 @@ add the `include` folder to your include path. Then use the following includes i
 Forward-facing includes:
 
 - `#include <safe_variant/variant_fwd.hpp>`  
-  Forward declares the variant type, recursive_wrapper type.
-- `#include <safe_variant/variant.hpp>`
-  Defines the variant type, as well as `apply_visitor`, `get`, `get_or_default` functions.
-- `#include <safe_variant/recursive_wrapper>`.
-  Similar to `boost::recursive_wrapper`, but for this variant type.
-- `#include <safe_variant/static_visitor.hpp>`
+  Forward declares the variant type, recursive_wrapper type.  
+- `#include <safe_variant/variant.hpp>`  
+  Defines the variant type, as well as `apply_visitor`, `get`, `get_or_default` functions.  
+- `#include <safe_variant/recursive_wrapper>`  
+  Similar to `boost::recursive_wrapper`, but for this variant type.  
+- `#include <safe_variant/static_visitor.hpp>`  
   Similar to `boost::static_visitor`, but for this variant type.
-- `#include <safe_variant/variant_compare>`.
-  Gets a template type `variant_comparator`, which is appropriate to use with `std::map` or `std::set`.
-  By default `safe_variant::variant` is not comparable.
-- `#include <safe_variant/variant_stream_ops>`.
-  Gets ostream operations for the variant template type.
-  By default `safe_variant::variant` is not streamable.
-- `#include <safe_variant/variant_spirit.hpp>`
+- `#include <safe_variant/variant_compare>`  
+  Gets a template type `variant_comparator`, which is appropriate to use with `std::map` or `std::set`.  
+  By default `safe_variant::variant` is not comparable.  
+- `#include <safe_variant/variant_stream_ops>`  
+  Gets ostream operations for the variant template type.  
+  By default `safe_variant::variant` is not streamable.  
+- `#include <safe_variant/variant_spirit.hpp>`  
   Defines customization points within `boost::spirit` so that `safe_variant::variant` can be used just like `boost::variant` in your `qi` grammars.
 
 All the library definitions are made within the namespace `safe_variant`.
