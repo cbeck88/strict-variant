@@ -27,33 +27,6 @@ matrix:
             - g++-5
             - gdb
       env: COMPILER=g++-5
-    - compiler: clang
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - clang++-3.5
-            - gdb
-      env: COMPILER=clang++-3.5
-    - compiler: clang
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - clang++-3.6
-            - gdb
-      env: COMPILER=clang++-3.6
-    - compiler: clang
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - clang++-3.7
-            - gdb
-      env: COMPILER=clang++-3.7
 
 
 before_install:
