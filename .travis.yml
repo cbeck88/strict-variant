@@ -1,5 +1,11 @@
 sudo: required
 language: cpp
+
+cache:
+  directories:
+    - ${TRAVIS_BUILD_DIR}/deps
+
+
 matrix:
   include:
     - compiler: gcc
@@ -38,7 +44,7 @@ install:
   - if [[ "${BOOST_VERSION}" == "default" ]]; then BOOST_VERSION=1.60.0; fi
 
   - if [[ "${BOOST_VERSION}" == "1.60.0" ]]; then BOOST_URL="http://sourceforge.net/projects/boost/files/boost/1.60.0/boost_1_60_0.tar.gz"; fi
-  - if [[ "${BOOST_URL}" != "" ]]; then mkdir boost && travis_retry wget --quiet -O - ${BOOST_URL} | tar --strip-components=1 -xz -C boost; fi
+  - if [[ "${BOOST_URL}" != "" ]]; then mkdir boost && travis_retry wget -O - ${BOOST_URL} | tar --strip-components=1 -xz -C boost; fi
 
   - cd boost/tools/build && ./bootstrap.sh && ./b2 install --prefix=${DEPS_DIR}/b2
   - export PATH=${DEPS_DIR}/b2/bin:${PATH}
@@ -53,7 +59,7 @@ script:
   - $CC --version
   - $CXX --version
   - |-
-    JAM="using clang \: \: ${CXX} ;"
+    JAM="using clang : : ${CXX} ;"
 
   - cd test
   - touch project-config.jam

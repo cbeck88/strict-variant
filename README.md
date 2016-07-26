@@ -10,15 +10,15 @@ in your C++ projects?
 Do you get annoyed that code like this will compile, without any warning or error message?
 
 ``
-  boost::variant<std::string, int> v;
-  v = true;
+  boost::variant<std::string, int> v;  
+  v = true;  
 ``
 
 Do you get annoyed that code like this will compile on some machines, but not others?
 
 ``
-  boost::variant<long, unsigned int> v;
-  v = 10;
+  boost::variant<long, unsigned int> v;  
+  v = 10;  
 ``
 
 
