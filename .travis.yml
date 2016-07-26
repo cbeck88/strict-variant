@@ -45,12 +45,12 @@ install:
       if [[ "${BOOST_URL}" != "" ]]; then mkdir boost && travis_retry wget -O - ${BOOST_URL} | tar --strip-components=1 -xz -C boost; fi;
 
       cd boost/tools/build && ./bootstrap.sh && ./b2 install --prefix=${DEPS_DIR}/b2;
-      export PATH=${DEPS_DIR}/b2/bin:${PATH};
-
-      export BOOST_ROOT=${DEPS_DIR}/boost;
-
       cd ${TRAVIS_BUILD_DIR};
     fi
+
+  -  export PATH=${DEPS_DIR}/b2/bin:${PATH}
+  -  export BOOST_ROOT=${DEPS_DIR}/boost
+
 
 script:
   - $CC --version
