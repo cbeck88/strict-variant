@@ -3,6 +3,28 @@ project : default-build <optimization>off debug <cxxflags>"-std=c++11" ;
 
 INSTALL_LOC = <location>stage/ ;
 
+### Boost directory
+
+import os ;
+
+local BOOST_ROOT = [ os.environ BOOST_ROOT ] ;
+if $(BOOST_ROOT) {
+  # echo "BOOST_ROOT = '" $(BOOST_ROOT) "'" ;
+  BOOST_INCLUDE_DIR = $(BOOST_ROOT) ;
+} else {
+  echo "BOOST_ROOT variable not set!" ;
+  BOOST_INCLUDE_DIR = "/usr/include" ;
+}
+
+# Try to find boost/version.hpp
+
+if [ GLOB $(BOOST_INCLUDE_DIR)/boost/ : version.hpp ] {
+  echo "Using BOOST_INCLUDE_DIR = '" $(BOOST_INCLUDE_DIR) "'" ;  
+} else {
+  echo "Could not find boost, skipping boost tests" ;
+  BOOST_INCLUDE_DIR = ;
+}
+
 ### Setup safe_variant target
 
 alias safe_variant : : : : <include>../include/  ;
@@ -11,11 +33,26 @@ alias safe_variant : : : : <include>../include/  ;
 
 alias test_harness : : : : <include>include/ ;
 
+### Setup boost includes
+
+alias boost : : : : <include>$(BOOST_INCLUDE_DIR) ;
+
 ### Build tests
 
 STRICT = <cxxflags>"-Wall -Werror -Wextra -pedantic " ;
 
 exe variant : variant.cpp safe_variant test_harness : $(STRICT) ;
-exe spirit : spirit.cpp safe_variant test_harness : $(STRICT) ;
 
-install install-bin : variant spirit : $(INSTALL_LOC) ;
+install install-bin : variant : $(INSTALL_LOC) ;
+
+### Build spirit tests
+
+if $(BOOST_INCLUDE_DIR) {
+
+  alias boost_headers : : : : <include>$(BOOST_INCLUDE_DIR) ;
+
+  exe spirit : spirit.cpp safe_variant test_harness boost_headers : $(STRICT) ;
+
+  install install-bin-boost : spirit : $(INSTALL_LOC) ;
+
+}
