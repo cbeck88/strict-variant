@@ -18,7 +18,7 @@
 using var_t = safe_variant::variant<std::string, int>;
 using set_t = std::set<var_t, safe_variant::variant_comparator<var_t>>;
 
-void test_one() {
+UNIT_TEST(std_set) {
   set_t s;
   s.insert(var_t{"asdf"});
   s.insert(var_t{"jkl;"});
@@ -43,16 +43,5 @@ int
 main() {
 
   std::cout << "Variant comparator tests:" << std::endl;
-  test_harness tests{
-    {"test_one", &test_one},
-  };
-  int num_fails = tests.run();
-  std::cout << "\n";
-  if (num_fails) {
-    std::cout << num_fails << " tests failed!" << std::endl;
-    return 1;
-  } else {
-    std::cout << "All tests passed!" << std::endl;
-    return 0;
-  }
+  return test_registrar::run_tests();
 }

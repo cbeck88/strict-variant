@@ -187,10 +187,8 @@ static_assert(detail::allow_variant_construction<double, float &&>::value, "fail
 // Testing typlist
 
 
-#define UNIT_TEST(NAME) void NAME ()
-
 // Check that variant is resolving "ambiguous" constructions as expected
-UNIT_TEST(variant_0) {
+UNIT_TEST(ambiguous_string) {
   const char * test_string = "asdf";
   {
     typedef variant<std::string, const char *> Var_t;
@@ -209,7 +207,7 @@ UNIT_TEST(variant_0) {
 }
 
 // Test that variants using integral types are working as expected
-UNIT_TEST(variant_1) {
+UNIT_TEST(ambiguous_number) {
   {
     typedef variant<double, float, int> Var_t;
     Var_t a{5};
@@ -270,7 +268,7 @@ UNIT_TEST(variant_1) {
 
 // Test assignment
 
-UNIT_TEST(variant_3) {
+UNIT_TEST(assignment) {
   typedef variant<int, float, double, std::string> Var_t;
 
   Var_t a{5};
@@ -297,7 +295,7 @@ UNIT_TEST(variant_3) {
 
 // Test Emplace function
 
-UNIT_TEST(variant_4) {
+UNIT_TEST(emplace) {
   typedef variant<int, float, double, std::string> Var_t;
 
   Var_t a{5};
@@ -332,7 +330,7 @@ UNIT_TEST(variant_4) {
 
 // Test equality
 
-UNIT_TEST(variant_5) {
+UNIT_TEST(equality) {
   typedef variant<int, float, double, std::string> Var_t;
 
   Var_t a{5};
@@ -384,7 +382,7 @@ struct crummy {
 
 typedef variant<int, dummy> variant_type_1;
 
-UNIT_TEST(variant_6) {
+UNIT_TEST(recursive_wrapper) {
   variant_type_1 v1(5);
 
   TEST_EQ(v1.which(), 0);
@@ -432,7 +430,7 @@ typedef variant<dummy, crummy, double> variant_type_4;
 typedef variant<int, crummy, dummy> variant_type_5;
 
 // Test that the variant "promotion" constructor works
-UNIT_TEST(variant_7) {
+UNIT_TEST(promotion) {
   crummy c{7};
 
   // TODO: Enable this?
@@ -457,24 +455,6 @@ UNIT_TEST(variant_7) {
 
 int
 main() {
-
   std::cout << "Variant tests:" << std::endl;
-  test_harness tests{
-    {"ambiguious string", &safe_variant::variant_0},
-    {"ambiguious integer", &safe_variant::variant_1},
-    {"assignment", &safe_variant::variant_3},
-    {"emplace", &safe_variant::variant_4},
-    {"equality", &safe_variant::variant_5},
-    {"recursive_wrapper", &safe_variant::variant_6},
-    {"promotion", &safe_variant::variant_7},
-  };
-  int num_fails = tests.run();
-  std::cout << "\n";
-  if (num_fails) {
-    std::cout << num_fails << " tests failed!" << std::endl;
-    return 1;
-  } else {
-    std::cout << "All tests passed!" << std::endl;
-    return 0;
-  }
+  return test_registrar::run_tests();
 }

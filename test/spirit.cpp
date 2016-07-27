@@ -28,7 +28,7 @@ struct test_grammar : qi::grammar<Iterator, var_one_t()> {
   }
 };
 
-void test_one() {
+UNIT_TEST(string_int_grammar) {
   var_one_t v;
 
   test_grammar<str_it> gram;
@@ -100,16 +100,5 @@ int
 main() {
 
   std::cout << "Variant spirit tests:" << std::endl;
-  test_harness tests{
-    {"test one", &test_one},
-  };
-  int num_fails = tests.run();
-  std::cout << "\n";
-  if (num_fails) {
-    std::cout << num_fails << " tests failed!" << std::endl;
-    return 1;
-  } else {
-    std::cout << "All tests passed!" << std::endl;
-    return 0;
-  }
+  test_registrar::run_tests();
 }

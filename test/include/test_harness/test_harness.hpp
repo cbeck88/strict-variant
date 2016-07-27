@@ -10,6 +10,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <utility>
 #include <vector>
 
 /***
@@ -76,6 +77,9 @@ struct test_harness {
   explicit test_harness(std::initializer_list<test_record> list)
     : tests_(list) {}
 
+  explicit test_harness(std::vector<test_record> list)
+    : tests_(std::move(list)) {}
+
   int run() const {
     int num_fails = 0;
     for (const auto & t : tests_) {
@@ -103,3 +107,45 @@ struct test_harness {
     return num_fails;
   }
 };
+
+/***
+ * Test registrar object
+ */
+
+class test_registrar {
+
+static std::vector<test_record> & all_tests() {
+  static std::vector<test_record> instance;
+  return instance;
+}
+
+public:
+  static void add_test(test_record t) {
+    all_tests().emplace_back(std::move(t));
+  }
+
+  static int run_tests() {
+
+    test_harness h{all_tests()};
+    int num_fails = h.run();
+    std::cout << "\n";
+    if (num_fails) {
+      std::cout << num_fails << " tests failed!" << std::endl;
+      return 1;
+    } else {
+      std::cout << "All tests passed!" << std::endl;
+      return 0;
+    }
+  }
+};
+
+struct test_registration_object {
+  explicit test_registration_object(const char * name, test_func_t func) {
+    test_registrar::add_test({name, func});
+  }
+};
+
+#define UNIT_TEST(NAME)                        \
+void test_##NAME();                            \
+test_registration_object registr_##NAME{#NAME, &test_##NAME}; \
+void test_##NAME()
