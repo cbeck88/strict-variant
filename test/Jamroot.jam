@@ -42,8 +42,9 @@ alias boost : : : : <include>$(BOOST_INCLUDE_DIR) ;
 STRICT = <cxxflags>"-Wall -Werror -Wextra -pedantic " ;
 
 exe variant : variant.cpp safe_variant test_harness : $(STRICT) ;
+exe compare : compare.cpp safe_variant test_harness : $(STRICT) ;
 
-install install-bin : variant : $(INSTALL_LOC) ;
+install install-bin : variant compare : $(INSTALL_LOC) ;
 
 ### Build spirit tests
 
