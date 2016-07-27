@@ -16,5 +16,6 @@ alias test_harness : : : : <include>include/ ;
 STRICT = <cxxflags>"-Wall -Werror -Wextra -pedantic " ;
 
 exe variant : variant.cpp safe_variant test_harness : $(STRICT) ;
+exe spirit : spirit.cpp safe_variant test_harness : $(STRICT) ;
 
-install install-bin : variant : $(INSTALL_LOC) ;
+install install-bin : variant spirit : $(INSTALL_LOC) ;
