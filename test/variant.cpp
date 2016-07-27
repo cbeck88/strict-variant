@@ -4,11 +4,13 @@
 //  file LICENSE or copy at http://www.boost.org/LICENSE_1_0.txt)
 
 #include <safe_variant/variant.hpp>
+#include <safe_variant/variant_hash.hpp>
 #include <safe_variant/variant_stream_ops.hpp>
 
 #include "test_harness/test_harness.hpp"
 
 #include <type_traits>
+#include <unordered_set>
 
 namespace safe_variant {
 
@@ -449,6 +451,30 @@ UNIT_TEST(promotion) {
     TEST_TRUE(c5);
     TEST_EQ(c4->val, c5->val);
   }
+}
+
+UNIT_TEST(hashing) {
+  using var_t = variant<std::string, int>;
+  using set_t = std::unordered_set<var_t>;
+
+  set_t s;
+  s.insert(var_t{"asdf"});
+  s.insert(var_t{"jkl;"});
+  s.insert(var_t{0});
+  s.insert(var_t{1});
+
+  TEST_EQ(4, s.size());
+  TEST_TRUE(s.count(var_t("asdf")));
+  TEST_TRUE(s.count(var_t("jkl;")));
+  TEST_TRUE(s.count(var_t(0)));
+  TEST_TRUE(s.count(var_t(1)));
+
+  s.erase(var_t{0});
+  TEST_EQ(3, s.size());
+  TEST_FALSE(s.count(var_t(0)));
+  TEST_TRUE(s.count(var_t(1)));
+
+  TEST_FALSE(s.count(var_t(70)));
 }
 
 } // end namespace safe_variant

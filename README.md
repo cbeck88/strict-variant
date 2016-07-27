@@ -114,14 +114,16 @@ Forward-facing includes:
   Forward declares the variant type, recursive_wrapper type.  
 - `#include <safe_variant/variant.hpp>`  
   Defines the variant type, as well as `apply_visitor`, `get`, `get_or_default` functions.  
-- `#include <safe_variant/recursive_wrapper>`  
+- `#include <safe_variant/recursive_wrapper.hpp>`  
   Similar to `boost::recursive_wrapper`, but for this variant type.  
 - `#include <safe_variant/static_visitor.hpp>`  
   Similar to `boost::static_visitor`, but for this variant type.
-- `#include <safe_variant/variant_compare>`  
+- `#include <safe_variant/variant_compare.hpp>`  
   Gets a template type `variant_comparator`, which is appropriate to use with `std::map` or `std::set`.  
   By default `safe_variant::variant` is not comparable.  
-- `#include <safe_variant/variant_stream_ops>`  
+- `#include <safe_variant/variant_hash.hpp>`  
+  Makes variant hashable. By default this is not brought in.
+- `#include <safe_variant/variant_stream_ops.hpp>`  
   Gets ostream operations for the variant template type.  
   By default `safe_variant::variant` is not streamable.  
 - `#include <safe_variant/variant_spirit.hpp>`  
@@ -148,6 +150,7 @@ use a series of using declarations. In another project that uses this library, I
     #include <safe_variant/variant.hpp>
     #include <safe_variant/static_visitor.hpp>
     #include <safe_variant/recursive_wrapper.hpp>
+    #include <safe_variant/variant_hash.hpp>
 
     namespace util {
       using safe_variant::variant;
