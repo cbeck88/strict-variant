@@ -504,14 +504,14 @@ public:
   int which() const { return m_which; }
 
   template <typename Internal, typename Visitor, typename... Args>
-  typename Visitor::result_type apply_visitor(Visitor & visitor, Args &&... args) {
-    return detail::visitor_dispatch<First, Types...>()(Internal(), m_which, m_storage, visitor,
+  auto apply_visitor(Visitor && visitor, Args &&... args) -> typename mpl::remove_reference_t<Visitor>::result_type {
+    return detail::visitor_dispatch<First, Types...>()(Internal(), m_which, m_storage, std::forward<Visitor>(visitor),
                                                        std::forward<Args>(args)...);
   }
 
   template <typename Internal, typename Visitor, typename... Args>
-  typename Visitor::result_type apply_visitor(Visitor & visitor, Args &&... args) const {
-    return detail::visitor_dispatch<First, Types...>()(Internal(), m_which, m_storage, visitor,
+  auto apply_visitor(Visitor && visitor, Args &&... args) const -> typename mpl::remove_reference_t<Visitor>::result_type {
+    return detail::visitor_dispatch<First, Types...>()(Internal(), m_which, m_storage, std::forward<Visitor>(visitor),
                                                        std::forward<Args>(args)...);
   }
 
@@ -592,13 +592,13 @@ private:
   const void * address() const { return m_storage; }
 
   template <typename Visitor>
-  typename Visitor::result_type apply_visitor_internal(Visitor & visitor) {
-    return apply_visitor<detail::true_, Visitor>(visitor);
+  auto apply_visitor_internal(Visitor & visitor) -> typename Visitor::result_type {
+    return this->apply_visitor<detail::true_>(visitor);
   }
 
   template <typename Visitor>
-  typename Visitor::result_type apply_visitor_internal(Visitor & visitor) const {
-    return apply_visitor<detail::true_, Visitor>(visitor);
+  auto apply_visitor_internal(Visitor & visitor) const -> typename Visitor::result_type {
+    return this->apply_visitor<detail::true_>(visitor);
   }
 
   void destroy() {
@@ -608,7 +608,7 @@ private:
 
   template <typename T>
   void construct(T && t) {
-    typedef typename std::remove_reference<T>::type type;
+    using type = mpl::remove_reference_t<T>;
     new (m_storage) type(std::forward<T>(t));
   }
 };

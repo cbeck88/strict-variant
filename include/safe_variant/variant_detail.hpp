@@ -30,13 +30,15 @@ namespace detail {
 /// Reinteprets' the "storage" pointer as a value of type T or const T,
 /// then applies the visitor object.
 template <typename Internal, typename T, typename Storage, typename Visitor, typename... Args>
-typename Visitor::result_type
-visitor_caller(Internal && internal, Storage && storage, Visitor & visitor, Args &&... args) {
+auto
+visitor_caller(Internal && internal, Storage && storage, Visitor && visitor, Args &&... args) ->
+  typename mpl::remove_reference_t<Visitor>::result_type
+ {
   typedef typename std::conditional<std::is_const<typename std::remove_extent<
                                       typename std::remove_reference<Storage>::type>::type>::value,
                                     const T, T>::type ConstType;
 
-  return visitor(get_value(*reinterpret_cast<ConstType *>(storage), internal),
+  return std::forward<Visitor>(visitor)(get_value(*reinterpret_cast<ConstType *>(storage), internal),
                  std::forward<Args>(args)...);
 }
 
@@ -58,9 +60,9 @@ struct jumptable_dispatch {
   auto operator()(Internal && internal,
                   const unsigned int which,
                   VoidPtrCV && storage,
-                  Visitor & visitor,
-                  Args &&... args) -> typename Visitor::result_type {
-    typedef typename Visitor::result_type (*whichCaller)(Internal &&, VoidPtrCV &&, Visitor &,
+                  Visitor && visitor,
+                  Args &&... args) -> typename mpl::remove_reference_t<Visitor>::result_type {
+    using whichCaller = typename mpl::remove_reference_t<Visitor>::result_type (*)(Internal &&, VoidPtrCV &&, Visitor &&,
                                                          Args && ...);
 
     static whichCaller callers[sizeof...(AllTypes)] = {
@@ -69,7 +71,7 @@ struct jumptable_dispatch {
     // ASSERT(which < static_cast<unsigned int>(sizeof...(AllTypes)));
 
     return (*callers[which])(std::forward<Internal>(internal), std::forward<VoidPtrCV>(storage),
-                             std::forward<Visitor &>(visitor), std::forward<Args>(args)...);
+                             std::forward<Visitor>(visitor), std::forward<Args>(args)...);
   }
 };
 
@@ -98,14 +100,14 @@ struct binary_search_dispatch<base, TypeList<T>> {
   auto operator()(Internal && internal,
                   const unsigned int which,
                   VoidPtrCV && storage,
-                  Visitor & visitor,
-                  Args &&... args) -> typename Visitor::result_type {
+                  Visitor && visitor,
+                  Args &&... args) -> typename mpl::remove_reference_t<Visitor>::result_type {
     // ASSERT(which == base);
-    (void)which;
+    static_cast<void>(which);
 
     return visitor_caller<Internal &&, T, VoidPtrCV &&, Visitor, Args &&...>(
       std::forward<Internal>(internal), std::forward<VoidPtrCV>(storage),
-      std::forward<Visitor &>(visitor), std::forward<Args>(args)...);
+      std::forward<Visitor>(visitor), std::forward<Args>(args)...);
   }
 };
 
@@ -121,17 +123,17 @@ struct binary_search_dispatch<base, TypeList<T1, T2, Types...>> {
   auto operator()(Internal && internal,
                   const unsigned int which,
                   VoidPtrCV && storage,
-                  Visitor & visitor,
-                  Args &&... args) -> typename Visitor::result_type {
+                  Visitor && visitor,
+                  Args &&... args) -> typename mpl::remove_reference_t<Visitor>::result_type {
 
     if (which < split_point) {
       return binary_search_dispatch<base, TL>{}(
         std::forward<Internal>(internal), which, std::forward<VoidPtrCV>(storage),
-        std::forward<Visitor &>(visitor), std::forward<Args>(args)...);
+        std::forward<Visitor>(visitor), std::forward<Args>(args)...);
     } else {
       return binary_search_dispatch<split_point, TR>{}(
         std::forward<Internal>(internal), which, std::forward<VoidPtrCV>(storage),
-        std::forward<Visitor &>(visitor), std::forward<Args>(args)...);
+        std::forward<Visitor>(visitor), std::forward<Args>(args)...);
     }
   }
 };
@@ -156,11 +158,11 @@ struct visitor_dispatch {
   auto operator()(Internal && internal,
                   const unsigned int which,
                   VoidPtrCV && storage,
-                  Visitor & visitor,
-                  Args &&... args) -> typename Visitor::result_type {
+                  Visitor && visitor,
+                  Args &&... args) -> typename mpl::remove_reference_t<Visitor>::result_type {
 
     return chosen_dispatch_t{}(std::forward<Internal>(internal), which,
-                               std::forward<VoidPtrCV>(storage), std::forward<Visitor &>(visitor),
+                               std::forward<VoidPtrCV>(storage), std::forward<Visitor>(visitor),
                                std::forward<Args>(args)...);
   }
 };

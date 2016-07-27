@@ -31,8 +31,7 @@ private:
 public:
 
   std::size_t operator()(const argument_type &v) const {
-    hasher h;
-    return safe_variant::apply_visitor(h, v) + (31 * v.which());
+    return safe_variant::apply_visitor(hasher{}, v) + (31 * v.which());
   }
 };  // hash<safe_variant::variant<Ts...>>
 
