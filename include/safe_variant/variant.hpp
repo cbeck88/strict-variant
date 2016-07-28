@@ -48,6 +48,8 @@
 #include <type_traits>
 #include <utility>
 
+#define SAFE_VARIANT_DEBUG
+
 #ifdef SAFE_VARIANT_DEBUG
 #include <cassert>
 
@@ -73,6 +75,10 @@ template <typename First, typename... Types>
 class variant {
 
 private:
+  /***
+   * TODO: Prohibit const and reference types
+   */
+
   /***
    * Check noexcept status of special member functions of our types
    */
@@ -128,6 +134,80 @@ private:
   static constexpr size_t m_align = mpl::max<Alignof, First, Types...>::value;
 
   /***
+   * Storage
+   */
+
+  alignas(m_align) char m_storage[m_size];
+
+  int m_which;
+
+
+  /***
+   * Initialize and destroy
+   */
+  void destroy() {
+    destroyer d;
+    this->apply_visitor_internal(d);
+  }
+
+  template <size_t index, typename... Args>
+  void initialize(Args && ... args) {
+    using target_type = mpl::Index_t<index, First, Types...>;
+    new (m_storage) target_type(std::forward<Args>(args)...);
+    this->m_which = static_cast<int>(index);
+  }
+
+  /***
+   * Unchecked typed access to storage
+   */
+  template <size_t index>
+  mpl::Index_t<index, First, Types...> * unchecked_access() {
+    return reinterpret_cast<mpl::Index_t<index, First, Types...> *>(m_storage);
+  }
+
+  template <size_t index>
+  const mpl::Index_t<index, First, Types...> * unchecked_access() const {
+    return reinterpret_cast<const mpl::Index_t<index, First, Types...> *>(m_storage);
+  }
+
+  /***
+   * Used for internal visitors
+   */
+  template <typename Visitor>
+  auto apply_visitor_internal(Visitor & visitor) -> typename Visitor::result_type {
+    return this->apply_visitor<detail::true_>(visitor);
+  }
+
+  template <typename Visitor>
+  auto apply_visitor_internal(Visitor & visitor) const -> typename Visitor::result_type {
+    return this->apply_visitor<detail::true_>(visitor);
+  }
+
+  /***
+   * find_which is used with non-T&& ctors to figure out what "which" should be
+   * used for a given type
+   */
+
+  // Search prediate for find_which
+  template <typename T>
+  struct same_modulo_const_ref_wrapper {
+    template <typename U>
+    struct prop {
+      using T2 = unwrap_type_t<mpl::remove_const_t<mpl::remove_reference_t<T>>>;
+      using U2 = unwrap_type_t<mpl::remove_const_t<mpl::remove_reference_t<U>>>;
+
+      static constexpr bool value = std::is_same<T2, U2>::value;
+    };
+  };
+
+  template <typename Rhs>
+  struct find_which {
+    static constexpr size_t value =
+              mpl::Find_With<same_modulo_const_ref_wrapper<Rhs>::template prop, First, Types...>::value;
+    static_assert(value < (sizeof...(Types) + 1), "No match for value");
+  };
+
+  /***
    * Visitors used to implement special member functions and such
    */
   struct copy_constructor {
@@ -138,7 +218,7 @@ private:
 
     template <typename T>
     void operator()(const T & rhs) const {
-      m_self.construct(rhs);
+      m_self.initialize<find_which<T>::value>(rhs);
     }
 
   private:
@@ -153,7 +233,7 @@ private:
 
     template <typename T>
     void operator()(T & rhs) const noexcept {
-      m_self.construct(std::move(rhs));
+      m_self.initialize<find_which<T>::value>(std::move(rhs));
     }
 
   private:
@@ -171,20 +251,23 @@ private:
     template <typename Rhs>
     void operator()(const Rhs & rhs) const {
 
+      constexpr size_t index = find_which<Rhs>::value;
+
       if (m_self.which() == m_rhs_which) {
         // the types are the same, so just assign into the lhs
-        *reinterpret_cast<Rhs *>(m_self.address()) = rhs;
+        SAFE_VARIANT_ASSERT(m_rhs_which == index, "Bad access!");
+        (*m_self.unchecked_access<index>()) = rhs;
       } else if (assume_copy_nothrow || noexcept(Rhs(rhs))) {
         // If copy ctor is no-throw (think integral types), this is the fastest
         // way
         m_self.destroy();
-        m_self.construct(rhs);
+        m_self.initialize<index>(rhs);
       } else {
         // Copy ctor could throw, so do trial copy on the stack for safety and
         // move it...
         Rhs tmp(rhs);
-        m_self.destroy();                 // nothrow
-        m_self.construct(std::move(tmp)); // nothrow (please)
+        m_self.destroy();                         // nothrow
+        m_self.initialize<index>(std::move(tmp)); // nothrow (please)
       }
     }
 
@@ -203,13 +286,16 @@ private:
 
     template <typename Rhs>
     void operator()(Rhs & rhs) const {
-      using RhsNoConst = mpl::remove_const_t<Rhs>;
+
+      constexpr size_t index = find_which<Rhs>::value;
+
       if (m_self.which() == m_rhs_which) {
         // the types are the same, so just assign into the lhs
-        *reinterpret_cast<RhsNoConst *>(m_self.address()) = std::move(rhs);
+        SAFE_VARIANT_ASSERT(m_rhs_which == index, "Bad access!");
+        (*m_self.unchecked_access<index>()) = std::move(rhs);
       } else {
         m_self.destroy();                 // nothrow
-        m_self.construct(std::move(rhs)); // nothrow (please)
+        m_self.initialize<index>(std::move(rhs)); // nothrow (please)
       }
     }
 
@@ -228,9 +314,13 @@ private:
 
     template <typename Rhs>
     bool operator()(const Rhs & rhs) const {
+
+      constexpr size_t index = find_which<Rhs>::value;
+
       if (m_self.which() == m_rhs_which) {
         // the types are the same, so use operator eq
-        return *reinterpret_cast<const Rhs *>(m_self.address()) == rhs;
+        SAFE_VARIANT_ASSERT(m_rhs_which == index, "Bad access!");
+        return (*m_self.unchecked_access<index>()) == rhs;
       } else {
         return false;
       }
@@ -239,17 +329,6 @@ private:
   private:
     const variant & m_self;
     int m_rhs_which;
-  };
-
-  // whicher
-  struct whicher {
-    typedef int result_type;
-
-    template <typename Rhs>
-    constexpr int operator()(const Rhs &) const noexcept {
-      return static_cast<int>(
-        mpl::Find_With<mpl::sameness<Rhs>::template prop, First, Types...>::value);
-    }
   };
 
   // destroyer
@@ -262,34 +341,12 @@ private:
     }
   };
 
-  // Initialiser
-  template <size_t which>
-  struct initialiser {
-    template <typename T>
-    static void initialise(variant & v, T && arg) {
-      do_init(v, std::forward<T>(arg));
-    }
-
-    using target_type = mpl::Index_t<which, First, Types...>;
-
-    static void do_init(variant & v, target_type && arg) {
-      v.construct(std::move(arg));
-      v.indicate_which(which);
-    }
-
-    static void do_init(variant & v, const target_type & arg) {
-      v.construct(arg);
-      v.indicate_which(which);
-    }
-  };
-
 public:
-  template <typename = void> // force delayed instantiation
+  template <typename = void> // only allow if First() is ok
   variant() {
-    // try to construct First
-    // if this fails then First is not default constructible
-    this->construct(First());
-    this->indicate_which(0);
+    static_assert(std::is_same<void, decltype(static_cast<void>(First()))>::value,
+                  "First type must be default constructible or variant is not!");
+    this->initialize<0>();
   }
 
   ~variant() noexcept { destroy(); }
@@ -309,7 +366,7 @@ public:
     constexpr size_t which_idx =
       mpl::Find_With<detail::allow_variant_construct_from<T>::template prop, First,
                      Types...>::value;
-    initialiser<which_idx>::initialise(*this, std::forward<T>(t));
+    this->initialize<which_idx>(std::forward<T>(t));
   }
 
   /// Friend all other instances of variant (needed for next two ctors)
@@ -324,13 +381,8 @@ public:
             typename Enable = mpl::enable_if_t<detail::proper_subvariant<variant<OFirst, OTypes...>,
                                                                          variant>::value>>
   variant(const variant<OFirst, OTypes...> & other) {
-    whicher w; // construct whicher for MY type
-    // get the which before applying the other visitor
-    int new_which = other.apply_visitor_internal(w);
-
     copy_constructor c(*this);
     other.apply_visitor_internal(c);
-    this->indicate_which(new_which);
   }
 
   /// "Generalizing" move ctor, similar as above
@@ -338,32 +390,24 @@ public:
             typename Enable = mpl::enable_if_t<detail::proper_subvariant<variant<OFirst, OTypes...>,
                                                                          variant>::value>>
   variant(variant<OFirst, OTypes...> && other) noexcept {
-    whicher w; // construct whicher for MY type
-    // get which of other which before applying the other visitor
-    int new_which = other.apply_visitor_internal(w);
-
     move_constructor c(*this);
     other.apply_visitor_internal(c);
-    this->indicate_which(new_which);
   }
 
   variant(const variant & rhs) noexcept(assume_copy_nothrow) {
     copy_constructor c(*this);
     rhs.apply_visitor_internal(c);
-    this->indicate_which(rhs.which());
   }
 
   variant(variant && rhs) noexcept {
     move_constructor mc(*this);
     rhs.apply_visitor_internal(mc);
-    this->indicate_which(rhs.which());
   }
 
   variant & operator=(const variant & rhs) noexcept(assume_copy_nothrow) {
     if (this != &rhs) {
       copy_assigner a(*this, rhs.which());
       rhs.apply_visitor_internal(a);
-      this->indicate_which(rhs.which());
     }
     return *this;
   }
@@ -374,10 +418,13 @@ public:
     if (this != &rhs) {
       move_assigner ma(*this, rhs.which());
       rhs.apply_visitor_internal(ma);
-      this->indicate_which(rhs.which());
     }
     return *this;
   }
+
+  /***
+   * operator ==
+   */
 
   bool operator==(const variant & rhs) const {
     eq_checker eq(*this, rhs.which());
@@ -386,8 +433,10 @@ public:
 
   bool operator!=(const variant & rhs) const { return !(*this == rhs); }
 
+  // Access which()
   int which() const { return m_which; }
 
+  // Apply visitor
   template <typename Internal, typename Visitor, typename... Args>
   auto apply_visitor(Visitor && visitor, Args &&... args) -> vis_result_t<Visitor> {
     return detail::visitor_dispatch<First, Types...>()(
@@ -400,27 +449,16 @@ public:
       Internal(), m_which, m_storage, std::forward<Visitor>(visitor), std::forward<Args>(args)...);
   }
 
-  // Helper template which, given a "get" request, gets the index of the type in
-  // our list which
-  // corresponds to it. It must match exactly, modulo const and
-  // recursive_wrapper.
-  template <typename T>
-  struct get_index_helper {
-    static constexpr size_t value =
-      mpl::Find_With<mpl::sameness<mpl::remove_const_t<T>>::template prop, unwrap_type_t<First>,
-                     unwrap_type_t<Types>...>::value;
-  };
-
+  // get
   template <typename T>
   T * get() {
-    constexpr size_t idx = get_index_helper<T>::value;
+    constexpr size_t idx = find_which<T>::value;
     static_assert(idx < sizeof...(Types) + 1,
                   "Requested type is not a member of this variant type");
-    using internal_type = mpl::Index_t<idx, First, Types...>;
 
     if (idx == m_which) {
       return &maybe_pierce_recursive_wrapper<T>(
-        *reinterpret_cast<internal_type *>(this->address()));
+        *this->unchecked_access<idx>());
     } else {
       return nullptr;
     }
@@ -428,14 +466,13 @@ public:
 
   template <typename T>
   const T * get() const {
-    constexpr size_t idx = get_index_helper<T>::value;
+    constexpr size_t idx = find_which<T>::value;
     static_assert(idx < sizeof...(Types) + 1,
                   "Requested type is not a member of this variant type");
-    using internal_type = mpl::Index_t<idx, First, Types...>;
 
     if (idx == m_which) {
       return &maybe_pierce_recursive_wrapper<T>(
-        *reinterpret_cast<const internal_type *>(this->address()));
+        *this->unchecked_access<idx>());
     } else {
       return nullptr;
     }
@@ -446,54 +483,15 @@ public:
   // template parameter, which
   // must be one of the variant types, modulo const and reference wrapper.
   // We always destroy and reconstruct in-place.
-  template <typename T>
-  struct emplace_index_helper {
-    static constexpr size_t value =
-      mpl::Find_With<mpl::sameness<mpl::remove_const_t<T>>::template prop, unwrap_type_t<First>,
-                     unwrap_type_t<Types>...>::value;
-  };
 
   template <typename T, typename... Us>
   void emplace(Us &&... us) {
-    constexpr size_t idx = emplace_index_helper<T>::value;
+    constexpr size_t idx = find_which<T>::value;
     static_assert(idx < sizeof...(Types) + 1,
                   "Requested type is not a member of this variant type");
-    using internal_type = mpl::Index_t<idx, First, Types...>;
 
     this->destroy();
-    new (m_storage) internal_type(std::forward<Us>(us)...);
-    this->indicate_which(idx);
-  }
-
-private:
-  alignas(m_align) char m_storage[m_size];
-
-  int m_which;
-
-  void indicate_which(int which) { m_which = which; }
-
-  void * address() { return m_storage; }
-  const void * address() const { return m_storage; }
-
-  template <typename Visitor>
-  auto apply_visitor_internal(Visitor & visitor) -> typename Visitor::result_type {
-    return this->apply_visitor<detail::true_>(visitor);
-  }
-
-  template <typename Visitor>
-  auto apply_visitor_internal(Visitor & visitor) const -> typename Visitor::result_type {
-    return this->apply_visitor<detail::true_>(visitor);
-  }
-
-  void destroy() {
-    destroyer d;
-    this->apply_visitor_internal(d);
-  }
-
-  template <typename T>
-  void construct(T && t) {
-    using type = mpl::remove_reference_t<T>;
-    new (m_storage) type(std::forward<T>(t));
+    this->initialize<idx>(std::forward<Us>(us)...);
   }
 };
 
