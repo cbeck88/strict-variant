@@ -147,10 +147,10 @@ private:
   };
 
   // size = max of size of each thing
-  static constexpr size_t m_size = max<Sizeof, First, Types...>::value;
+  static constexpr size_t m_size = mpl::max<Sizeof, First, Types...>::value;
 
   // align = max align of each thing
-  static constexpr size_t m_align = max<Alignof, First, Types...>::value;
+  static constexpr size_t m_align = mpl::max<Alignof, First, Types...>::value;
 
   /***
    * Visitors used to implement special member functions and such

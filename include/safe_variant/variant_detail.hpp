@@ -284,6 +284,7 @@ public:
 };
 } // end namespace detail
 
+namespace mpl {
 template <template <typename> class Size, typename... Args>
 struct max;
 
@@ -297,5 +298,6 @@ public:
   static constexpr m_size_type value = m_helper::value;
   typedef typename m_helper::type type;
 };
+} // end namespace mpl
 
 } // end namespace safe_variant
