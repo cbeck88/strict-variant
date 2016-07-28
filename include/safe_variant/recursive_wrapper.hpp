@@ -25,10 +25,6 @@ public:
     : m_t(new T()) {}
 
   template <typename U, typename Dummy = mpl::enable_if_t<std::is_convertible<U, T>::value>>
-  recursive_wrapper(const U & u)
-    : m_t(new T(u)) {}
-
-  template <typename U, typename Dummy = mpl::enable_if_t<std::is_convertible<U, T>::value>>
   recursive_wrapper(U && u)
     : m_t(new T(std::forward<U>(u))) {}
 
@@ -87,11 +83,8 @@ private:
     *m_t = std::forward<U>(u);
   }
 
-  // Note: Implementation is predicated on the fact that it is okay to delete
-  //       a nullptr. This is true for standard allocators, but potentially not
-  //       for a custom allocator. So maybe should add a null check.
   void destroy() {
-    delete m_t;
+    if (m_t) { delete m_t; }
   }
 };
 
