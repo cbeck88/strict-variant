@@ -9,7 +9,7 @@ in your C++ projects?
 
 Do you get annoyed that code like this will compile, without any warning or error message?
 
-```
+```c++
   boost::variant<std::string, int> v;  
 
   v = true;  
@@ -17,7 +17,7 @@ Do you get annoyed that code like this will compile, without any warning or erro
 
 Do you get annoyed that code like this will compile on some machines, but not others?
 
-```
+```c++
   boost::variant<long, unsigned int> v;  
 
   v = 10;  
@@ -55,7 +55,7 @@ several integral types.
 This happens commonly when using variant types to interface with some scripting language for instance. The typical dynamically-typed
 scripting language will permit a variety of primitive values, so when binding to it, you may naturally end up with something like
 
-```
+```c++
     boost::variant<bool, int, float, std::string, ...>
 ```
 
@@ -98,7 +98,7 @@ But in scenarios like those it was designed for, it may be easier to reason abou
 Synopsis
 ========
 
-```
+```c++
 namespace safe_variant {
 
   template <typename First, typename... Types>
@@ -210,7 +210,7 @@ I guess I recommend you to use a namespace alias for that, e.g. `namespace util 
 use a series of using declarations. In another project that uses this library, I did this:
 
 
-```
+```c++
     // util/variant_fwd.hpp
     
     #include <safe_variant/variant_fwd.hpp>
@@ -220,7 +220,7 @@ use a series of using declarations. In another project that uses this library, I
     }
 ```
 
-```
+```c++
     // util/variant.hpp
     #include <safe_variant/variant.hpp>
     #include <safe_variant/static_visitor.hpp>
