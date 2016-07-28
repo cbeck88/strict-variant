@@ -1,9 +1,9 @@
 #include "bench.hpp"
-#include <safe_variant/variant.hpp>
-#include <cstddef>
 #include <chrono>
+#include <cstddef>
 #include <cstdio>
 #include <memory>
+#include <safe_variant/variant.hpp>
 #include <utility>
 
 static constexpr uint32_t num_variants{NUM_VARIANTS};
@@ -25,11 +25,13 @@ struct visitor_applier {
   }
 };
 
-int main() {
+int
+main() {
   using bench_task_t = bench_task<safe_variant::variant, num_variants, seq_length>;
   std::unique_ptr<bench_task_t> task{new bench_task_t()};
 
-  std::fprintf(stdout, "safe_variant::variant:\n  num_variants = %u\n  seq_length = %u\n\n", num_variants, seq_length);
+  std::fprintf(stdout, "safe_variant::variant:\n  num_variants = %u\n  seq_length = %u\n\n",
+               num_variants, seq_length);
 
   auto const start = std::chrono::high_resolution_clock::now();
 
@@ -37,9 +39,10 @@ int main() {
 
   auto const end = std::chrono::high_resolution_clock::now();
 
-  unsigned long us = std::chrono::duration_cast<std::chrono::microseconds>(end-start).count();
+  unsigned long us = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
   std::fprintf(stdout, "took %lu microseconds\n", us);
-  std::fprintf(stdout, "average nanoseconds per visit: %f\n\n\n", (static_cast<double>(us) / seq_length) * 1000);
+  std::fprintf(stdout, "average nanoseconds per visit: %f\n\n\n",
+               (static_cast<double>(us) / seq_length) * 1000);
 
   return result != 0;
 }
