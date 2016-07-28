@@ -388,12 +388,12 @@ public:
   /// Implementation note:
   /// An additional issue to consider is what happens when the variant is
   /// declared
-  /// using an incomplete type, like safe_variant::reference_wrapper<T>
+  /// using an incomplete type, like safe_variant::recursive_wrapper<T>
   ///
   /// Generally, what we do is allow construction in that slot from T, const T
   /// &,
-  /// and T&&, as well as well as safe_variant::reference_wrapper<T>,
-  /// const safe_variant::reference_wrapper<T> &, and safe_variant::reference_wrapper<T> &&.
+  /// and T&&, as well as well as safe_variant::recursive_wrapper<T>,
+  /// const safe_variant::recursive_wrapper<T> &, and safe_variant::recursive_wrapper<T> &&.
   /// This check can be performed without knowing the complete defintiion of T,
   /// so even if there are "point of instantiation" issues it will work out.
   /// The details are in `detail::allow_variant_construction`.
@@ -503,7 +503,7 @@ public:
   // Helper template which, given a "get" request, gets the index of the type in
   // our list which
   // corresponds to it. It must match exactly, modulo const and
-  // reference_wrapper.
+  // recursive_wrapper.
   template <typename T>
   struct get_index_helper {
     static constexpr size_t value =
@@ -519,7 +519,7 @@ public:
     using internal_type = mpl::Index_t<idx, First, Types...>;
 
     if (idx == m_which) {
-      return &maybe_pierce_reference_wrapper<T>(*reinterpret_cast<internal_type *>(this->address()));
+      return &maybe_pierce_recursive_wrapper<T>(*reinterpret_cast<internal_type *>(this->address()));
     } else {
       return nullptr;
     }
@@ -533,7 +533,7 @@ public:
     using internal_type = mpl::Index_t<idx, First, Types...>;
 
     if (idx == m_which) {
-      return &maybe_pierce_reference_wrapper<T>(
+      return &maybe_pierce_recursive_wrapper<T>(
         *reinterpret_cast<const internal_type *>(this->address()));
     } else {
       return nullptr;

@@ -129,29 +129,29 @@ template <typename T>
 using unwrap_type_t = typename unwrap_type<T>::type;
 
 /***
- * Function to pierce the reference wrapper
+ * Function to pierce the recursive wrapper
  */
 template <typename T>
 inline T &
-maybe_pierce_reference_wrapper(T & t) {
+maybe_pierce_recursive_wrapper(T & t) {
   return t;
 }
 
 template <typename T>
 inline T &
-maybe_pierce_reference_wrapper(recursive_wrapper<T> & t) {
+maybe_pierce_recursive_wrapper(recursive_wrapper<T> & t) {
   return t.get();
 }
 
 template <typename T>
 inline const T &
-maybe_pierce_reference_wrapper(const T & t) {
+maybe_pierce_recursive_wrapper(const T & t) {
   return t;
 }
 
 template <typename T>
 inline const T &
-maybe_pierce_reference_wrapper(const recursive_wrapper<T> & t) {
+maybe_pierce_recursive_wrapper(const recursive_wrapper<T> & t) {
   return t.get();
 }
 
