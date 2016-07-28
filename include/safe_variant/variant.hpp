@@ -398,11 +398,10 @@ public:
   /// so even if there are "point of instantiation" issues it will work out.
   /// The details are in `detail::allow_variant_construction`.
   ///
-  template <
-    typename T,
-    typename Enable =
-      mpl::enable_if_t<mpl::Find_Any<detail::allow_variant_construct_from<T>::template prop,
-                                            First, Types...>::value>>
+  template <typename T,
+            typename Enable =
+              mpl::enable_if_t<mpl::Find_Any<detail::allow_variant_construct_from<T>::template prop,
+                                             First, Types...>::value>>
   variant(T && t) {
     static_assert(!std::is_same<variant &, mpl::remove_const_t<T>>::value,
                   "why is variant(T&&) instantiated with a variant? why was a special "
@@ -421,10 +420,9 @@ public:
   /// Allow constructing from a variant over a subset of our types
   /// (Boost variant does this, and we need it to comfortably interact with
   /// spirit)
-  template <
-    typename OFirst, typename... OTypes,
-    typename Enable = mpl::enable_if_t<detail::proper_subvariant<variant<OFirst, OTypes...>,
-                                                                        variant>::value>>
+  template <typename OFirst, typename... OTypes,
+            typename Enable = mpl::enable_if_t<detail::proper_subvariant<variant<OFirst, OTypes...>,
+                                                                         variant>::value>>
   variant(const variant<OFirst, OTypes...> & other) {
     whicher w; // construct whicher for MY type
     // get the which before applying the other visitor
@@ -436,10 +434,9 @@ public:
   }
 
   /// "Generalizing" move ctor, similar as above
-  template <
-    typename OFirst, typename... OTypes,
-    typename Enable = mpl::enable_if_t<detail::proper_subvariant<variant<OFirst, OTypes...>,
-                                                                        variant>::value>>
+  template <typename OFirst, typename... OTypes,
+            typename Enable = mpl::enable_if_t<detail::proper_subvariant<variant<OFirst, OTypes...>,
+                                                                         variant>::value>>
   variant(variant<OFirst, OTypes...> && other) noexcept {
     whicher w; // construct whicher for MY type
     // get which of other which before applying the other visitor
@@ -512,8 +509,8 @@ public:
   template <typename T>
   struct get_index_helper {
     static constexpr size_t value =
-      mpl::Find_With<mpl::sameness<mpl::remove_const_t<T>>::template prop,
-                     unwrap_type_t<First>, unwrap_type_t<Types>...>::value;
+      mpl::Find_With<mpl::sameness<mpl::remove_const_t<T>>::template prop, unwrap_type_t<First>,
+                     unwrap_type_t<Types>...>::value;
   };
 
   template <typename T>
@@ -553,8 +550,8 @@ public:
   template <typename T>
   struct emplace_index_helper {
     static constexpr size_t value =
-      mpl::Find_With<mpl::sameness<mpl::remove_const_t<T>>::template prop,
-                     unwrap_type_t<First>, unwrap_type_t<Types>...>::value;
+      mpl::Find_With<mpl::sameness<mpl::remove_const_t<T>>::template prop, unwrap_type_t<First>,
+                     unwrap_type_t<Types>...>::value;
   };
 
   template <typename T, typename... Us>

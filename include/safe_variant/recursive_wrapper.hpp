@@ -8,8 +8,8 @@
 /***
  * For use with safe_variant::variant
  */
-#include <safe_variant/variant_fwd.hpp>
 #include <safe_variant/remove_reference.hpp>
+#include <safe_variant/variant_fwd.hpp>
 #include <type_traits>
 #include <utility>
 
@@ -24,13 +24,11 @@ public:
   recursive_wrapper()
     : m_t(new T()) {}
 
-  template <typename U,
-            typename Dummy = mpl::enable_if_t<std::is_convertible<U, T>::value>>
+  template <typename U, typename Dummy = mpl::enable_if_t<std::is_convertible<U, T>::value>>
   recursive_wrapper(const U & u)
     : m_t(new T(u)) {}
 
-  template <typename U,
-            typename Dummy = mpl::enable_if_t<std::is_convertible<U, T>::value>>
+  template <typename U, typename Dummy = mpl::enable_if_t<std::is_convertible<U, T>::value>>
   recursive_wrapper(U && u)
     : m_t(new T(std::forward<U>(u))) {}
 

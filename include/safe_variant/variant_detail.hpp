@@ -33,9 +33,10 @@ template <typename Internal, typename T, typename Storage, typename Visitor, typ
 auto
 visitor_caller(Internal && internal, Storage && storage, Visitor && visitor, Args &&... args) ->
   typename mpl::remove_reference_t<Visitor>::result_type {
-  typedef typename std::conditional<std::is_const<typename std::remove_extent<
-                                      mpl::remove_reference_t<Storage>>::type>::value,
-                                    const T, T>::type ConstType;
+  typedef typename std::
+    conditional<std::is_const<
+                  typename std::remove_extent<mpl::remove_reference_t<Storage>>::type>::value,
+                const T, T>::type ConstType;
 
   return std::forward<Visitor>(visitor)(
     get_value(*reinterpret_cast<ConstType *>(storage), internal), std::forward<Args>(args)...);

@@ -83,15 +83,13 @@ struct safely_constructible : public std::is_constructible<A, B> {};
 
 // If both are numeric, then remove references and cv and pass to safe_by_rank
 template <typename A, typename B>
-struct safely_constructible<A, B, enable_if_t<is_numeric<A>::value
-                                                          && is_numeric<B>::value>>
+struct safely_constructible<A, B, enable_if_t<is_numeric<A>::value && is_numeric<B>::value>>
   : public safe_by_rank<remove_cv_t<remove_reference_t<A>>, remove_cv_t<remove_reference_t<B>>> {};
 
 // If both are pointer, then check if they are the same modulo CV / reference,
 // after decay of B.
 template <typename A, typename B>
-struct safely_constructible<A, B,
-                            enable_if_t<is_ptr<A>::value && is_ptr<B>::value>> {
+struct safely_constructible<A, B, enable_if_t<is_ptr<A>::value && is_ptr<B>::value>> {
   using A2 = remove_reference_t<remove_cv_t<A>>;
   using B2 = remove_reference_t<remove_cv_t<decay_t<B>>>;
   static constexpr bool value = std::is_same<A2, B2>::value;
@@ -102,8 +100,7 @@ struct safely_constructible<A, B,
 // it is forbidden.
 template <typename A, typename B>
 struct safely_constructible<A, B, enable_if_t<(is_numeric<A>::value && is_ptr<B>::value)
-                                                          || (is_ptr<A>::value
-                                                              && is_numeric<B>::value)>> {
+                                              || (is_ptr<A>::value && is_numeric<B>::value)>> {
   static constexpr bool value = false;
 };
 
