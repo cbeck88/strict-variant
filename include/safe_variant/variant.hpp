@@ -103,19 +103,11 @@ private:
    * Check noexcept status of special member functions of our types
    */
 
-  // Assert that first is default-constructible
-  // static_assert(std::is_default_constructible<First>::value, "The first type
-  // in the variant list
-  // must be default constructible, otherwise the variant cannot be default
-  // constructed.");
-
   static_assert(mpl::All_Have<std::is_nothrow_destructible, First>::value,
                 "All types in this variant type must be nothrow destructible");
   static_assert(mpl::All_Have<std::is_nothrow_destructible, Types...>::value,
                 "All types in this variant type must be nothrow destructible");
 
-  // TODO: Sort out difficulties where some CEGUI primitives, std::string, don't
-  // have this...
   // static_assert(mpl::All_Have<std::is_nothrow_move_constructible,
   // First>::value,
   //               "All types in this variant type must be nothrow move
@@ -140,7 +132,7 @@ private:
   // exception safey, but
   // in this project we will crash in that case anyways. Not appropriate for
   // fighter-jet code :p
-  static constexpr bool assume_copy_nothrow = true;
+  static constexpr bool assume_copy_nothrow = false;
 
   /***
    * Determine size and alignment of our storage
@@ -322,8 +314,8 @@ public:
   variant() {
     // try to construct First
     // if this fails then First is not default constructible
-    construct(First());
-    indicate_which(0);
+    this->construct(First());
+    this->indicate_which(0);
   }
 
   ~variant() noexcept { destroy(); }
@@ -443,7 +435,7 @@ public:
 
     constructor c(*this);
     other.apply_visitor_internal(c);
-    indicate_which(my_which);
+    this->indicate_which(my_which);
   }
 
   /// "Generalizing" move ctor, similar as above
@@ -459,26 +451,26 @@ public:
 
     move_constructor c(*this);
     other.apply_visitor_internal(c);
-    indicate_which(my_which);
+    this->indicate_which(my_which);
   }
 
   variant(const variant & rhs) noexcept(assume_copy_nothrow) {
     constructor c(*this);
     rhs.apply_visitor_internal(c);
-    indicate_which(rhs.which());
+    this->indicate_which(rhs.which());
   }
 
   variant(variant && rhs) noexcept {
     move_constructor mc(*this);
     rhs.apply_visitor_internal(mc);
-    indicate_which(rhs.which());
+    this->indicate_which(rhs.which());
   }
 
   variant & operator=(const variant & rhs) noexcept(assume_copy_nothrow) {
     if (this != &rhs) {
       assigner a(*this, rhs.which());
       rhs.apply_visitor_internal(a);
-      indicate_which(rhs.which());
+      this->indicate_which(rhs.which());
     }
     return *this;
   }
@@ -489,7 +481,7 @@ public:
     if (this != &rhs) {
       move_assigner ma(*this, rhs.which());
       rhs.apply_visitor_internal(ma);
-      indicate_which(rhs.which());
+      this->indicate_which(rhs.which());
     }
     return *this;
   }
@@ -576,9 +568,9 @@ public:
                   "Requested type is not a member of this variant type");
     using internal_type = mpl::Index_t<idx, First, Types...>;
 
-    destroy();
+    this->destroy();
     new (m_storage) internal_type(std::forward<Us>(us)...);
-    indicate_which(idx);
+    this->indicate_which(idx);
   }
 
 private:
@@ -603,7 +595,7 @@ private:
 
   void destroy() {
     destroyer d;
-    apply_visitor_internal(d);
+    this->apply_visitor_internal(d);
   }
 
   template <typename T>
@@ -655,20 +647,5 @@ get_or_default(variant<Types...> & v, T def = {}) {
   // ASSERT(t && "Move assignment to a variant failed to change its type!");
   return *t;
 }
-
-/***
- * Metafuction to convert a typelist to a variant
- */
-
-template <typename T>
-struct Unpack_Variant;
-
-template <typename... Ts>
-struct Unpack_Variant<TypeList<Ts...>> {
-  typedef safe_variant::variant<Ts...> type;
-};
-
-template <typename T>
-using Unpack_Variant_t = typename Unpack_Variant<T>::type;
 
 } // end namespace safe_variant
