@@ -267,7 +267,6 @@ private:
   };
 
   // whicher
-
   struct whicher {
     typedef int result_type;
 
@@ -427,11 +426,11 @@ public:
   variant(const variant<OFirst, OTypes...> & other) {
     whicher w; // construct whicher for MY type
     // get the which before applying the other visitor
-    int my_which = other.apply_visitor_internal(w);
+    int new_which = other.apply_visitor_internal(w);
 
     constructor c(*this);
     other.apply_visitor_internal(c);
-    this->indicate_which(my_which);
+    this->indicate_which(new_which);
   }
 
   /// "Generalizing" move ctor, similar as above
@@ -441,11 +440,11 @@ public:
   variant(variant<OFirst, OTypes...> && other) noexcept {
     whicher w; // construct whicher for MY type
     // get which of other which before applying the other visitor
-    int my_which = other.apply_visitor_internal(w);
+    int new_which = other.apply_visitor_internal(w);
 
     move_constructor c(*this);
     other.apply_visitor_internal(c);
-    this->indicate_which(my_which);
+    this->indicate_which(new_which);
   }
 
   variant(const variant & rhs) noexcept(assume_copy_nothrow) {
@@ -611,15 +610,15 @@ apply_visitor(Visitor && visitor, Visitable & visitable, Args &&... args) -> vis
 /***
  * safe_variant::get function (same semantics as boost::get with pointer type)
  */
-template <typename T, typename First, typename... Types>
+template <typename T, typename... Types>
 T *
-get(variant<First, Types...> * var) noexcept {
+get(variant<Types...> * var) noexcept {
   return var->template get<T>();
 }
 
-template <typename T, typename First, typename... Types>
+template <typename T, typename... Types>
 const T *
-get(const variant<First, Types...> * var) noexcept {
+get(const variant<Types...> * var) noexcept {
   return var->template get<T>();
 }
 
