@@ -118,6 +118,8 @@ namespace safe_variant {
 
     // Constructs the variant from a type outside the variant,
     // using iterative strategy described in docs.
+    // (SFINAE expression omitted here)
+    template <typename T>
     variant(T &&);
 
     // Constructs the variant from a "subvariant", that is, another variant
@@ -141,6 +143,7 @@ namespace safe_variant {
     // Force the variant to a particular value. You should pass T as the (only)
     // template parameter when invoking this, and T should be in the list
     // <First, Types...>, modulo recursive_wrapper.
+    // (SFINAE expression omitted here)
     template <typename T, typename... Args>
     void emplace(Args && ... args);
   };
