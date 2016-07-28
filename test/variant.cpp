@@ -487,7 +487,6 @@ struct test_visitor : static_visitor<> {
   void operator()(T &&) && {
     flag_ = 3;
   }
-
 };
 
 UNIT_TEST(visitation) {

@@ -520,7 +520,8 @@ public:
     using internal_type = mpl::Index_t<idx, First, Types...>;
 
     if (idx == m_which) {
-      return &maybe_pierce_recursive_wrapper<T>(*reinterpret_cast<internal_type *>(this->address()));
+      return &maybe_pierce_recursive_wrapper<T>(
+        *reinterpret_cast<internal_type *>(this->address()));
     } else {
       return nullptr;
     }
@@ -603,7 +604,8 @@ private:
 template <typename Visitor, typename Visitable, typename... Args>
 auto
 apply_visitor(Visitor && visitor, Visitable & visitable, Args &&... args) -> vis_result_t<Visitor> {
-  return visitable.template apply_visitor<detail::false_>(std::forward<Visitor>(visitor), std::forward<Args>(args)...);
+  return visitable.template apply_visitor<detail::false_>(std::forward<Visitor>(visitor),
+                                                          std::forward<Args>(args)...);
 }
 
 /***
