@@ -25,47 +25,44 @@ struct test_exception : std::exception {
   explicit test_exception(const std::string & m)
     : message_(m) {}
 
-  virtual const char * what() const throw() override {
-    return message_.c_str();
-  }
+  virtual const char * what() const throw() override { return message_.c_str(); }
 };
 
 /***
  * Macros which create assertions
  */
 
-#define TEST(C, X)                                                             \
-  do {                                                                         \
-    if (!(C)) {                                                                \
-      std::ostringstream ss__;                                                 \
-      ss__ << "Condition " #C " failed (line " << __LINE__ << ") : " << X;     \
-      throw test_exception{ss__.str()};                                        \
-    }                                                                          \
+#define TEST(C, X)                                                                                 \
+  do {                                                                                             \
+    if (!(C)) {                                                                                    \
+      std::ostringstream ss__;                                                                     \
+      ss__ << "Condition " #C " failed (line " << __LINE__ << ") : " << X;                         \
+      throw test_exception{ss__.str()};                                                            \
+    }                                                                                              \
   } while (0)
 
-#define TEST_EQ(A, B)                                                          \
-  do {                                                                         \
-    if (!((A) == (B))) {                                                       \
-      std::ostringstream ss__;                                                 \
-      ss__ << "Condition " #A " == " #B " failed: (line " << __LINE__          \
-           << ")\n        (LHS) = (" << (A) << ") , (RHS) = (" << (B) << ")";  \
-      throw test_exception{ss__.str()};                                        \
-    }                                                                          \
+#define TEST_EQ(A, B)                                                                              \
+  do {                                                                                             \
+    if (!((A) == (B))) {                                                                           \
+      std::ostringstream ss__;                                                                     \
+      ss__ << "Condition " #A " == " #B " failed: (line " << __LINE__ << ")\n        (LHS) = ("    \
+           << (A) << ") , (RHS) = (" << (B) << ")";                                                \
+      throw test_exception{ss__.str()};                                                            \
+    }                                                                                              \
   } while (0)
 
-#define TEST_NE(A, B)                                                          \
-  do {                                                                         \
-    if (((A) == (B))) {                                                        \
-      std::ostringstream ss__;                                                 \
-      ss__ << "Condition " #A " != " #B " failed: (line " << __LINE__          \
-           << ")\n        (LHS) = (" << (A) << ") , (RHS) = (" << (B) << ")";  \
-      throw test_exception{ss__.str()};                                        \
-    }                                                                          \
+#define TEST_NE(A, B)                                                                              \
+  do {                                                                                             \
+    if (((A) == (B))) {                                                                            \
+      std::ostringstream ss__;                                                                     \
+      ss__ << "Condition " #A " != " #B " failed: (line " << __LINE__ << ")\n        (LHS) = ("    \
+           << (A) << ") , (RHS) = (" << (B) << ")";                                                \
+      throw test_exception{ss__.str()};                                                            \
+    }                                                                                              \
   } while (0)
 
-
-#define TEST_TRUE(C) TEST(C, "Expected true: " #C )
-#define TEST_FALSE(C) TEST(!C, "Expected false: " #C )
+#define TEST_TRUE(C) TEST(C, "Expected true: " #C)
+#define TEST_FALSE(C) TEST(!C, "Expected false: " #C)
 
 /***
  * Test harness object
@@ -89,14 +86,11 @@ struct test_harness {
         okay = true;
       } catch (test_exception & te) {
         t.report_fail();
-        std::cout << "      A test condition was not met.\n      " << te.what()
-                  << std::endl;
+        std::cout << "      A test condition was not met.\n      " << te.what() << std::endl;
       } catch (std::exception & e) {
-        std::cout << "      A standard exception was thrown.\n      "
-                  << e.what() << std::endl;
+        std::cout << "      A standard exception was thrown.\n      " << e.what() << std::endl;
       } catch (...) {
-        std::cout << "      An unknown (exception?) was thrown.\n      !!!"
-                  << std::endl;
+        std::cout << "      An unknown (exception?) was thrown.\n      !!!" << std::endl;
       }
       if (okay) {
         t.report_okay();
@@ -114,15 +108,13 @@ struct test_harness {
 
 class test_registrar {
 
-static std::vector<test_record> & all_tests() {
-  static std::vector<test_record> instance;
-  return instance;
-}
+  static std::vector<test_record> & all_tests() {
+    static std::vector<test_record> instance;
+    return instance;
+  }
 
 public:
-  static void add_test(test_record t) {
-    all_tests().emplace_back(std::move(t));
-  }
+  static void add_test(test_record t) { all_tests().emplace_back(std::move(t)); }
 
   static int run_tests() {
 
@@ -145,7 +137,7 @@ struct test_registration_object {
   }
 };
 
-#define UNIT_TEST(NAME)                        \
-void test_##NAME();                            \
-test_registration_object registr_##NAME{#NAME, &test_##NAME}; \
-void test_##NAME()
+#define UNIT_TEST(NAME)                                                                            \
+  void test_##NAME();                                                                              \
+  test_registration_object registr_##NAME{#NAME, &test_##NAME};                                    \
+  void test_##NAME()

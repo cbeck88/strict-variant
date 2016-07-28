@@ -120,39 +120,33 @@ struct _dummy_t_2 {};
 static_assert(std::is_same<_dummy_t_1, Car<TypeList<_dummy_t_1, _dummy_t_2>>>::value,
               "unit test failed");
 
-
 static_assert(std::is_same<TypeList<_dummy_t_2>, Cdr<TypeList<_dummy_t_1, _dummy_t_2>>>::value,
               "unit test failed");
-
-
 
 /////////////////////////
 // VARIANT TYPE TRAITS //
 /////////////////////////
 
-
 // Check the proper_subvariant trait, which is used to enable "generalizing"
 // ctor
 // without interfering with special member functions.
-static_assert(detail::proper_subvariant<variant<int, double>,
-                                              variant<int, double, std::string>>::value,
-              "failed a unit test");
+static_assert(
+  detail::proper_subvariant<variant<int, double>, variant<int, double, std::string>>::value,
+  "failed a unit test");
 
 static_assert(detail::proper_subvariant<variant<int, std::string, double>,
-                                              variant<int, double, std::string>>::value,
-              "failed a unit test");
-
-static_assert(!detail::proper_subvariant<variant<int, std::string, double>,
-                                               variant<int, double>>::value,
+                                        variant<int, double, std::string>>::value,
               "failed a unit test");
 
 static_assert(
-  !detail::proper_subvariant<variant<int, double>, variant<int, double>>::value,
+  !detail::proper_subvariant<variant<int, std::string, double>, variant<int, double>>::value,
   "failed a unit test");
 
-// Check nothrow status
-static_assert(std::is_nothrow_destructible<variant<int, double>>::value,
+static_assert(!detail::proper_subvariant<variant<int, double>, variant<int, double>>::value,
               "failed a unit test");
+
+// Check nothrow status
+static_assert(std::is_nothrow_destructible<variant<int, double>>::value, "failed a unit test");
 static_assert(std::is_nothrow_move_constructible<variant<int, double>>::value,
               "failed a unit test");
 
@@ -187,7 +181,6 @@ static_assert(!detail::allow_variant_construction<float, double &&>::value, "fai
 static_assert(detail::allow_variant_construction<double, float &&>::value, "failed a unit test");
 
 // Testing typlist
-
 
 // Check that variant is resolving "ambiguous" constructions as expected
 UNIT_TEST(ambiguous_string) {

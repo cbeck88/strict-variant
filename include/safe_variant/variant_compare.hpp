@@ -5,8 +5,8 @@
 
 #pragma once
 
-#include <safe_variant/variant.hpp>
 #include <functional>
+#include <safe_variant/variant.hpp>
 #include <type_traits>
 
 /***
@@ -34,13 +34,11 @@
 
 namespace safe_variant {
 
-template <typename T,
-          template <typename> class ComparatorTemplate = std::less,
+template <typename T, template <typename> class ComparatorTemplate = std::less,
           typename WhichComparator_t = std::less<int>>
 struct variant_comparator;
 
-template <typename... types,
-          template <typename> class ComparatorTemplate,
+template <typename... types, template <typename> class ComparatorTemplate,
           typename WhichComparator_t>
 struct variant_comparator<variant<types...>, ComparatorTemplate, WhichComparator_t> {
 

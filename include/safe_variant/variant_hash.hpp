@@ -5,9 +5,9 @@
 
 #pragma once
 
-#include <safe_variant/variant.hpp>
 #include <cstddef>
 #include <functional>
+#include <safe_variant/variant.hpp>
 
 //- hash support:
 namespace std {
@@ -18,21 +18,19 @@ struct hash<safe_variant::variant<Ts...>> {
   using argument_type = safe_variant::variant<Ts...>;
   using result_type = std::size_t;
 
-
 private:
   struct hasher {
     using result_type = std::size_t;
     template <typename Arg>
-    std::size_t operator()(const Arg &arg) const {
+    std::size_t operator()(const Arg & arg) const {
       return std::hash<Arg>{}(arg);
     }
-  };  // hasher
+  }; // hasher
 
 public:
-
-  std::size_t operator()(const argument_type &v) const {
+  std::size_t operator()(const argument_type & v) const {
     return safe_variant::apply_visitor(hasher{}, v) + (31 * v.which());
   }
-};  // hash<safe_variant::variant<Ts...>>
+}; // hash<safe_variant::variant<Ts...>>
 
 } // namespace std

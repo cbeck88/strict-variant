@@ -9,8 +9,8 @@
  * Enable streaming operations for variant types
  */
 
-#include <safe_variant/variant.hpp>
 #include <iosfwd>
+#include <safe_variant/variant.hpp>
 
 namespace safe_variant {
 

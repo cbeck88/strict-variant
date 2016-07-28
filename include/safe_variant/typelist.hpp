@@ -141,5 +141,4 @@ struct Back_Of_s<TypeList<T, Ts...>> : Index_At<TypeList<T, Ts...>, sizeof...(Ts
 template <typename T>
 using Back_Of = Back_Of_s<T>;
 
-
 } // end namespace safe_variant

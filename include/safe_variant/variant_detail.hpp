@@ -32,14 +32,13 @@ namespace detail {
 template <typename Internal, typename T, typename Storage, typename Visitor, typename... Args>
 auto
 visitor_caller(Internal && internal, Storage && storage, Visitor && visitor, Args &&... args) ->
-  typename mpl::remove_reference_t<Visitor>::result_type
- {
+  typename mpl::remove_reference_t<Visitor>::result_type {
   typedef typename std::conditional<std::is_const<typename std::remove_extent<
                                       typename std::remove_reference<Storage>::type>::type>::value,
                                     const T, T>::type ConstType;
 
-  return std::forward<Visitor>(visitor)(get_value(*reinterpret_cast<ConstType *>(storage), internal),
-                 std::forward<Args>(args)...);
+  return std::forward<Visitor>(visitor)(
+    get_value(*reinterpret_cast<ConstType *>(storage), internal), std::forward<Args>(args)...);
 }
 
 /// Helper object which dispatches a visitor object to the appropriate
@@ -57,13 +56,11 @@ visitor_caller(Internal && internal, Storage && storage, Visitor && visitor, Arg
 template <typename... AllTypes>
 struct jumptable_dispatch {
   template <typename Internal, typename VoidPtrCV, typename Visitor, typename... Args>
-  auto operator()(Internal && internal,
-                  const unsigned int which,
-                  VoidPtrCV && storage,
-                  Visitor && visitor,
-                  Args &&... args) -> typename mpl::remove_reference_t<Visitor>::result_type {
-    using whichCaller = typename mpl::remove_reference_t<Visitor>::result_type (*)(Internal &&, VoidPtrCV &&, Visitor &&,
-                                                         Args && ...);
+  auto operator()(Internal && internal, const unsigned int which, VoidPtrCV && storage,
+                  Visitor && visitor, Args &&... args) ->
+    typename mpl::remove_reference_t<Visitor>::result_type {
+    using whichCaller = typename mpl::remove_reference_t<Visitor>::result_type (*)(
+      Internal &&, VoidPtrCV &&, Visitor &&, Args && ...);
 
     static whichCaller callers[sizeof...(AllTypes)] = {
       &visitor_caller<Internal &&, AllTypes, VoidPtrCV &&, Visitor, Args &&...>...};
@@ -97,11 +94,9 @@ struct binary_search_dispatch;
 template <unsigned int base, typename T>
 struct binary_search_dispatch<base, TypeList<T>> {
   template <typename Internal, typename VoidPtrCV, typename Visitor, typename... Args>
-  auto operator()(Internal && internal,
-                  const unsigned int which,
-                  VoidPtrCV && storage,
-                  Visitor && visitor,
-                  Args &&... args) -> typename mpl::remove_reference_t<Visitor>::result_type {
+  auto operator()(Internal && internal, const unsigned int which, VoidPtrCV && storage,
+                  Visitor && visitor, Args &&... args) ->
+    typename mpl::remove_reference_t<Visitor>::result_type {
     // ASSERT(which == base);
     static_cast<void>(which);
 
@@ -120,11 +115,9 @@ struct binary_search_dispatch<base, TypeList<T1, T2, Types...>> {
   static constexpr unsigned int split_point = base + static_cast<unsigned int>(TL::size);
 
   template <typename Internal, typename VoidPtrCV, typename Visitor, typename... Args>
-  auto operator()(Internal && internal,
-                  const unsigned int which,
-                  VoidPtrCV && storage,
-                  Visitor && visitor,
-                  Args &&... args) -> typename mpl::remove_reference_t<Visitor>::result_type {
+  auto operator()(Internal && internal, const unsigned int which, VoidPtrCV && storage,
+                  Visitor && visitor, Args &&... args) ->
+    typename mpl::remove_reference_t<Visitor>::result_type {
 
     if (which < split_point) {
       return binary_search_dispatch<base, TL>{}(
@@ -150,16 +143,13 @@ struct visitor_dispatch {
   // using chosen_dispatch_t = jumptable_dispatch<AllTypes...>;
 
   using chosen_dispatch_t =
-    typename std::conditional<(sizeof...(AllTypes) > switch_point),
-                              jumptable_dispatch<AllTypes...>,
+    typename std::conditional<(sizeof...(AllTypes) > switch_point), jumptable_dispatch<AllTypes...>,
                               binary_search_dispatch<0, TypeList<AllTypes...>>>::type;
 
   template <typename Internal, typename VoidPtrCV, typename Visitor, typename... Args>
-  auto operator()(Internal && internal,
-                  const unsigned int which,
-                  VoidPtrCV && storage,
-                  Visitor && visitor,
-                  Args &&... args) -> typename mpl::remove_reference_t<Visitor>::result_type {
+  auto operator()(Internal && internal, const unsigned int which, VoidPtrCV && storage,
+                  Visitor && visitor, Args &&... args) ->
+    typename mpl::remove_reference_t<Visitor>::result_type {
 
     return chosen_dispatch_t{}(std::forward<Internal>(internal), which,
                                std::forward<VoidPtrCV>(storage), std::forward<Visitor>(visitor),
@@ -238,17 +228,20 @@ struct allow_variant_construction<safe_variant::recursive_wrapper<T>, T &&> {
 };
 
 template <typename T>
-struct allow_variant_construction<safe_variant::recursive_wrapper<T>, safe_variant::recursive_wrapper<T>> {
+struct allow_variant_construction<safe_variant::recursive_wrapper<T>,
+                                  safe_variant::recursive_wrapper<T>> {
   static constexpr bool value = true;
 };
 
 template <typename T>
-struct allow_variant_construction<safe_variant::recursive_wrapper<T>, const safe_variant::recursive_wrapper<T> &> {
+struct allow_variant_construction<safe_variant::recursive_wrapper<T>,
+                                  const safe_variant::recursive_wrapper<T> &> {
   static constexpr bool value = true;
 };
 
 template <typename T>
-struct allow_variant_construction<safe_variant::recursive_wrapper<T>, safe_variant::recursive_wrapper<T> &&> {
+struct allow_variant_construction<safe_variant::recursive_wrapper<T>,
+                                  safe_variant::recursive_wrapper<T> &&> {
   static constexpr bool value = true;
 };
 

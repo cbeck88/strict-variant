@@ -98,7 +98,6 @@ template <typename First, typename... Types>
 class variant {
 
 private:
-
   /***
    * Check noexcept status of special member functions of our types
    */
@@ -403,8 +402,7 @@ public:
     typename T,
     typename Enable =
       typename std::enable_if<mpl::Find_Any<detail::allow_variant_construct_from<T>::template prop,
-                                            First,
-                                            Types...>::value>::type>
+                                            First, Types...>::value>::type>
   variant(T && t) {
     static_assert(!std::is_same<variant &, typename std::remove_cv<T>::type>::value,
                   "why is variant(T&&) instantiated with a variant? why was a special "
@@ -424,8 +422,7 @@ public:
   /// (Boost variant does this, and we need it to comfortably interact with
   /// spirit)
   template <
-    typename OFirst,
-    typename... OTypes,
+    typename OFirst, typename... OTypes,
     typename Enable = typename std::enable_if<detail::proper_subvariant<variant<OFirst, OTypes...>,
                                                                         variant>::value>::type>
   variant(const variant<OFirst, OTypes...> & other) {
@@ -440,8 +437,7 @@ public:
 
   /// "Generalizing" move ctor, similar as above
   template <
-    typename OFirst,
-    typename... OTypes,
+    typename OFirst, typename... OTypes,
     typename Enable = typename std::enable_if<detail::proper_subvariant<variant<OFirst, OTypes...>,
                                                                         variant>::value>::type>
   variant(variant<OFirst, OTypes...> && other) noexcept {
@@ -496,15 +492,17 @@ public:
   int which() const { return m_which; }
 
   template <typename Internal, typename Visitor, typename... Args>
-  auto apply_visitor(Visitor && visitor, Args &&... args) -> typename mpl::remove_reference_t<Visitor>::result_type {
-    return detail::visitor_dispatch<First, Types...>()(Internal(), m_which, m_storage, std::forward<Visitor>(visitor),
-                                                       std::forward<Args>(args)...);
+  auto apply_visitor(Visitor && visitor, Args &&... args) ->
+    typename mpl::remove_reference_t<Visitor>::result_type {
+    return detail::visitor_dispatch<First, Types...>()(
+      Internal(), m_which, m_storage, std::forward<Visitor>(visitor), std::forward<Args>(args)...);
   }
 
   template <typename Internal, typename Visitor, typename... Args>
-  auto apply_visitor(Visitor && visitor, Args &&... args) const -> typename mpl::remove_reference_t<Visitor>::result_type {
-    return detail::visitor_dispatch<First, Types...>()(Internal(), m_which, m_storage, std::forward<Visitor>(visitor),
-                                                       std::forward<Args>(args)...);
+  auto apply_visitor(Visitor && visitor, Args &&... args) const ->
+    typename mpl::remove_reference_t<Visitor>::result_type {
+    return detail::visitor_dispatch<First, Types...>()(
+      Internal(), m_which, m_storage, std::forward<Visitor>(visitor), std::forward<Args>(args)...);
   }
 
   // Helper template which, given a "get" request, gets the index of the type in
@@ -515,8 +513,7 @@ public:
   struct get_index_helper {
     static constexpr size_t value =
       mpl::Find_With<mpl::sameness<typename std::remove_const<T>::type>::template prop,
-                     unwrap_type_t<First>,
-                     unwrap_type_t<Types>...>::value;
+                     unwrap_type_t<First>, unwrap_type_t<Types>...>::value;
   };
 
   template <typename T>
@@ -557,8 +554,7 @@ public:
   struct emplace_index_helper {
     static constexpr size_t value =
       mpl::Find_With<mpl::sameness<typename std::remove_const<T>::type>::template prop,
-                     unwrap_type_t<First>,
-                     unwrap_type_t<Types>...>::value;
+                     unwrap_type_t<First>, unwrap_type_t<Types>...>::value;
   };
 
   template <typename T, typename... Us>

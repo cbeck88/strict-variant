@@ -14,14 +14,14 @@ namespace qi = boost::spirit::qi;
 using str_it = std::string::const_iterator;
 using var_one_t = safe_variant::variant<std::string, int>;
 
-
 template <typename Iterator>
 struct test_grammar : qi::grammar<Iterator, var_one_t()> {
   qi::rule<Iterator, std::string()> str_;
   qi::rule<Iterator, int()> int_;
   qi::rule<Iterator, var_one_t()> main_;
 
-  test_grammar() : test_grammar::base_type(main_) {
+  test_grammar()
+    : test_grammar::base_type(main_) {
     str_ = qi::lit("s") >> *qi::char_;
     int_ = qi::lit("i") >> qi::int_;
     main_ = str_ | int_;
@@ -94,7 +94,6 @@ UNIT_TEST(string_int_grammar) {
     TEST_EQ(*i, 70);
   }
 }
-
 
 int
 main() {

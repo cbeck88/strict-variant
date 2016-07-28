@@ -76,9 +76,12 @@ struct find_substitute<safe_variant::variant<Types...>, Expected> {
   struct conv_prop : traits::is_substitute<T, Expected> {};
 
   static constexpr size_t same_or_conv_idx =
-    (same_idx < sizeof...(Types)) ? same_idx : safe_variant::mpl::Find_With<conv_prop, Types...>::value;
+    (same_idx < sizeof...(Types)) ? same_idx
+                                  : safe_variant::mpl::Find_With<conv_prop, Types...>::value;
 
-  typedef typename safe_variant::mpl::Index_At_Or_Fallback<same_or_conv_idx, Expected, Types...>::type type;
+  typedef
+    typename safe_variant::mpl::Index_At_Or_Fallback<same_or_conv_idx, Expected, Types...>::type
+      type;
 };
 
 } // end namespace detail
