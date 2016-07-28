@@ -8,6 +8,7 @@
 #include <safe_variant/find_with.hpp>
 #include <safe_variant/is_member_property.hpp>
 #include <safe_variant/safely_constructible.hpp>
+#include <safe_variant/std_traits.hpp>
 #include <safe_variant/typelist.hpp>
 #include <safe_variant/variant_fwd.hpp>
 
