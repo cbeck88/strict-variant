@@ -310,6 +310,7 @@ private:
   };
 
 public:
+  template <typename = void> // force delayed instantiation
   variant() {
     // try to construct First
     // if this fails then First is not default constructible
