@@ -6,21 +6,14 @@
 #pragma once
 
 /***
- * safe_variant::static_visitor is exactly the same as safe_variant::static_visitor,
+ * safe_variant::static_visitor is exactly the same as boost::static_visitor,
  * for use with safe_variant::variant
  */
 
 namespace safe_variant {
-namespace detail {
-struct is_static_visitor_tag {};
-}
 
 template <typename T = void>
-class static_visitor : public detail::is_static_visitor_tag {
-protected:
-  static_visitor() = default;
-  ~static_visitor() = default;
-
+class static_visitor {
 public:
   typedef T result_type;
 };

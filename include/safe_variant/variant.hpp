@@ -519,7 +519,7 @@ public:
     using internal_type = mpl::Index_t<idx, First, Types...>;
 
     if (idx == m_which) {
-      return &maybe_pierce_reference_wrapper<T>(*reinterpret_cast<internal_type *>(address()));
+      return &maybe_pierce_reference_wrapper<T>(*reinterpret_cast<internal_type *>(this->address()));
     } else {
       return nullptr;
     }
@@ -534,7 +534,7 @@ public:
 
     if (idx == m_which) {
       return &maybe_pierce_reference_wrapper<T>(
-        *reinterpret_cast<const internal_type *>(address()));
+        *reinterpret_cast<const internal_type *>(this->address()));
     } else {
       return nullptr;
     }
