@@ -470,6 +470,45 @@ UNIT_TEST(hashing) {
   TEST_FALSE(s.count(var_t(70)));
 }
 
+struct test_visitor : static_visitor<> {
+  mutable int flag_ = 0;
+
+  template <typename T>
+  void operator()(T &&) & {
+    flag_ = 1;
+  }
+
+  template <typename T>
+  void operator()(T &&) const & {
+    flag_ = 2;
+  }
+
+  template <typename T>
+  void operator()(T &&) && {
+    flag_ = 3;
+  }
+
+};
+
+UNIT_TEST(visitation) {
+  using var_t = variant<std::string, int>;
+  var_t x;
+
+  test_visitor vis;
+
+  TEST_EQ(0, vis.flag_);
+  apply_visitor(vis, x);
+  TEST_EQ(1, vis.flag_);
+  apply_visitor(std::move(vis), x);
+  TEST_EQ(3, vis.flag_);
+  apply_visitor(vis, x);
+  TEST_EQ(1, vis.flag_);
+
+  const test_visitor & vis_cref = vis;
+  apply_visitor(vis_cref, x);
+  TEST_EQ(2, vis.flag_);
+}
+
 } // end namespace safe_variant
 
 int

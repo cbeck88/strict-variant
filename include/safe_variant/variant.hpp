@@ -601,15 +601,8 @@ private:
  */
 template <typename Visitor, typename Visitable, typename... Args>
 auto
-apply_visitor(Visitor & visitor, Visitable & visitable, Args &&... args) -> vis_result_t<Visitor> {
-  return visitable.template apply_visitor<detail::false_>(visitor, std::forward<Args>(args)...);
-}
-
-template <typename Visitor, typename Visitable, typename... Args>
-auto
-apply_visitor(const Visitor & visitor, Visitable & visitable, Args &&... args)
-  -> vis_result_t<Visitor> {
-  return visitable.template apply_visitor<detail::false_>(visitor, std::forward<Args>(args)...);
+apply_visitor(Visitor && visitor, Visitable & visitable, Args &&... args) -> vis_result_t<Visitor> {
+  return visitable.template apply_visitor<detail::false_>(std::forward<Visitor>(visitor), std::forward<Args>(args)...);
 }
 
 /***
