@@ -95,6 +95,80 @@ analogues of the throwing functions in `boost::variant` you'll have to write the
 So, keep in mind, this is not a drop-in replacement for `boost::variant` or one of the other versions, its semantics are fundamentally different.
 But in scenarios like those it was designed for, it may be easier to reason about and less error-prone.
 
+Synopsis
+========
+
+```
+namespace safe_variant {
+
+  template <typename First, typename... Types>
+  class variant {
+
+    // Attempts to default construct the First type.
+    // If First is not default-constructible then this is not available.
+    variant();
+
+    // Nothing special here
+    variant(const variant &);
+    variant & operator=(const variant &);
+
+    variant(variant &&) noexcept;
+    variant & operator=(variant &&) noexcept;
+    ~variant() noexcept;
+
+    // Constructs the variant from a type outside the variant,
+    // using iterative strategy described in docs.
+    variant(T &&);
+
+    // Constructs the variant from a "subvariant", that is, another variant
+    // type which has strictly fewer types, modulo recursive_wrapper.
+    // (SFINAE expression omitted here)
+    template <typename... OTypes>
+    variant(const variant<Otypes...> &);
+
+    template <typename... OTypes>
+    variant(variant<Otypes...> &&);
+
+    // Reports the runtime type. The returned value is an index into the list
+    // <First, Types...>.
+    int which() const;
+
+    // Test for equality. The which values must match, and operator == for the
+    // underlying values must match.
+    bool operator == (const variant &) const;
+    bool operator != (const variant &) const;
+
+    // Force the variant to a particular value. You should pass T as the (only)
+    // template parameter when invoking this, and T should be in the list
+    // <First, Types...>, modulo recursive_wrapper.
+    template <typename T, typename... Args>
+    void emplace(Args && ... args);
+  };
+
+  // Apply a static_visitor to the variant. It is called using the current value
+  // of the variant with its current type as the argument.
+  // Any additional arguments to `apply_visitor` are forwarded to the visitor. 
+  template <typename V, typename... Types, typename... Args>
+  void apply_visitor(V && visitor, variant<Types...> && var, Args && ... args);
+
+  // Access the stored value. Returns `nullptr` if `T` is not the currently
+  // engaged type.
+  template <typename T, typename ... Types>
+  T * get(variant<Types...> * v);
+
+  template <typename T, typename ... Types>
+  const T * get(const variant<Types...> * v);
+
+  // Returns a reference to the stored value. If it does not currently have the
+  // indicated type, then it is move-assigned with the value "default", and
+  // a reference to that value, within the variant, is returned.
+  template <typename T, typename ... Types>
+  T & get_or_default(variant<Types...> & v, T def = {});
+
+} // end namespace safe_variant
+```
+
+
 Compiler Compatibility
 =============
 
@@ -170,3 +244,19 @@ Licensing and Distribution
 ==========================
 
 **safe variant** is available under the boost software license.
+
+Known issues
+============
+
+- There are some issues with `noexcept` correctness which I would like to fix.  
+- Currently, you cannot use `apply_visitor` with an rvalue-reference to the variant.  
+  It must be an lvalue-reference or a const reference.  
+  There is no reason for this restriction, but some of the dispatch code needs to be fixed
+  to support this. I didn't need it in my original application.  
+  It's okay for the visitor to be an rvalue-reference.  
+- You can't use a lamba directly as a visitor. It needs to derive from `safe_variant::static_visitor`.
+  This is similar to `boost::variant`. It could be fixed using `std::result_of`, that is a TODO item.
+  Since generic lambdas are a C++14 feature anyways, this isn't that big a deal.
+- No `constexpr` support. This is really extremely difficult to do in a variant at
+  C++11 standard, it's only really feasible in C++14. If you want `constexpr` support
+  then I suggest having a look at [`eggs::variant`](https://github.com/eggs-cpp/variant).
