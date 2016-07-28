@@ -13,4 +13,4 @@ class recursive_wrapper;
 template <typename First, typename... Types>
 class variant;
 
-} // end namespace util
+} // end namespace safe_variant

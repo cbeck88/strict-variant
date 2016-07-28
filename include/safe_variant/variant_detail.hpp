@@ -34,7 +34,7 @@ auto
 visitor_caller(Internal && internal, Storage && storage, Visitor && visitor, Args &&... args) ->
   typename mpl::remove_reference_t<Visitor>::result_type {
   typedef typename std::conditional<std::is_const<typename std::remove_extent<
-                                      typename std::remove_reference<Storage>::type>::type>::value,
+                                      mpl::remove_reference_t<Storage>>::type>::value,
                                     const T, T>::type ConstType;
 
   return std::forward<Visitor>(visitor)(
@@ -42,17 +42,15 @@ visitor_caller(Internal && internal, Storage && storage, Visitor && visitor, Arg
 }
 
 /// Helper object which dispatches a visitor object to the appropriate
-/// interpretation of our
-/// storage value, based on value of "which".
+/// interpretation of our storage value, based on value of "which".
+///
 /// The solution here is that for each possible value of `which`, we create an
-/// appropriate
-/// function using the above function template, and store them each in an array,
-/// using
-/// parameter pack expansion. (A little 'jump table'.)
+/// appropriate function using the above function template, and store them each
+/// in an array, using parameter pack expansion. (A little 'jump table'.)
+///
 /// Then we dereference the array at index `m_which` and call that function.
 /// This means we pick out the right function very quickly, but it may not be
-/// inlined by the
-/// compiler even if it is small.
+/// inlined by the compiler even if it is small.
 template <typename... AllTypes>
 struct jumptable_dispatch {
   template <typename Internal, typename VoidPtrCV, typename Visitor, typename... Args>
@@ -73,21 +71,17 @@ struct jumptable_dispatch {
 };
 
 /// Same as the above, but we use a different strategy based on a binary tree,
-/// and repeated testing
-/// of the "which" value.
+/// and repeated testing of the "which" value.
+///
 /// The idea is that if there are multiple types, we just test if we are looking
-/// in the first half
-/// or
-/// the second half, and branch to two different instantiations of the
-/// binary_search_dispatch object
-/// as appropriate.
+/// in the first half or the second half, and branch to two different
+/// instantiations of the binary_search_dispatch object as appropriate.
+///
 /// When arranged this way, the compiler can always inline the visitor calls,
-/// and so for variants
-/// with few types this may be significantly faster.
+/// and so for variants with few types this may be significantly faster.
+///
 /// The "which" value is not changed even as the type list gets smaller,
-/// instead, the "base" value
-/// is
-/// increased.
+/// instead, the "base" value is increased.
 template <unsigned int, typename /*Type List */>
 struct binary_search_dispatch;
 
@@ -297,4 +291,4 @@ public:
   typedef typename m_helper::type type;
 };
 
-} // end namespace util
+} // end namespace safe_variant

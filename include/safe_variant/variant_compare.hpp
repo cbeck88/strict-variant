@@ -75,4 +75,4 @@ struct variant_comparator<variant<types...>, ComparatorTemplate, WhichComparator
   }
 };
 
-} // end namespace util
+} // end namespace safe_variant

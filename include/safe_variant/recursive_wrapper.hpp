@@ -9,6 +9,7 @@
  * For use with safe_variant::variant
  */
 #include <safe_variant/variant_fwd.hpp>
+#include <safe_variant/remove_reference.hpp>
 #include <type_traits>
 #include <utility>
 
@@ -24,12 +25,12 @@ public:
     : m_t(new T()) {}
 
   template <typename U,
-            typename Dummy = typename std::enable_if<std::is_convertible<U, T>::value, U>::type>
+            typename Dummy = mpl::enable_if_t<std::is_convertible<U, T>::value>>
   recursive_wrapper(const U & u)
     : m_t(new T(u)) {}
 
   template <typename U,
-            typename Dummy = typename std::enable_if<std::is_convertible<U, T>::value, U>::type>
+            typename Dummy = mpl::enable_if_t<std::is_convertible<U, T>::value>>
   recursive_wrapper(U && u)
     : m_t(new T(std::forward<U>(u))) {}
 
@@ -90,6 +91,7 @@ private:
 };
 
 namespace detail {
+
 struct true_ {};
 struct false_ {};
 
@@ -155,4 +157,4 @@ maybe_pierce_reference_wrapper(const recursive_wrapper<T> & t) {
   return t.get();
 }
 
-} // end namespace util
+} // end namespace safe_variant

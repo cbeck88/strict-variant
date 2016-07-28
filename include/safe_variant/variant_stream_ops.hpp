@@ -40,4 +40,4 @@ operator<<(std::ostream & s, const variant<First, Types...> & v) {
   return s;
 }
 
-} // end namespace util
+} // end namespace safe_variant

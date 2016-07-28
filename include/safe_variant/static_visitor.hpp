@@ -24,4 +24,4 @@ protected:
 public:
   typedef T result_type;
 };
-} // end namespace util
+} // end namespace safe_variant
