@@ -15,6 +15,16 @@
 #include <utility>
 
 namespace safe_variant {
+
+// Trait: Succinctly access result_type of a visitor, passed by forwarding ref
+template <typename T>
+struct visitor_result {
+  using type = typename mpl::remove_reference_t<T>::result_type;
+};
+
+template <typename T>
+using vis_result_t = typename visitor_result<T>::type;
+
 namespace detail {
 
 /***
@@ -31,8 +41,8 @@ namespace detail {
 /// then applies the visitor object.
 template <typename Internal, typename T, typename Storage, typename Visitor, typename... Args>
 auto
-visitor_caller(Internal && internal, Storage && storage, Visitor && visitor, Args &&... args) ->
-  typename mpl::remove_reference_t<Visitor>::result_type {
+visitor_caller(Internal && internal, Storage && storage, Visitor && visitor, Args &&... args)
+  -> vis_result_t<Visitor> {
   typedef typename std::
     conditional<std::is_const<
                   typename std::remove_extent<mpl::remove_reference_t<Storage>>::type>::value,
@@ -56,8 +66,7 @@ template <typename... AllTypes>
 struct jumptable_dispatch {
   template <typename Internal, typename VoidPtrCV, typename Visitor, typename... Args>
   auto operator()(Internal && internal, const unsigned int which, VoidPtrCV && storage,
-                  Visitor && visitor, Args &&... args) ->
-    typename mpl::remove_reference_t<Visitor>::result_type {
+                  Visitor && visitor, Args &&... args) -> vis_result_t<Visitor> {
     using whichCaller = typename mpl::remove_reference_t<Visitor>::result_type (*)(
       Internal &&, VoidPtrCV &&, Visitor &&, Args && ...);
 
@@ -90,8 +99,7 @@ template <unsigned int base, typename T>
 struct binary_search_dispatch<base, TypeList<T>> {
   template <typename Internal, typename VoidPtrCV, typename Visitor, typename... Args>
   auto operator()(Internal && internal, const unsigned int which, VoidPtrCV && storage,
-                  Visitor && visitor, Args &&... args) ->
-    typename mpl::remove_reference_t<Visitor>::result_type {
+                  Visitor && visitor, Args &&... args) -> vis_result_t<Visitor> {
     // ASSERT(which == base);
     static_cast<void>(which);
 
@@ -111,8 +119,7 @@ struct binary_search_dispatch<base, TypeList<T1, T2, Types...>> {
 
   template <typename Internal, typename VoidPtrCV, typename Visitor, typename... Args>
   auto operator()(Internal && internal, const unsigned int which, VoidPtrCV && storage,
-                  Visitor && visitor, Args &&... args) ->
-    typename mpl::remove_reference_t<Visitor>::result_type {
+                  Visitor && visitor, Args &&... args) -> vis_result_t<Visitor> {
 
     if (which < split_point) {
       return binary_search_dispatch<base, TL>{}(
@@ -143,8 +150,7 @@ struct visitor_dispatch {
 
   template <typename Internal, typename VoidPtrCV, typename Visitor, typename... Args>
   auto operator()(Internal && internal, const unsigned int which, VoidPtrCV && storage,
-                  Visitor && visitor, Args &&... args) ->
-    typename mpl::remove_reference_t<Visitor>::result_type {
+                  Visitor && visitor, Args &&... args) -> vis_result_t<Visitor> {
 
     return chosen_dispatch_t{}(std::forward<Internal>(internal), which,
                                std::forward<VoidPtrCV>(storage), std::forward<Visitor>(visitor),

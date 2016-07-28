@@ -489,15 +489,13 @@ public:
   int which() const { return m_which; }
 
   template <typename Internal, typename Visitor, typename... Args>
-  auto apply_visitor(Visitor && visitor, Args &&... args) ->
-    typename mpl::remove_reference_t<Visitor>::result_type {
+  auto apply_visitor(Visitor && visitor, Args &&... args) -> vis_result_t<Visitor> {
     return detail::visitor_dispatch<First, Types...>()(
       Internal(), m_which, m_storage, std::forward<Visitor>(visitor), std::forward<Args>(args)...);
   }
 
   template <typename Internal, typename Visitor, typename... Args>
-  auto apply_visitor(Visitor && visitor, Args &&... args) const ->
-    typename mpl::remove_reference_t<Visitor>::result_type {
+  auto apply_visitor(Visitor && visitor, Args &&... args) const -> vis_result_t<Visitor> {
     return detail::visitor_dispatch<First, Types...>()(
       Internal(), m_which, m_storage, std::forward<Visitor>(visitor), std::forward<Args>(args)...);
   }
@@ -602,14 +600,15 @@ private:
  * apply visitor function (same semantics as safe_variant::apply_visitor)
  */
 template <typename Visitor, typename Visitable, typename... Args>
-typename Visitor::result_type
-apply_visitor(Visitor & visitor, Visitable & visitable, Args &&... args) {
+auto
+apply_visitor(Visitor & visitor, Visitable & visitable, Args &&... args) -> vis_result_t<Visitor> {
   return visitable.template apply_visitor<detail::false_>(visitor, std::forward<Args>(args)...);
 }
 
 template <typename Visitor, typename Visitable, typename... Args>
-typename Visitor::result_type
-apply_visitor(const Visitor & visitor, Visitable & visitable, Args &&... args) {
+auto
+apply_visitor(const Visitor & visitor, Visitable & visitable, Args &&... args)
+  -> vis_result_t<Visitor> {
   return visitable.template apply_visitor<detail::false_>(visitor, std::forward<Args>(args)...);
 }
 
