@@ -17,61 +17,20 @@
  * time and can be hard to follow.
  *
  * User beware -- in this project, we have mostly banned exceptions from the
- code-base,
- * and this variant has been configured to assume that it's underlying types
- don't
- * throw generally, as an optimisation.
+ * code-base, and this variant has been configured to assume that it's
+ * underlying types don't throw generally, as an optimisation.
  * If you are using it in another project, you may want to turn off the
- "assume_copy_nothrow"
- * flag below.
+ * "assume_copy_nothrow" flag below.
  *
  * At minimum, any type used with this should not throw exceptions from dtor,
  * or from move ctor, or from move assignment, regardless of that flag.
  *
  * If one of the types does throw in these situations, generally it will cause a
- call
- * to std::terminate due to member functions of variant being marked noexcept.
+ * call to std::terminate due to noexcept specification
  *
- * This version is loosely based on (an early version of) Jarryd Beck's variant:
+ * This code is derived from (an early version of) Jarryd Beck's variant:
  *   https://github.com/jarro2783/thenewcpp
  *
- * There have been some significant changes:
- *
- * - Get rid of exception type, delete anything that throws
- * - Update storage type to use alignas rather than a union
- * - Add static_assert that all types involved are no-throw destructible.
- * - Use our assertions rather than cassert
- * - Mark some of the special member functions as noexcept, as appropriate.
- * - Allow to construct a variant from another variant on fewer types, in the
- natural way
- *   that you would expect.
- * - When variant is initialized from a given value, the selected internal type
- is now
- *   chosen in a special manner and NOT via overload resolution.
- *   Construction is enabled by a trait "allow_variant_construction<T, U>" which
- checks
- *   if T is constructible from U, but in case that both T and U are fundamental
- types
- *   or references to fundamental types, or are pointers, we only allow certain
- "safe"
- *   conversions defined by the mpl::safely_constructible trait.
- *   If construction is allowed for any of the internal types of the variant, we
- use the
- *   FIRST one in the list, rather than declaring ambiguity. This system,
- instead of
- *   creating a function object with an overload for each type and using
- overload
- *   resolution, is a bit simpler to reason about and makes it easier to achieve
- exactly
- *   the behavior you want in our use-cases.
- * - Add an operator ==
- * - Add operator << with ostreams
- * - Add a constructor which maps a "smaller" variant to a larger variant
-     (Needed for full boost::variant compat / spirit usage)
- * - TODO: Add assignment operator for "smaller" variant to larger variant?
- * - TODO: Use binary tree comparison instead of manual jump table for visitor
- impl?
- *         Perhaps only below a certain cardinality?
  */
 
 #include <safe_variant/recursive_wrapper.hpp>
@@ -88,6 +47,22 @@
 #include <new>
 #include <type_traits>
 #include <utility>
+
+#ifdef SAFE_VARIANT_DEBUG
+#include <cassert>
+
+#define SAFE_VARIANT_ASSERT(X, C)                                                                  \
+  do {                                                                                             \
+    assert((X) && C);                                                                              \
+  } while (0)
+
+#else
+
+#define SAFE_VARIANT_ASSERT(X, C)                                                                  \
+  do {                                                                                             \
+  } while (0)
+
+#endif
 
 namespace safe_variant {
 
@@ -155,10 +130,10 @@ private:
   /***
    * Visitors used to implement special member functions and such
    */
-  struct constructor {
+  struct copy_constructor {
     typedef void result_type;
 
-    constructor(variant & self)
+    explicit copy_constructor(variant & self)
       : m_self(self) {}
 
     template <typename T>
@@ -173,7 +148,7 @@ private:
   struct move_constructor {
     typedef void result_type;
 
-    move_constructor(variant & self)
+    explicit move_constructor(variant & self)
       : m_self(self) {}
 
     template <typename T>
@@ -186,10 +161,10 @@ private:
   };
 
   // copy assigner
-  struct assigner {
+  struct copy_assigner {
     typedef void result_type;
 
-    assigner(variant & self, int rhs_which)
+    explicit copy_assigner(variant & self, int rhs_which)
       : m_self(self)
       , m_rhs_which(rhs_which) {}
 
@@ -222,7 +197,7 @@ private:
   struct move_assigner {
     typedef void result_type;
 
-    move_assigner(variant & self, int rhs_which)
+    explicit move_assigner(variant & self, int rhs_which)
       : m_self(self)
       , m_rhs_which(rhs_which) {}
 
@@ -277,7 +252,7 @@ private:
     }
   };
 
-  // Destructor
+  // destroyer
   struct destroyer {
     typedef void result_type;
 
@@ -321,83 +296,8 @@ public:
 
   /// Forwarding-reference ctor, construct a variant from one of its value
   /// types.
-  /// If given type T can be used to construct any of our types, then we want
-  /// to *pick the first eligible one* and use it. This is what initialise does.
-  ///
-  /// Note: This ctor allows the use of user-defined conversions and converting
-  /// ctors, for example, if the variant contains `std::string` and you pass
-  /// this
-  /// ctor a `const char *`, it will construct a `std::string` using that ctor
-  /// of
-  /// `std::string`.
-  ///
-  /// Ambiguities are always resolved by preferring the type that occurs earlier
-  /// in the list, so the order in which types appear in the variant is very
-  /// significant towards how it behaves!
-  /// E.g. if you have variant<std::string, const char *>, constructing this
-  /// from
-  /// const char * will produce a `std::string`, while if it is
-  /// `variant<const char *, std::string>` it will produce a const char *.
-  ///
-  /// typedef variant<std::string, const char *> Var_t;
-  /// Var_t a{"asdf"};  // Contains a std::string
-  ///
-  /// typedef variant<const char *, std::string> Var_t;
-  /// Var_t a{"asdf"};  // Contains a const char *
-  ///
-  ///
-  /// Note that this is in CONTRAST to how C++ function overload resolution
-  /// works,
-  /// where the order of declaration doesn't matter and constructions may be
-  /// declared ambiguous!
-  ///
-  /// Additionally, we prohibit many "unsafe" integral conversions.
-  /// - No conversion from integral <-> floating point
-  /// - No conversion from bool <-> integral
-  /// - No conversion unsigned -> signed
-  /// - Signed -> Unsigned is allowed only if they are otherwise the same type.
-  /// - No conversion which would cause truncation.
-  ///
-  /// When making variant a which contains integral types, you should usually
-  /// declare them in increasing order of size. E.g.:
-  ///
-  /// typedef variant<double, float, int> Var_t
-  /// Var_t a{5};       // Contains an int
-  /// Var_t b{10.0f};   // Contains a double :(
-  /// Var_t c{10.0};    // Contains a double
-  ///
-  /// typedef variant<int, float, double> Var_t2;
-  /// Var_t2 a{5};      // Contains an int
-  /// Var_t2 b{10.0f};  // Contains a float   :)
-  /// Var_t2 c{10.0};   // Contains a double
-  ///
-  /// You do not generally need to use a "safe_bool" type instead of a bool,
-  /// because the boolean conversions are blocked by the "safely_constructible"
-  /// mechanism.
-  ///
-  /// typedef variant<bool, int, float> Var_t3;
-  /// Var_t3 a{true};  // Contains a bool
-  /// Var_t3 b{1};     // Contains an int
-  /// Var_t3 c{10.0f};   // Contains a float
-  ///
-  /// typedef variant<int, bool, float> Var_t4;
-  /// Var_t4 a{true};  // Contains an bool
-  /// Var_t4 b{1};     // Contains an int
-  /// Var_t4 c{10.0f};   // Contains a float
-  ///
-  /// Implementation note:
-  /// An additional issue to consider is what happens when the variant is
-  /// declared
-  /// using an incomplete type, like safe_variant::recursive_wrapper<T>
-  ///
-  /// Generally, what we do is allow construction in that slot from T, const T
-  /// &,
-  /// and T&&, as well as well as safe_variant::recursive_wrapper<T>,
-  /// const safe_variant::recursive_wrapper<T> &, and safe_variant::recursive_wrapper<T> &&.
-  /// This check can be performed without knowing the complete defintiion of T,
-  /// so even if there are "point of instantiation" issues it will work out.
   /// The details are in `detail::allow_variant_construction`.
-  ///
+  /// See documentation
   template <typename T,
             typename Enable =
               mpl::enable_if_t<mpl::Find_Any<detail::allow_variant_construct_from<T>::template prop,
@@ -428,7 +328,7 @@ public:
     // get the which before applying the other visitor
     int new_which = other.apply_visitor_internal(w);
 
-    constructor c(*this);
+    copy_constructor c(*this);
     other.apply_visitor_internal(c);
     this->indicate_which(new_which);
   }
@@ -448,7 +348,7 @@ public:
   }
 
   variant(const variant & rhs) noexcept(assume_copy_nothrow) {
-    constructor c(*this);
+    copy_constructor c(*this);
     rhs.apply_visitor_internal(c);
     this->indicate_which(rhs.which());
   }
@@ -461,7 +361,7 @@ public:
 
   variant & operator=(const variant & rhs) noexcept(assume_copy_nothrow) {
     if (this != &rhs) {
-      assigner a(*this, rhs.which());
+      copy_assigner a(*this, rhs.which());
       rhs.apply_visitor_internal(a);
       this->indicate_which(rhs.which());
     }
@@ -628,10 +528,13 @@ get(const variant<Types...> * var) noexcept {
 template <typename T, typename... Types>
 T &
 get_or_default(variant<Types...> & v, T def = {}) {
-  if (T * t = safe_variant::get<T>(&v)) { return *t; }
-  v = std::move(def);
   T * t = safe_variant::get<T>(&v);
-  // ASSERT(t && "Move assignment to a variant failed to change its type!");
+  if (!t) {
+    // v.template emplace<T>(std::move(def));
+    v = std::move(def);
+    t = safe_variant::get<T>(&v);
+    SAFE_VARIANT_ASSERT(t, "Move assignment to a variant failed to change its type!");
+  }
   return *t;
 }
 
