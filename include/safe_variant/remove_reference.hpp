@@ -19,7 +19,7 @@ template <typename T>
 using remove_reference_t = typename std::remove_reference<T>::type;
 
 template <typename T>
-using remove_const_t = typename std::remove_cv<T>::type;
+using remove_const_t = typename std::remove_const<T>::type;
 
 template <typename T>
 using remove_cv_t = typename std::remove_cv<T>::type;
