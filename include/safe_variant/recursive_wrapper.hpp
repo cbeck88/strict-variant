@@ -8,7 +8,7 @@
 /***
  * For use with safe_variant::variant
  */
-#include <safe_variant/remove_reference.hpp>
+#include <safe_variant/std_traits.hpp>
 #include <safe_variant/variant_fwd.hpp>
 #include <type_traits>
 #include <utility>
@@ -18,7 +18,7 @@ namespace safe_variant {
 template <typename T>
 class recursive_wrapper {
 public:
-  ~recursive_wrapper() noexcept { delete m_t; }
+  ~recursive_wrapper() noexcept { this->destroy(); }
 
   template <typename Dummy = void>
   recursive_wrapper()
@@ -48,12 +48,12 @@ public:
   // recursive_wrapper
   // &>(std::declval<recursive_wrapper>())))
   {
-    assign(rhs.get());
+    this->assign(rhs.get());
     return *this;
   }
 
   recursive_wrapper & operator=(recursive_wrapper && rhs) noexcept {
-    delete m_t;
+    this->destroy();
     m_t = rhs.m_t;
     rhs.m_t = nullptr;
     return *this;
@@ -64,7 +64,7 @@ public:
   // noexcept(std::declval<recursive_wrapper>().assign(static_cast<const T
   // &>(std::declval<T>())))
   {
-    assign(t);
+    this->assign(t);
     return *this;
   }
 
@@ -72,7 +72,7 @@ public:
   // TODO: Fix emscripten here:
   // noexcept(std::declval<recursive_wrapper>().assign(std::declval<T>()))
   {
-    assign(std::move(t));
+    this->assign(std::move(t));
     return *this;
   }
 
@@ -85,6 +85,13 @@ private:
   template <typename U>
   void assign(U && u) {
     *m_t = std::forward<U>(u);
+  }
+
+  // Note: Implementation is predicated on the fact that it is okay to delete
+  //       a nullptr. This is true for standard allocators, but potentially not
+  //       for a custom allocator. So maybe should add a null check.
+  void destroy() {
+    delete m_t;
   }
 };
 

@@ -81,8 +81,8 @@
 
 #include <safe_variant/find_with.hpp>
 #include <safe_variant/index.hpp>
-#include <safe_variant/remove_reference.hpp>
 #include <safe_variant/safely_constructible.hpp>
+#include <safe_variant/std_traits.hpp>
 #include <safe_variant/typelist.hpp>
 
 #include <new>

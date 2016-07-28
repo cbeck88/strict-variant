@@ -5,8 +5,8 @@
 
 #pragma once
 
-#include "conversion_rank.hpp"
-#include "remove_reference.hpp"
+#include <safe_variant/conversion_rank.hpp>
+#include <safe_variant/std_traits.hpp>
 #include <type_traits>
 
 namespace safe_variant {
