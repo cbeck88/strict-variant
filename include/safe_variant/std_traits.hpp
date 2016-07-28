@@ -6,8 +6,7 @@
 #pragma once
 
 /***
- * std::remove_reference_t and std::remove_cv_t are part of C++14
- * but they are so usfeul I'm making mpl versions of them.
+ * Some C++14 traits that are backported
  */
 
 #include <type_traits>
@@ -23,6 +22,9 @@ using remove_const_t = typename std::remove_const<T>::type;
 
 template <typename T>
 using remove_cv_t = typename std::remove_cv<T>::type;
+
+template <typename T>
+using remove_pointer_t = typename std::remove_pointer<T>::type;
 
 template <typename T>
 using decay_t = typename std::decay<T>::type;

@@ -108,6 +108,12 @@ static_assert(!safely_constructible<const bool *, decltype("asdf")>::value, "fai
 static_assert(!safely_constructible<const int *, decltype("asdf")>::value, "failed a unit test");
 static_assert(!safely_constructible<const float *, decltype("asdf")>::value, "failed a unit test");
 
+// Pointer const conversions
+static_assert(safely_constructible<const char *, char *>::value, "failed a unit test");
+static_assert(!safely_constructible<char *, const char *>::value, "failed a unit test");
+static_assert(safely_constructible<const char *, char * const>::value, "failed a unit test");
+static_assert(!safely_constructible<char *, const char * const>::value, "failed a unit test");
+
 } // end namespace mpl
 
 /////////////////////////

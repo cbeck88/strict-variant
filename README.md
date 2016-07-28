@@ -76,7 +76,8 @@ Instead, it uses a very simple iterative strategy.
   (So, `long` cannot be converted to `int`
   even if you are on a 32-bit machine and they have the same size for you, because it could be narrowing on a 64-bit machine.)
   - Signed can be promoted to unsigned, but the reverse is not allowed (since it is implementation-defined).
- 
+  - Conversions like `char *` to `const char *` are permitted, and standard conversions like array-to-pointer are permitted, but otherwise no pointer conversions are permitted.
+
 - You can force the variant to a particular type using the `emplace` template function. Rarely necessary but sometimes useful, and saves a `move`.
 
 Another decision which I made, in order to side-step the "never empty" issue, is that any type used with the variant must be no-throw move constructible.

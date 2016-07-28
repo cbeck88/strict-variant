@@ -92,7 +92,7 @@ template <typename A, typename B>
 struct safely_constructible<A, B, enable_if_t<is_ptr<A>::value && is_ptr<B>::value>> {
   using A2 = remove_reference_t<remove_cv_t<A>>;
   using B2 = remove_reference_t<remove_cv_t<decay_t<B>>>;
-  static constexpr bool value = std::is_same<A2, B2>::value;
+  static constexpr bool value = (std::is_same<A2, B2>::value || std::is_same<remove_const_t<remove_pointer_t<A2>>, remove_pointer_t<B2>>::value) && std::is_constructible<A, B>::value;
 };
 
 // If one is numeric or reference to numeric, and the other is pointer or
