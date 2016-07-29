@@ -77,9 +77,9 @@ private:
   //  gcc-4-series version of libstdc++ and std::string isn't noexcept.)
   static constexpr bool assume_move_nothrow =
 #ifdef SAFE_VARIANT_ASSUME_MOVE_NOTHROW
-  true;
+    true;
 #else
-  false;
+    false;
 #endif
 
   // Treat all input types as if they were nothrow copyable,
@@ -89,9 +89,9 @@ private:
   //  go as fast as possible given that assumption.)
   static constexpr bool assume_copy_nothrow =
 #ifdef SAFE_VARIANT_ASSUME_COPY_NOTHROW
-  true;
+    true;
 #else
-  false;
+    false;
 #endif
 
   /***
@@ -103,14 +103,14 @@ private:
   static_assert(mpl::All_Have<std::is_nothrow_destructible, Types...>::value,
                 "All types in this variant type must be nothrow destructible");
 
-#define SAFE_VARIANT_ASSERT_NOTHROW_MOVE_CTORS \
-  static_assert(assume_move_nothrow                                                    \
-                  || mpl::All_Have<std::is_nothrow_move_constructible, First>::value,  \
-                "All types in this variant type must be nothrow move constructible");  \
-                                                                                       \
-  static_assert(assume_move_nothrow                                                    \
-                  || mpl::All_Have<std::is_nothrow_move_constructible, Types...>::value, \
-                "All types in this variant type must be nothrow move constructible");   \
+#define SAFE_VARIANT_ASSERT_NOTHROW_MOVE_CTORS                                                     \
+  static_assert(assume_move_nothrow                                                                \
+                  || mpl::All_Have<std::is_nothrow_move_constructible, First>::value,              \
+                "All types in this variant type must be nothrow move constructible");              \
+                                                                                                   \
+  static_assert(assume_move_nothrow                                                                \
+                  || mpl::All_Have<std::is_nothrow_move_constructible, Types...>::value,           \
+                "All types in this variant type must be nothrow move constructible");              \
   static_assert(true, "")
 
   template <typename T>
@@ -473,7 +473,8 @@ public:
   struct emplace_tag {};
 
   template <typename T, typename... Args>
-  explicit variant(emplace_tag<T>, Args &&... args) noexcept(std::is_nothrow_constructible<T, Args...>::value) {
+  explicit variant(emplace_tag<T>,
+                   Args &&... args) noexcept(std::is_nothrow_constructible<T, Args...>::value) {
     constexpr size_t idx = find_which<T>::value;
     static_assert(idx < sizeof...(Types) + 1,
                   "Requested type is not a member of this variant type");
@@ -490,16 +491,16 @@ public:
   //     and reinitialize in-place.
   //   when the invoked constructor is not noexcept, we use a move for safety.
   template <typename T, typename... Args>
-  mpl::enable_if_t<!std::is_nothrow_constructible<T, Args...>::value>
-  emplace(Args &&... args) {
-    static_assert(std::is_nothrow_move_constructible<T>::value, "To use emplace, either the invoked ctor or the move ctor must be noexcept.");
+  mpl::enable_if_t<!std::is_nothrow_constructible<T, Args...>::value> emplace(Args &&... args) {
+    static_assert(std::is_nothrow_move_constructible<T>::value,
+                  "To use emplace, either the invoked ctor or the move ctor must be noexcept.");
     T temp(std::forward<Args>(args)...);
     this->emplace<T>(std::move(temp));
   }
 
   template <typename T, typename... Args>
-  mpl::enable_if_t<std::is_nothrow_constructible<T, Args...>::value>
-  emplace(Args &&... args) noexcept {
+  mpl::enable_if_t<std::is_nothrow_constructible<T, Args...>::value> emplace(
+    Args &&... args) noexcept {
     constexpr size_t idx = find_which<T>::value;
     static_assert(idx < sizeof...(Types) + 1,
                   "Requested type is not a member of this variant type");
@@ -593,7 +594,8 @@ get(const variant<Types...> * var) noexcept {
 /// and return a reference to the new value.
 template <typename T, typename... Types>
 T &
-get_or_default(variant<Types...> & v, T def = {}) noexcept(std::is_nothrow_move_constructible<T>::value) {
+get_or_default(variant<Types...> & v,
+               T def = {}) noexcept(std::is_nothrow_move_constructible<T>::value) {
   T * t = safe_variant::get<T>(&v);
   if (!t) {
     v.template emplace<T>(std::move(def));
