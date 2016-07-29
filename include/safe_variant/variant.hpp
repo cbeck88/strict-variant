@@ -605,6 +605,11 @@ get_or_default(variant<Types...> & v,
   return *t;
 }
 
+// Helper for generic programming -- produce a variant, wrapping each type which
+// has a throwing move in `recursive_wrapper`.
+template <typename ... Ts>
+using easy_variant = variant<wrap_if_throwing_move_t<Ts>...>;
+
 } // end namespace safe_variant
 
 #undef SAFE_VARIANT_ASSERT

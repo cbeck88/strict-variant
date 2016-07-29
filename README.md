@@ -43,9 +43,9 @@ Generally, when you assign a value of some type `T` to such a variant, these var
 which is overloaded once for each type in the variant's list. Then they apply the function object to the value, and overload
 resolution selects which conversion will actually happen.
 
-Overload resolution is a core C++ language feature, and in 90% of cases it works very well and does the right thing.
+Overload resolution is a core C++ language feature, and in 95% of cases it works very well and does the right thing.
 
-However, in the 10% of cases where overload resolution does the wrong thing, it can be quite difficult to work around it.
+However, in the 5% of cases where overload resolution does the wrong thing, it can be quite difficult to work around it.
 This includes the scenarios in which overload resolution is ambiguous, as well as the cases in which, due to some implicit conversion,
 an overload is selected which the user did not intend.
 
@@ -78,9 +78,12 @@ Instead, it uses a very simple iterative strategy.
   - Signed can be promoted to unsigned, but the reverse is not allowed (since it is implementation-defined).
   - Conversions like `char *` to `const char *` are permitted, and standard conversions like array-to-pointer are permitted, but otherwise no pointer conversions are permitted.
 
-- You can force the variant to a particular type using the `emplace` template function. Rarely necessary but sometimes useful, and saves a `move`.
-  (There is also an emplace-ctor, where you select the type using tag dispatch.)
+- You can force the variant to a particular type using the `emplace` template function. Rarely necessary in my experience but sometimes useful, and saves a `move`.
+- There is also an emplace-ctor, where you select the type using tag dispatch.
 
+  ```c++
+    variant v{variant::emplace_tag<my_type>, arg1, arg2, arg3};
+  ```
 
 So, keep in mind, this is not a drop-in replacement for `boost::variant` or one of the other versions, its semantics are fundamentally different.
 But in scenarios like those it was designed for, it may be easier to reason about and less error-prone.
@@ -104,7 +107,7 @@ are not C++11 conforming, and not all move ctors are appropriately marked `noexc
 This allows the implementation to be very simple and efficient compared with some other variant types, which may have to make extra copies to facilitate
 exception-safety, or make only a "rarely empty" guarantee.
 
-If you have a type with a throwing move, you are encouraged to use `safe_variant::recursive_wrapper<T>` instead of `T` in the variant.
+*If you have a type with a throwing move*, you are encouraged to use `safe_variant::recursive_wrapper<T>` instead of `T` in the variant.
 
 `recursive_wrapper<T>` is behaviorally equivalent to `std::unique_ptr<T>`, making a copy of `T` on the heap. But it is convertible to `T&`, and so
 for most purposes is syntactically the same as `T`. There is special support within `safe_variant::variant` so that you can call `get<T>(&v)` and get a pointer
@@ -114,14 +117,45 @@ to a `T` rather than the wrapper, for instance, and similarly throughout the `va
 
 By mostly restricting attention to no-throw move constructible types, the guts of the variant enjoy a very clean and simple implementation
 -- there are no dynamic allocations taking place behind your back, and you mostly "intuitively" know what the variant is doing and what the costs
-are when you manipulate it.  
+are when you manipulate it. Moving the variant won't be inherently more expensive than moving an individual object, and when copying, which let's imagine
+can throw, something similar to "copy and swap" (or rather "copy and move") takes place, with a single copy occuring on the stack before we move it into
+storage.
 
-If you want dynamic allocations to support throwing-moves, you opt-in to that using `recursive_wrapper`.
+If you want additional dynamic allocations beyond this in order to support throwing moves, you opt-in to that using `recursive_wrapper`, and otherwise you don't pay for
+what you don't use. There's no other additional storage in the variant or complexity added to the interface.
 
 Note that the *stated* purpose of recursive wrapper, in `boost::variant` docs, is to allow you to declare variants which contain an incomplete type.
-They also work great for that in `safe_variant::variant`.
+It also works great for that in `safe_variant::variant`.
 
 Even if the variant is not assignable, you can still use the `emplace` function to change the type of its value, provided that the constructor you invoke is `noexcept` or the requested type is no-throw move constructible.
+
+Additionally, we provide a template `easy_variant` which takes care of these details if you don't care to be bothered by the compiler about a throwing move / dynamic allocation.
+(Some programmers would prefer that the compiler not start making dynamic allocations without a warning though, just because some `noexcept` annotation was not deduced the way they expected.)
+Specifically, any type that you put in the variant which has a throwing move will be wrapped in `recursive_wrapper` implicitly.
+
+```c++
+namespace safe_variant {
+  template <typename ... Ts>
+  using easy_variant = variant<wrap_if_thowing_move_t<Ts>...>;
+}
+```
+
+where `wrap_if_throwing_move_t` is
+
+```c++
+namespace safe_variant {
+  struct <typename T, typename = mpl::enable_if_t<std::is_nothrow_destructible<T>::value && !std::is_reference<T>::value>>
+  struct wrap_if_throwing_move {
+    using type = typename std::conditional<std::is_nothrow_move_constructible<T>::value,
+                                           T,
+                                           recursive_wrapper<T>>::type;
+  };
+
+  template <typename T>
+  using wrap_if_throwing_move_t = typename wrap_if_throwing_move<T>::type;
+}
+```
+
 
 Synopsis
 ========
@@ -208,8 +242,8 @@ namespace safe_variant {
   const T * get(const variant<Types...> * v);
 
   // Returns a reference to the stored value. If it does not currently have the
-  // indicated type, then it is move-assigned with the value "default", and
-  // a reference to that value, within the variant, is returned.
+  // indicated type, then the argument def is emplaced into the variant, and a
+  // reference to that value, within the variant, is returned.
   // This is noexcept if T is no_throw_move_constructible.
   template <typename T, typename ... Types>
   T & get_or_default(variant<Types...> & v, T def = {});
@@ -291,7 +325,7 @@ use a series of using declarations. In another project that uses this library, I
       using safe_variant::get;
       using safe_variant::get_or_default;
       using safe_variant::apply_visitor;
-      using safe_variant::recrusive_wrapper;
+      using safe_variant::recursive_wrapper;
       using safe_variant::static_visitor;
     }
 ```

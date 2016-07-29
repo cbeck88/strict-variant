@@ -529,6 +529,32 @@ UNIT_TEST(noncopyable) {
 
   var_t v;
   TEST_EQ(v.which(), 0);
+  v = test_b{};
+  TEST_EQ(v.which(), 1);
+  v = test_a{};
+  TEST_EQ(v.which(), 0);
+  v = test_b{};
+  TEST_EQ(v.which(), 1);
+  v = test_a{};
+  TEST_EQ(v.which(), 0);
+
+}
+
+template <int i>
+struct test_throwmove {
+  test_throwmove() = default;
+  test_throwmove(const test_throwmove &) noexcept(false) {}
+  test_throwmove(test_throwmove &&) noexcept(false) {}
+  ~test_throwmove() = default;
+};
+
+UNIT_TEST(throwing_move) {
+  using test_a = test_throwmove<0>;
+  using test_b = test_throwmove<1>;
+  using var_t = variant<test_a, test_b>;
+
+  var_t v;
+  TEST_EQ(v.which(), 0);
   v.emplace<test_b>();
   TEST_EQ(v.which(), 1);
   v.emplace<test_a>();
@@ -536,6 +562,24 @@ UNIT_TEST(noncopyable) {
   v.emplace<test_b>();
   TEST_EQ(v.which(), 1);
   v.emplace<test_a>();
+  TEST_EQ(v.which(), 0);
+}
+
+
+UNIT_TEST(easy_variant) {
+  using test_a = test_throwmove<0>;
+  using test_b = test_throwmove<1>;
+  using var_t = easy_variant<test_a, test_b>;
+
+  var_t v;
+  TEST_EQ(v.which(), 0);
+  v = test_b{};
+  TEST_EQ(v.which(), 1);
+  v = test_a{};
+  TEST_EQ(v.which(), 0);
+  v = test_b{};
+  TEST_EQ(v.which(), 1);
+  v = test_a{};
   TEST_EQ(v.which(), 0);
 }
 
