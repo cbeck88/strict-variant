@@ -141,6 +141,8 @@ private:
 
   int m_which;
 
+  void * address() { return m_storage; }
+  const void * address() const { return m_storage; }
 
   /***
    * Initialize and destroy
@@ -162,12 +164,12 @@ private:
    */
   template <size_t index>
   mpl::Index_t<index, First, Types...> * unchecked_access() {
-    return reinterpret_cast<mpl::Index_t<index, First, Types...> *>(m_storage);
+    return reinterpret_cast<mpl::Index_t<index, First, Types...> *>(this->address());
   }
 
   template <size_t index>
   const mpl::Index_t<index, First, Types...> * unchecked_access() const {
-    return reinterpret_cast<const mpl::Index_t<index, First, Types...> *>(m_storage);
+    return reinterpret_cast<const mpl::Index_t<index, First, Types...> *>(this->address());
   }
 
   /***
@@ -341,15 +343,56 @@ private:
     }
   };
 
+  #define SAFE_VARIANT_CTOR_POSTCONDITION_ASSERT                                   \
+    SAFE_VARIANT_ASSERT(static_cast<unsigned>(this->which()) < sizeof...(Types) + 1, "Postcondition failed!")
+
 public:
   template <typename = void> // only allow if First() is ok
   variant() {
     static_assert(std::is_same<void, decltype(static_cast<void>(First()))>::value,
                   "First type must be default constructible or variant is not!");
     this->initialize<0>();
+    SAFE_VARIANT_CTOR_POSTCONDITION_ASSERT;
   }
 
-  ~variant() noexcept { destroy(); }
+  ~variant() noexcept { this->destroy(); }
+
+  // Special member functions
+  variant(const variant & rhs) noexcept(assume_copy_nothrow) {
+    copy_constructor c(*this);
+    rhs.apply_visitor_internal(c);
+    SAFE_VARIANT_ASSERT(rhs.which() == this->which(), "Postcondition failed!");
+    SAFE_VARIANT_CTOR_POSTCONDITION_ASSERT;
+  }
+
+  variant(variant && rhs) noexcept {
+    move_constructor mc(*this);
+    rhs.apply_visitor_internal(mc);
+    SAFE_VARIANT_ASSERT(rhs.which() == this->which(), "Postcondition failed!");
+    SAFE_VARIANT_CTOR_POSTCONDITION_ASSERT;
+  }
+
+  variant & operator=(const variant & rhs) noexcept(assume_copy_nothrow) {
+    if (this != &rhs) {
+      copy_assigner a(*this, rhs.which());
+      rhs.apply_visitor_internal(a);
+      SAFE_VARIANT_ASSERT(rhs.which() == this->which(), "Postcondition failed!");
+    }
+    SAFE_VARIANT_CTOR_POSTCONDITION_ASSERT;
+    return *this;
+  }
+
+  // TODO: If all types are nothrow MA then this is also
+  // For now we assume it is the case.
+  variant & operator=(variant && rhs) noexcept {
+    if (this != &rhs) {
+      move_assigner ma(*this, rhs.which());
+      rhs.apply_visitor_internal(ma);
+      SAFE_VARIANT_ASSERT(rhs.which() == this->which(), "Postcondition failed!");
+    }
+    SAFE_VARIANT_CTOR_POSTCONDITION_ASSERT;
+    return *this;
+  }
 
   /// Forwarding-reference ctor, construct a variant from one of its value
   /// types.
@@ -366,7 +409,9 @@ public:
     constexpr size_t which_idx =
       mpl::Find_With<detail::allow_variant_construct_from<T>::template prop, First,
                      Types...>::value;
+    static_assert(which_idx < (sizeof...(Types) + 1), "Could not construct variant from this type!");
     this->initialize<which_idx>(std::forward<T>(t));
+    SAFE_VARIANT_CTOR_POSTCONDITION_ASSERT;
   }
 
   /// Friend all other instances of variant (needed for next two ctors)
@@ -383,6 +428,7 @@ public:
   variant(const variant<OFirst, OTypes...> & other) {
     copy_constructor c(*this);
     other.apply_visitor_internal(c);
+    SAFE_VARIANT_CTOR_POSTCONDITION_ASSERT;
   }
 
   /// "Generalizing" move ctor, similar as above
@@ -392,34 +438,7 @@ public:
   variant(variant<OFirst, OTypes...> && other) noexcept {
     move_constructor c(*this);
     other.apply_visitor_internal(c);
-  }
-
-  variant(const variant & rhs) noexcept(assume_copy_nothrow) {
-    copy_constructor c(*this);
-    rhs.apply_visitor_internal(c);
-  }
-
-  variant(variant && rhs) noexcept {
-    move_constructor mc(*this);
-    rhs.apply_visitor_internal(mc);
-  }
-
-  variant & operator=(const variant & rhs) noexcept(assume_copy_nothrow) {
-    if (this != &rhs) {
-      copy_assigner a(*this, rhs.which());
-      rhs.apply_visitor_internal(a);
-    }
-    return *this;
-  }
-
-  // TODO: If all types are nothrow MA then this is also
-  // For now we assume it is the case.
-  variant & operator=(variant && rhs) noexcept {
-    if (this != &rhs) {
-      move_assigner ma(*this, rhs.which());
-      rhs.apply_visitor_internal(ma);
-    }
-    return *this;
+    SAFE_VARIANT_CTOR_POSTCONDITION_ASSERT;
   }
 
   /***
