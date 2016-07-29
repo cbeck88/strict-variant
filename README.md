@@ -96,7 +96,7 @@ Never Empty Guarantee
 
 We deal with the "never empty" issue as follows:
 
-**Any type used with the variant must be no-throw move constructible, or the variant is not assignable.**
+**Every type used with the variant must be no-throw move constructible, or the variant is not assignable.**
 
 This is enforced using static asserts within the assignment operators. The condition can sometimes be a pain if you are forced to use e.g. GCC 4-series versions of the C++ standard library which
 are not C++11 conforming, and not all move ctors are appropriately marked `noexcept`. So there is also a flag to turn the static asserts off, see `static constexpr bool assume_move_nothrow` in the header. (Note that if a move does throw in this case, you will get UB.)
@@ -290,6 +290,29 @@ use a series of using declarations. In another project that uses this library, I
 
 but you should be able to do it however you like of course.
 
+Configuration
+=============
+
+There are three preprocessor defines it responds to:
+
+- `SAFE_VARIANT_ASSUME_MOVE_NOTHROW`  
+  Assume that moves of input types won't throw, regardless of their `noexcept`
+  status. This might be useful if you are using old versions of the standard
+  library and things like `std::string` are not no-throw move constructible for
+  you, but you want `safe_variant::variant` to act as though they are. This will
+  allow you to get assignment operators for the variant as though everything
+  were move constructible, but if anything actually does throw you get UB.
+
+- `SAFE_VARIANT_ASSUME_COPY_NOTHROW`
+  Assumes that copies of input types won't throw, regardless of their `noexcept`
+  status. This is pretty dangerous, it only makes sense in projects where you
+  already assume that dynamic allocations will never fail and just want to go
+  as fast as possible given that assumption. Probably you are using
+  `-fno-exceptions` anyways and a custom allocator, which you monitor on the side
+  for memory exhaustion, or something like this.
+
+- `SAFE_VARIANT_DEBUG`  
+  Turn on debugging assertions.
 
 Licensing and Distribution
 ==========================

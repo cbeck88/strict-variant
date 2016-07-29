@@ -35,6 +35,8 @@
 #include <type_traits>
 #include <utility>
 
+// #define SAFE_VARIANT_ASSUME_MOVE_NOTHROW
+// #define SAFE_VARIANT_ASSUME_COPY_NOTHROW
 // #define SAFE_VARIANT_DEBUG
 
 #ifdef SAFE_VARIANT_DEBUG
@@ -73,14 +75,24 @@ private:
   //  Only use this as a workaround for e.g. old code which is not
   //  noexcept-correct. For instance if you require compatibility with a
   //  gcc-4-series version of libstdc++ and std::string isn't noexcept.)
-  static constexpr bool assume_move_nothrow = false;
+  static constexpr bool assume_move_nothrow =
+#ifdef SAFE_VARIANT_ASSUME_MOVE_NOTHROW
+  true;
+#else
+  false;
+#endif
 
   // Treat all input types as if they were nothrow copyable,
   // regardless of thier noexcept declarations.
   // (Note: This is usually quite risky, only appropriate in projects which
   //  assume already that dynamic memory allocation will never fail, and want to
   //  go as fast as possible given that assumption.)
-  static constexpr bool assume_copy_nothrow = false;
+  static constexpr bool assume_copy_nothrow =
+#ifdef SAFE_VARIANT_ASSUME_COPY_NOTHROW
+  true;
+#else
+  false;
+#endif
 
   /***
    * Check noexcept status of special member functions of our types
@@ -354,7 +366,7 @@ private:
     }
   };
 
-#define SAFE_VARIANT_WHICH_INVARIANT_ASSERT                                                        \
+#define SAFE_VARIANT_ASSERT_WHICH_INVARIANT                                                        \
   SAFE_VARIANT_ASSERT(static_cast<unsigned>(this->which()) < sizeof...(Types) + 1,                 \
                       "Postcondition failed!")
 
@@ -364,7 +376,7 @@ public:
     static_assert(std::is_same<void, decltype(static_cast<void>(First()))>::value,
                   "First type must be default constructible or variant is not!");
     this->initialize<0>();
-    SAFE_VARIANT_WHICH_INVARIANT_ASSERT;
+    SAFE_VARIANT_ASSERT_WHICH_INVARIANT;
   }
 
   ~variant() noexcept { this->destroy(); }
@@ -374,7 +386,7 @@ public:
     copy_constructor c(*this);
     rhs.apply_visitor_internal(c);
     SAFE_VARIANT_ASSERT(rhs.which() == this->which(), "Postcondition failed!");
-    SAFE_VARIANT_WHICH_INVARIANT_ASSERT;
+    SAFE_VARIANT_ASSERT_WHICH_INVARIANT;
   }
 
   // Note: noexcept is enforced by static_assert in move_constructor visitor
@@ -382,7 +394,7 @@ public:
     move_constructor mc(*this);
     rhs.apply_visitor_internal(mc);
     SAFE_VARIANT_ASSERT(rhs.which() == this->which(), "Postcondition failed!");
-    SAFE_VARIANT_WHICH_INVARIANT_ASSERT;
+    SAFE_VARIANT_ASSERT_WHICH_INVARIANT;
   }
 
   variant & operator=(const variant & rhs) noexcept(SAFE_VARIANT_NOTHROW_COPY_CTORS) {
@@ -391,7 +403,7 @@ public:
       rhs.apply_visitor_internal(a);
       SAFE_VARIANT_ASSERT(rhs.which() == this->which(), "Postcondition failed!");
     }
-    SAFE_VARIANT_WHICH_INVARIANT_ASSERT;
+    SAFE_VARIANT_ASSERT_WHICH_INVARIANT;
     return *this;
   }
 
@@ -403,7 +415,7 @@ public:
       rhs.apply_visitor_internal(ma);
       SAFE_VARIANT_ASSERT(rhs.which() == this->which(), "Postcondition failed!");
     }
-    SAFE_VARIANT_WHICH_INVARIANT_ASSERT;
+    SAFE_VARIANT_ASSERT_WHICH_INVARIANT;
     return *this;
   }
 
@@ -425,7 +437,7 @@ public:
     static_assert(which_idx < (sizeof...(Types) + 1),
                   "Could not construct variant from this type!");
     this->initialize<which_idx>(std::forward<T>(t));
-    SAFE_VARIANT_WHICH_INVARIANT_ASSERT;
+    SAFE_VARIANT_ASSERT_WHICH_INVARIANT;
   }
 
   /// Friend all other instances of variant (needed for next two ctors)
@@ -442,7 +454,7 @@ public:
   variant(const variant<OFirst, OTypes...> & other) noexcept(SAFE_VARIANT_NOTHROW_COPY_CTORS) {
     copy_constructor c(*this);
     other.apply_visitor_internal(c);
-    SAFE_VARIANT_WHICH_INVARIANT_ASSERT;
+    SAFE_VARIANT_ASSERT_WHICH_INVARIANT;
   }
 
   /// "Generalizing" move ctor, similar as above
@@ -452,7 +464,7 @@ public:
   variant(variant<OFirst, OTypes...> && other) noexcept {
     move_constructor c(*this);
     other.apply_visitor_internal(c);
-    SAFE_VARIANT_WHICH_INVARIANT_ASSERT;
+    SAFE_VARIANT_ASSERT_WHICH_INVARIANT;
   }
 
   // Emplace ctor. Used to explicitly specify the type of the variant, and
@@ -594,7 +606,7 @@ get_or_default(variant<Types...> & v, T def = {}) noexcept(std::is_nothrow_move_
 } // end namespace safe_variant
 
 #undef SAFE_VARIANT_ASSERT
-#undef SAFE_VARIANT_WHICH_INVARIANT_ASSERT
+#undef SAFE_VARIANT_ASSERT_WHICH_INVARIANT
 #undef SAFE_VARIANT_NOTHROW_COPY_CTORS
 #undef SAFE_VARIANT_NOTHROW_MOVE_ASSIGN
 #undef SAFE_VARIANT_ASSERT_NOTHROW_MOVE_CTORS
