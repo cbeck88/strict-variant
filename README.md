@@ -101,8 +101,7 @@ We deal with the "never empty" issue as follows:
 
 **Every type used with the variant must be no-throw move constructible, or the variant is not assignable.**
 
-This is enforced using static asserts within the assignment operators. The condition can sometimes be a pain if you are forced to use e.g. GCC 4-series versions of the C++ standard library which
-are not C++11 conforming, and not all move ctors are appropriately marked `noexcept`. So there is also a flag to turn the static asserts off, see configuration for details. (Note that if a move does throw in this case, you will get UB.)
+This is enforced using static asserts within the assignment operators. (There is also a way to turn off the static asserts with a preprocessor symbol, see "configuration". This doesn't lift the requirement though, it just makes it UB if one of the move ctors throws.)
 
 This allows the implementation to be very simple and efficient compared with some other variant types, which may have to make extra copies to facilitate
 exception-safety, or make only a "rarely empty" guarantee.
@@ -140,7 +139,7 @@ easy variant
 
 Additionally, we provide a template `easy_variant` which takes care of these details if you don't care to be bothered by the compiler about a throwing move / dynamic allocation.  
 
-(Some programmers would prefer that the compiler not start making dynamic allocations without a warning though, just because some `noexcept` annotation was not deduced the way they expected.)  
+(Some programmers would prefer that the compiler not start making dynamic allocations without a warning though, just because some `noexcept` annotation was not deduced the way they expected, but on the other hand this may be particularly convenient for generic programming.)  
 
 Specifically, any type that you put in the `easy_variant` which has a throwing move will be wrapped in `recursive_wrapper` implicitly.
 
@@ -171,7 +170,7 @@ namespace safe_variant {
 Synopsis
 ========
 
-The actual interface is in most ways the same as `boost::variant`, which strongly inspired this.  
+The actual interface to `variant` is in most ways the same as `boost::variant`, which strongly inspired this.  
 
 (However, my interface is exception-free. If you want to have
 analogues of the throwing functions in `boost::variant` you'll have to write them, which is pretty easy to do on top of the exception-free interface.)
@@ -362,7 +361,7 @@ There are three preprocessor defines it responds to:
   Assumes that copies of input types won't throw, regardless of their `noexcept`
   status. This is pretty dangerous, it only makes sense in projects where you
   already assume that dynamic allocations will never fail and just want to go
-  as fast as possible given that assumption. Probably you are using
+  as fast as possible given that assumption. Probably you are already using
   `-fno-exceptions` anyways and a custom allocator, which you monitor on the side
   for memory exhaustion, or something like this.
 
