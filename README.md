@@ -99,27 +99,29 @@ We deal with the "never empty" issue as follows:
 **Every type used with the variant must be no-throw move constructible, or the variant is not assignable.**
 
 This is enforced using static asserts within the assignment operators. The condition can sometimes be a pain if you are forced to use e.g. GCC 4-series versions of the C++ standard library which
-are not C++11 conforming, and not all move ctors are appropriately marked `noexcept`. So there is also a flag to turn the static asserts off, see `static constexpr bool assume_move_nothrow` in the header. (Note that if a move does throw in this case, you will get UB.)
+are not C++11 conforming, and not all move ctors are appropriately marked `noexcept`. So there is also a flag to turn the static asserts off, see configuration for details. (Note that if a move does throw in this case, you will get UB.)
 
 This allows the implementation to be very simple and efficient compared with some other variant types, which may have to make extra copies to facilitate
 exception-safety, or make only a "rarely empty" guarantee.
 
 If you have a type with a throwing move, you are encouraged to use `safe_variant::recursive_wrapper<T>` instead of `T` in the variant.
 
-`recursive_wrapper<T>` is behaviorally equivalent to `std::unique_ptr<T>`, making a copy of `T` on the heap. But it is implicitly convertible to `T&`, and so
+`recursive_wrapper<T>` is behaviorally equivalent to `std::unique_ptr<T>`, making a copy of `T` on the heap. But it is convertible to `T&`, and so
 for most purposes is syntactically the same as `T`. There is special support within `safe_variant::variant` so that you can call `get<T>(&v)` and get a pointer
-to a `T` rather than the wrapper, for instance.
+to a `T` rather than the wrapper, for instance, and similarly throughout the `variant` interface.
 
 `recursive_wrapper<T>` always has a `noexcept` move ctor even if `T` does not.
 
-This decision allows the guts of the variant to be very clean and simple -- there are no dynamic allocations taking place behind your back.  
+By mostly restricting attention to no-throw move constructible types, the guts of the variant enjoy a very clean and simple implementation
+-- there are no dynamic allocations taking place behind your back, and you mostly "intuitively" know what the variant is doing and what the costs
+are when you manipulate it.  
 
 If you want dynamic allocations to support throwing-moves, you opt-in to that using `recursive_wrapper`.
 
 Note that the *stated* purpose of recursive wrapper, in `boost::variant` docs, is to allow you to declare variants which contain an incomplete type.
 They also work great for that in `safe_variant::variant`.
 
-Note also that even if the variant is not assignable, you can still use the `emplace` function to change the type of its value, provided that the constructor you invoke is `noexcept` or the requested type is no-throw move constructible.
+Even if the variant is not assignable, you can still use the `emplace` function to change the type of its value, provided that the constructor you invoke is `noexcept` or the requested type is no-throw move constructible.
 
 Synopsis
 ========
