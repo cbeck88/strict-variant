@@ -214,6 +214,14 @@ namespace safe_variant {
   template <typename T, typename ... Types>
   T & get_or_default(variant<Types...> & v, T def = {});
 
+  // Base class, provided to conveniently derive visitors from.
+  // Analogous to boost::static_visitor
+  template <typename T = void>
+  class static_visitor {
+  public:
+    typedef T result_type;
+  };
+
 } // end namespace safe_variant
 ```
 
@@ -257,7 +265,7 @@ Forward-facing includes:
 
 All the library definitions are made within the namespace `safe_variant`.
 
-I guess I recommend you to use a namespace alias for that, e.g. `namespace util = safe_variant;`, or
+I guess I recommend that you use a namespace alias for that, e.g. `namespace util = safe_variant;`, or
 use a series of using declarations. In another project that uses this library, I did this:
 
 
@@ -321,16 +329,109 @@ Licensing and Distribution
 
 **safe variant** is available under the boost software license.
 
+Performance Characteristics
+===========================
+
+Assignment
+----------
+
+The main point of variation among variant types is usually how they handle the
+never-empty guarantee.  (Beyond that, they often vary significantly in how they
+actually implement the storage, especially if they seek `constexpr` support.)
+
+In `boost::variant`, the strategy is to make a heap-allocated backup copy of the
+value, and then destroy the original and attempt to allocate the new value in the
+in situ storage. If that operation throws, then the heap-allocated copy still
+exists, and subsequent uses point to that. Any later type-changing assignments
+will try to take place in situ, and the heap-allocated backup will remain until
+one of those succeeds.
+
+This provides the most comprehensive support, but it incurs an extra copy and
+an extra dynamic allocation for each assignment. There's also some space overhead
+for the pointer.
+
+In the C++17 `std::variant`, the strategy is to relax the never-empty guarantee
+to a "rarely empty" guarantee, by introducing an empty state which occurs when
+construction fails. This greatly simplifies assignment and makes that more efficient,
+but it may complicate visitation, depending on how concerned you are about the
+empty state.
+
+In `safe_variant`, the focus is on a less general case. We are mostly concerned
+anyways with cases when you have many types in the variant which are implicitly
+convertible, and for assignment we more or less assume that they are no-throw
+move constructible. Via `recursive_wrapper`, we support all the other types as
+well, with the proviso that they will be heap allocated rather than allocated
+in situ. In comparison with `boost::variant`, this results in no extra calls
+to copy constructors when we make an assignment, although it will result in
+extra dynamic allocations. It also will impact speed of visitation, in the sense
+that you must dereference an extra pointer to find the object -- boost::variant
+tries to get the object in situ, and only puts it on the heap if an exception
+is thrown. However, if exceptions are thrown regularly, then you would already
+have had to tolerate this overhead with `boost::variant`. An advantage, though,
+is that operations on `safe_variant` are relatively easy to reason about, as
+there are no dynamic allocations taking place that you don't explicitly opt in
+to. And besides, for the use cases where `safe_variant` is attractive in the
+first place, the types will all likely be no-throw move constructible anyways.
+
+Visitation
+----------
+
+The other major point of variation is the speed of visitation.
+
+In `boost::variant`, at least the early implementations used `boost::mpl`, and
+were limited to twenty or so types. `boost::variant` works even prior to the
+variadic templates feature. Doing without variadic templates makes the header
+pretty complicated and hurts the compile times, but its very helpful to speed of
+visitation, which can be done using an explicit `switch` statement.
+
+In a variadic template-based implementation, switch statements cannot be used,
+because there is no pack-expansion analogue for switch statements. The most
+common strategy that I saw is to declare an array of function pointers, and
+fill it with pointers to a series of instantiations of template functions,
+corresponding to indices in the list of input types. Then this array is indexed
+and the appropriate function pointer is called, passing along the visitor,
+the variant storage, etc. The array thus forms a little manual jump table of
+sorts.
+
+This implementation scales very well to large numbers of elements, but it has
+the drawback that the function pointers cannot always be inlined by the compiler,
+and so for relatively small numbers of elements, it can be outperformed by
+another strategy. In the second strategy, a binary tree is formed which holds at
+each leaf one of the input types. We then search the binary tree using the
+"which" value which would have been the index to the jump table. When we arrive
+at the leaf, we know the runtime-type of the value, and can invoke the visitor
+appropriately. This implementation involves no function pointers, so the calls
+can always be inlined -- but it may involve several branches. However, these
+branches may benefit from branch prediction, and in practice, its quite common
+to have variants with only a handful of types. Particularly when there is one
+type which is the "most popular", branch prediction can significantly speed up
+the visitation well beyond what you will see in benchmarks with random data,
+which are already quite favorable to the "binary" search strategy for small
+numbers of types.
+
+Therefore, `safe_variant` uses a hybrid strategy. When the number of variants
+is four or less, the binary search is used, and for more than that, the jump
+table is used. 
+
+There is a benchmarks suite in the `/bench` folder of the repository.
+
+Compile-Times
+-------------
+
+I did not attempt to benchmark the compile-time performance, but I expect that
+the differences would be negligible, especially in comparison to other common
+libraries which are known to have heavy compile times.
+
 Known issues
 ============
 
-- There are some issues with `noexcept` correctness which I would like to fix.  
+- There are still some issues with `noexcept` correctness which I would like to fix. It's mostly in order right now though.
 - Currently, you cannot use `apply_visitor` with an rvalue-reference to the variant.  
   It must be an lvalue-reference or a const reference.  
   There is no reason for this restriction, but some of the dispatch code needs to be fixed
   to support this. I didn't need it in my original application.  
   It's okay for the visitor to be an rvalue-reference.  
-- You can't use a lamba directly as a visitor. It needs to derive from `safe_variant::static_visitor`.
+- You can't use a lambda directly as a visitor. It needs to derive from `safe_variant::static_visitor`.
   This is similar to `boost::variant`. It could be fixed using `std::result_of`, that is a TODO item.
   Since generic lambdas are a C++14 feature anyways, this isn't that big a deal.
 - No `constexpr` support. This is really extremely difficult to do in a variant at
