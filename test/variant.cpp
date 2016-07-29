@@ -488,6 +488,32 @@ UNIT_TEST(visitation) {
   TEST_EQ(2, vis.flag_);
 }
 
+UNIT_TEST(move) {
+  using var_t = variant<std::string, int>;
+  var_t x;
+
+  TEST_EQ(x.which(), 0);
+
+  var_t y{5};
+
+  TEST_EQ(y.which(), 1);
+
+  x = std::move(y);
+
+  TEST_EQ(x.which(), 1);
+  TEST_EQ(y.which(), 1);
+
+  x = var_t{var_t{var_t{var_t{"asdf"}}}};
+
+  TEST_EQ(x.which(), 0);
+  TEST_EQ(y.which(), 1);
+
+  x = var_t{var_t{var_t{var_t{std::move(y)}}}};
+
+  TEST_EQ(x.which(), 1);
+  TEST_EQ(y.which(), 1);
+}
+
 } // end namespace safe_variant
 
 int
