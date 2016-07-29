@@ -135,12 +135,14 @@ emplace
 
 Even if the variant is not assignable, you can still use the `emplace` function to change the type of its value, provided that the constructor you invoke is `noexcept` or the requested type is no-throw move constructible.
 
-`easy_variant`
---------------
+easy variant
+-------------
 
-Additionally, we provide a template `easy_variant` which takes care of these details if you don't care to be bothered by the compiler about a throwing move / dynamic allocation.
-(Some programmers would prefer that the compiler not start making dynamic allocations without a warning though, just because some `noexcept` annotation was not deduced the way they expected.)
-Specifically, any type that you put in the variant which has a throwing move will be wrapped in `recursive_wrapper` implicitly.
+Additionally, we provide a template `easy_variant` which takes care of these details if you don't care to be bothered by the compiler about a throwing move / dynamic allocation.  
+
+(Some programmers would prefer that the compiler not start making dynamic allocations without a warning though, just because some `noexcept` annotation was not deduced the way they expected.)  
+
+Specifically, any type that you put in the `easy_variant` which has a throwing move will be wrapped in `recursive_wrapper` implicitly.
 
 ```c++
 namespace safe_variant {
@@ -171,7 +173,7 @@ Synopsis
 
 The actual interface is in most ways the same as `boost::variant`, which strongly inspired this.  
 
-(However, my interface is exception-free, if you want to have
+(However, my interface is exception-free. If you want to have
 analogues of the throwing functions in `boost::variant` you'll have to write them, which is pretty easy to do on top of the exception-free interface.)
 
 ```c++
