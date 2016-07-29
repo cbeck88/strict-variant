@@ -85,16 +85,21 @@ Instead, it uses a very simple iterative strategy.
 So, keep in mind, this is not a drop-in replacement for `boost::variant` or one of the other versions, its semantics are fundamentally different.
 But in scenarios like those it was designed for, it may be easier to reason about and less error-prone.
 
+Assumptions
+===========
+
+- Any type in the variant must be no-throw destructible.
+- References are not allowed, use `std::reference_wrapper`.
+
 Never Empty Guarantee
 =====================
 
 We deal with the "never empty" issue as follows:
 
-**Any type used with the variant must be no-throw move constructible.**
+**Any type used with the variant must be no-throw move constructible, or the variant is not assignable.**
 
-This is enforced using static asserts, but sometimes that can be a pain if you are forced to use e.g. GCC 4-series versions of the C++ standard library which
-are not C++11 conforming. So there is also a flag to turn the static asserts off, see `static constexpr bool assume_move_nothrow` in the header. (Note that if a move
-does throw, you will get UB.)
+This is enforced using static asserts within the assignment operators. The condition can sometimes be a pain if you are forced to use e.g. GCC 4-series versions of the C++ standard library which
+are not C++11 conforming, and not all move ctors are appropriately marked `noexcept`. So there is also a flag to turn the static asserts off, see `static constexpr bool assume_move_nothrow` in the header. (Note that if a move does throw in this case, you will get UB.)
 
 This allows the implementation to be very simple and efficient compared with some other variant types, which may have to make extra copies to facilitate
 exception-safety, or make only a "rarely empty" guarantee.
@@ -113,6 +118,8 @@ If you want dynamic allocations to support throwing-moves, you opt-in to that us
 
 Note that the *stated* purpose of recursive wrapper, in `boost::variant` docs, is to allow you to declare variants which contain an incomplete type.
 They also work great for that in `safe_variant::variant`.
+
+Note also that even if the variant is not assignable, you can still use the `emplace` function to change the type of its value, provided that the constructor you invoke is `noexcept` or the requested type is no-throw move constructible.
 
 Synopsis
 ========
@@ -134,11 +141,12 @@ namespace safe_variant {
 
     // Special member functions: Nothing special here
     variant(const variant &);
-    variant & operator=(const variant &);
-
-    variant(variant &&) noexcept;
-    variant & operator=(variant &&) noexcept;
+    variant(variant &&);
     ~variant() noexcept;
+
+    // Only available if all input types are no-throw move constructible
+    variant & operator=(variant &&);
+    variant & operator=(const variant &);
 
     // Constructs the variant from a type outside the variant,
     // using iterative strategy described in docs.
@@ -167,10 +175,11 @@ namespace safe_variant {
     // Force the variant to a particular value.
     // The user explicitly specifies the desired type as template parameter,
     // which must be one of the variant types, modulo const, recursive wrapper.
+    // (There are actually two implementations of emplace, depending on whether
+    // the invoked ctor is noexcept. If it is not, then a move is used for
+    // strong exception-safety.)
     template <typename T, typename... Args>
-    void emplace(Args &&... args) {
-      *this = variant(emplace_tag<T>, std::forward<Args>(args)...);
-    }
+    void emplace(Args &&... args);
 
     // Reports the runtime type. The returned value is an index into the list
     // <First, Types...>.
@@ -199,6 +208,7 @@ namespace safe_variant {
   // Returns a reference to the stored value. If it does not currently have the
   // indicated type, then it is move-assigned with the value "default", and
   // a reference to that value, within the variant, is returned.
+  // This is noexcept if T is no_throw_move_constructible.
   template <typename T, typename ... Types>
   T & get_or_default(variant<Types...> & v, T def = {});
 
@@ -269,8 +279,10 @@ use a series of using declarations. In another project that uses this library, I
     namespace util {
       using safe_variant::variant;
       using safe_variant::get;
-      using safe_variant::apply_visitor;
       using safe_variant::get_or_default;
+      using safe_variant::apply_visitor;
+      using safe_variant::recrusive_wrapper;
+      using safe_variant::static_visitor;
     }
 ```
 

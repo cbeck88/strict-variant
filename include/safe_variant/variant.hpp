@@ -72,7 +72,7 @@ private:
   //  throw, you will get UB and likely an immediate crash if they do throw.
   //  Only use this as a workaround for e.g. old code which is not
   //  noexcept-correct. For instance if you require compatibility with a
-  //  gcc-4-series version of libstdc++= and std::string isn't noexcept.)
+  //  gcc-4-series version of libstdc++ and std::string isn't noexcept.)
   static constexpr bool assume_move_nothrow = false;
 
   // Treat all input types as if they were nothrow copyable,
@@ -91,13 +91,15 @@ private:
   static_assert(mpl::All_Have<std::is_nothrow_destructible, Types...>::value,
                 "All types in this variant type must be nothrow destructible");
 
-  static_assert(assume_move_nothrow
-                  || mpl::All_Have<std::is_nothrow_move_constructible, First>::value,
-                "All types in this variant type must be nothrow move constructible");
-
-  static_assert(assume_move_nothrow
-                  || mpl::All_Have<std::is_nothrow_move_constructible, Types...>::value,
-                "All types in this variant type must be nothrow move constructible");
+#define SAFE_VARIANT_ASSERT_NOTHROW_MOVE_CTORS \
+  static_assert(assume_move_nothrow                                                    \
+                  || mpl::All_Have<std::is_nothrow_move_constructible, First>::value,  \
+                "All types in this variant type must be nothrow move constructible");  \
+                                                                                       \
+  static_assert(assume_move_nothrow                                                    \
+                  || mpl::All_Have<std::is_nothrow_move_constructible, Types...>::value, \
+                "All types in this variant type must be nothrow move constructible");   \
+  static_assert(true, "")
 
   template <typename T>
   struct nothrow_copy_constructible {
@@ -106,6 +108,9 @@ private:
 
 #define SAFE_VARIANT_NOTHROW_COPY_CTORS                                                            \
   assume_copy_nothrow || mpl::All_Have<nothrow_copy_constructible, First, Types...>::value
+
+#define SAFE_VARIANT_NOTHROW_MOVE_ASSIGN                                                           \
+  mpl::All_Have<std::is_nothrow_move_assignable, First, Types...>::value
 
   /***
    * Prohibit references
@@ -248,6 +253,8 @@ private:
   struct copy_assigner {
     typedef void result_type;
 
+    SAFE_VARIANT_ASSERT_NOTHROW_MOVE_CTORS;
+
     explicit copy_assigner(variant & self, int rhs_which)
       : m_self(self)
       , m_rhs_which(rhs_which) {}
@@ -283,6 +290,8 @@ private:
   // move assigner
   struct move_assigner {
     typedef void result_type;
+
+    SAFE_VARIANT_ASSERT_NOTHROW_MOVE_CTORS;
 
     explicit move_assigner(variant & self, int rhs_which)
       : m_self(self)
@@ -368,6 +377,7 @@ public:
     SAFE_VARIANT_WHICH_INVARIANT_ASSERT;
   }
 
+  // Note: noexcept is enforced by static_assert in move_constructor visitor
   variant(variant && rhs) noexcept {
     move_constructor mc(*this);
     rhs.apply_visitor_internal(mc);
@@ -387,7 +397,7 @@ public:
 
   // TODO: If all types are nothrow MA then this is also
   // For now we assume it is the case.
-  variant & operator=(variant && rhs) noexcept {
+  variant & operator=(variant && rhs) noexcept(SAFE_VARIANT_NOTHROW_MOVE_ASSIGN) {
     if (this != &rhs) {
       move_assigner ma(*this, rhs.which());
       rhs.apply_visitor_internal(ma);
@@ -451,7 +461,7 @@ public:
   struct emplace_tag {};
 
   template <typename T, typename... Args>
-  explicit variant(emplace_tag<T>, Args &&... args) {
+  explicit variant(emplace_tag<T>, Args &&... args) noexcept(std::is_nothrow_constructible<T, Args...>::value) {
     constexpr size_t idx = find_which<T>::value;
     static_assert(idx < sizeof...(Types) + 1,
                   "Requested type is not a member of this variant type");
@@ -463,9 +473,27 @@ public:
   // In this operation the user explicitly specifies the desired type as
   // template parameter, which must be one of the variant types, modulo const
   // and recursive wrapper.
+  // There are two overloads:
+  //   when the invoked constructor is noexcept, we destroy the current value
+  //     and reinitialize in-place.
+  //   when the invoked constructor is not noexcept, we use a move for safety.
   template <typename T, typename... Args>
-  void emplace(Args &&... args) {
-    *this = variant(emplace_tag<T>{}, std::forward<Args>(args)...);
+  mpl::enable_if_t<!std::is_nothrow_constructible<T, Args...>::value>
+  emplace(Args &&... args) {
+    static_assert(std::is_nothrow_move_constructible<T>::value, "To use emplace, either the invoked ctor or the move ctor must be noexcept.");
+    T temp(std::forward<Args>(args)...);
+    this->emplace<T>(std::move(temp));
+  }
+
+  template <typename T, typename... Args>
+  mpl::enable_if_t<std::is_nothrow_constructible<T, Args...>::value>
+  emplace(Args &&... args) noexcept {
+    constexpr size_t idx = find_which<T>::value;
+    static_assert(idx < sizeof...(Types) + 1,
+                  "Requested type is not a member of this variant type");
+
+    this->destroy();
+    this->initialize<idx>(std::forward<Args>(args)...);
   }
 
   /***
@@ -553,11 +581,10 @@ get(const variant<Types...> * var) noexcept {
 /// and return a reference to the new value.
 template <typename T, typename... Types>
 T &
-get_or_default(variant<Types...> & v, T def = {}) {
+get_or_default(variant<Types...> & v, T def = {}) noexcept(std::is_nothrow_move_constructible<T>::value) {
   T * t = safe_variant::get<T>(&v);
   if (!t) {
-    // v.template emplace<T>(std::move(def));
-    v = std::move(def);
+    v.template emplace<T>(std::move(def));
     t = safe_variant::get<T>(&v);
     SAFE_VARIANT_ASSERT(t, "Move assignment to a variant failed to change its type!");
   }
@@ -569,3 +596,5 @@ get_or_default(variant<Types...> & v, T def = {}) {
 #undef SAFE_VARIANT_ASSERT
 #undef SAFE_VARIANT_WHICH_INVARIANT_ASSERT
 #undef SAFE_VARIANT_NOTHROW_COPY_CTORS
+#undef SAFE_VARIANT_NOTHROW_MOVE_ASSIGN
+#undef SAFE_VARIANT_ASSERT_NOTHROW_MOVE_CTORS
