@@ -39,7 +39,7 @@ alias boost : : : : <include>$(BOOST_INCLUDE_DIR) ;
 
 ### Build tests
 
-STRICT = <cxxflags>"-Wall -Werror -Wextra -pedantic " ;
+STRICT = <cxxflags>"-Wall -Werror -Wextra -pedantic -DSAFE_VARIANT_DEBUG " ;
 
 exe variant : variant.cpp safe_variant test_harness : $(STRICT) ;
 exe compare : compare.cpp safe_variant test_harness : $(STRICT) ;

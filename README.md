@@ -140,12 +140,21 @@ namespace safe_variant {
     bool operator == (const variant &) const;
     bool operator != (const variant &) const;
 
-    // Force the variant to a particular value. You should pass T as the (only)
-    // template parameter when invoking this, and T should be in the list
-    // <First, Types...>, modulo recursive_wrapper.
-    // (SFINAE expression omitted here)
+    // Emplace ctor. Used to explicitly specify the type of the variant.
+    template <typename T>
+    struct emplace_tag {};
+
     template <typename T, typename... Args>
-    void emplace(Args && ... args);
+    explicit variant(emplace_tag<T>, Args && ... args);
+
+    // Emplace operation
+    // Force the variant to a particular value.
+    // The user explicitly specifies the desired type as template parameter,
+    // which must be one of the variant types, modulo const, recursive wrapper.
+    template <typename T, typename... Args>
+    void emplace(Args &&... args) {
+      *this = variant(emplace_tag<T>, std::forward<Args>(args)...);
+    }
   };
 
   // Apply a static_visitor to the variant. It is called using the current value

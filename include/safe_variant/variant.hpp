@@ -58,13 +58,13 @@
     assert((X) && C);                                                                              \
   } while (0)
 
-#else
+#else // SAFE_VARIANT_DEBUG
 
 #define SAFE_VARIANT_ASSERT(X, C)                                                                  \
   do {                                                                                             \
   } while (0)
 
-#endif
+#endif // SAFE_VARIANT_DEBUG
 
 namespace safe_variant {
 
@@ -497,20 +497,26 @@ public:
     }
   }
 
-  // Emplace operation
-  // In this operation the user explicitly specifies the desired type as
-  // template parameter, which
-  // must be one of the variant types, modulo const and reference wrapper.
-  // We always destroy and reconstruct in-place.
+  // Emplace ctor. Used to explicitly specify the type of the variant.
+  template <typename T>
+  struct emplace_tag {};
 
-  template <typename T, typename... Us>
-  void emplace(Us &&... us) {
+  template <typename T, typename... Args>
+  explicit variant(emplace_tag<T>, Args && ... args) {
     constexpr size_t idx = find_which<T>::value;
     static_assert(idx < sizeof...(Types) + 1,
                   "Requested type is not a member of this variant type");
 
-    this->destroy();
-    this->initialize<idx>(std::forward<Us>(us)...);
+    this->initialize<idx>(std::forward<Args>(args)...);
+  }
+
+  // Emplace operation
+  // In this operation the user explicitly specifies the desired type as
+  // template parameter, which must be one of the variant types, modulo const
+  // and recursive wrapper.
+  template <typename T, typename... Args>
+  void emplace(Args &&... args) {
+    *this = variant(emplace_tag<T>{}, std::forward<Args>(args)...);
   }
 };
 
