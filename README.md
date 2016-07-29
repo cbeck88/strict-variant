@@ -107,7 +107,10 @@ are not C++11 conforming, and not all move ctors are appropriately marked `noexc
 This allows the implementation to be very simple and efficient compared with some other variant types, which may have to make extra copies to facilitate
 exception-safety, or make only a "rarely empty" guarantee.
 
-*If you have a type with a throwing move*, you are encouraged to use `safe_variant::recursive_wrapper<T>` instead of `T` in the variant.
+recursive wrapper
+-----------------
+
+*If you have a type `T` with a throwing move*, you are encouraged to use `safe_variant::recursive_wrapper<T>` instead of `T` in the variant.
 
 `recursive_wrapper<T>` is behaviorally equivalent to `std::unique_ptr<T>`, making a copy of `T` on the heap. But it is convertible to `T&`, and so
 for most purposes is syntactically the same as `T`. There is special support within `safe_variant::variant` so that you can call `get<T>(&v)` and get a pointer
@@ -127,7 +130,13 @@ what you don't use. There's no other additional storage in the variant or comple
 Note that the *stated* purpose of recursive wrapper, in `boost::variant` docs, is to allow you to declare variants which contain an incomplete type.
 It also works great for that in `safe_variant::variant`.
 
+emplace
+-------
+
 Even if the variant is not assignable, you can still use the `emplace` function to change the type of its value, provided that the constructor you invoke is `noexcept` or the requested type is no-throw move constructible.
+
+`easy_variant`
+--------------
 
 Additionally, we provide a template `easy_variant` which takes care of these details if you don't care to be bothered by the compiler about a throwing move / dynamic allocation.
 (Some programmers would prefer that the compiler not start making dynamic allocations without a warning though, just because some `noexcept` annotation was not deduced the way they expected.)
@@ -191,7 +200,7 @@ namespace safe_variant {
     variant(T &&);
 
     // Constructs the variant from a "subvariant", that is, another variant
-    // type which has strictly fewer types, modulo recursive_wrapper.
+    // over a strictly smaller set of types, modulo recursive_wrapper.
     // (SFINAE expression omitted here)
     template <typename... OTypes>
     variant(const variant<Otypes...> &);
@@ -263,7 +272,7 @@ namespace safe_variant {
 Compiler Compatibility
 ======================
 
-`safe_variant` is coded to the C++11 standard.
+`safe_variant` is targets the C++11 standard.
 
 It is known to work with `gcc >= 4.9` and `clang >= 3.5`.  
 
@@ -279,7 +288,7 @@ add the `include` folder to your include path. Then use the following includes i
 Forward-facing includes:
 
 - `#include <safe_variant/variant_fwd.hpp>`  
-  Forward declares the variant type, recursive_wrapper type.  
+  Forward declares the `variant type`, `recursive_wrapper` type.  
 - `#include <safe_variant/variant.hpp>`  
   Defines the variant type, as well as `apply_visitor`, `get`, `get_or_default` functions.  
 - `#include <safe_variant/recursive_wrapper.hpp>`  
