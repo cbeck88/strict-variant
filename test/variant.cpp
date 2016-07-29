@@ -519,7 +519,7 @@ struct test_nocopy {
   test_nocopy() = default;
   test_nocopy(const test_nocopy &) = delete;
   test_nocopy(test_nocopy &&) = default;
-  test_nocopy & operator =(test_nocopy &&) = default;
+  test_nocopy & operator=(test_nocopy &&) = default;
 };
 
 UNIT_TEST(noncopyable) {
@@ -528,7 +528,7 @@ UNIT_TEST(noncopyable) {
   using var_t = variant<test_a, test_b>;
 
   var_t v;
-  TEST_EQ(v.which(), 0); 
+  TEST_EQ(v.which(), 0);
   v.emplace<test_b>();
   TEST_EQ(v.which(), 1);
   v.emplace<test_a>();

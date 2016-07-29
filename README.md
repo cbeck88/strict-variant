@@ -90,10 +90,11 @@ Never Empty Guarantee
 
 We deal with the "never empty" issue as follows:
 
-Any type used with the variant must be no-throw move constructible.
+**Any type used with the variant must be no-throw move constructible.**
 
 This is enforced using static asserts, but sometimes that can be a pain if you are forced to use e.g. GCC 4-series versions of the C++ standard library which
-are not C++11 conforming. So there is also a flag to turn the static asserts off, see `static constexpr bool assume_no_throw_move_constructible`.
+are not C++11 conforming. So there is also a flag to turn the static asserts off, see `static constexpr bool assume_move_nothrow` in the header. (Note that if a move
+does throw, you will get UB.)
 
 This allows the implementation to be very simple and efficient compared with some other variant types, which may have to make extra copies to facilitate
 exception-safety, or make only a "rarely empty" guarantee.
@@ -106,7 +107,8 @@ to a `T` rather than the wrapper, for instance.
 
 `recursive_wrapper<T>` always has a `noexcept` move ctor even if `T` does not.
 
-This decision allows the guts of the variant to be very clean and simple -- there are no dynamic allocations taking place behind your back.
+This decision allows the guts of the variant to be very clean and simple -- there are no dynamic allocations taking place behind your back.  
+
 If you want dynamic allocations to support throwing-moves, you opt-in to that using `recursive_wrapper`.
 
 Note that the *stated* purpose of recursive wrapper, in `boost::variant` docs, is to allow you to declare variants which contain an incomplete type.

@@ -5,8 +5,8 @@
 #include "test_harness/test_harness.hpp"
 
 #include <type_traits>
-#include <unordered_set>
 #include <unordered_map>
+#include <unordered_set>
 
 namespace safe_variant {
 

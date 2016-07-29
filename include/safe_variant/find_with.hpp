@@ -58,6 +58,5 @@ struct All_Have {
   static constexpr bool value = !Find_Any<Negate_Property<Property>::template prop, Ts...>::value;
 };
 
-
 } // end namespace mpl
 } // end namespace safe_variant

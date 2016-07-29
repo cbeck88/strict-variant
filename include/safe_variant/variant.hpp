@@ -91,20 +91,21 @@ private:
   static_assert(mpl::All_Have<std::is_nothrow_destructible, Types...>::value,
                 "All types in this variant type must be nothrow destructible");
 
-  static_assert(assume_move_nothrow || mpl::All_Have<std::is_nothrow_move_constructible, First>::value,
-                 "All types in this variant type must be nothrow move constructible");
+  static_assert(assume_move_nothrow
+                  || mpl::All_Have<std::is_nothrow_move_constructible, First>::value,
+                "All types in this variant type must be nothrow move constructible");
 
-  static_assert(assume_move_nothrow || mpl::All_Have<std::is_nothrow_move_constructible, Types...>::value,
-                 "All types in this variant type must be nothrow move constructible");
+  static_assert(assume_move_nothrow
+                  || mpl::All_Have<std::is_nothrow_move_constructible, Types...>::value,
+                "All types in this variant type must be nothrow move constructible");
 
   template <typename T>
   struct nothrow_copy_constructible {
     static constexpr bool value = noexcept(T(*static_cast<const T *>(nullptr)));
   };
 
-  #define SAFE_VARIANT_NOTHROW_COPY_CTORS \
-    assume_copy_nothrow || mpl::All_Have<nothrow_copy_constructible, First, Types...>::value
-
+#define SAFE_VARIANT_NOTHROW_COPY_CTORS                                                            \
+  assume_copy_nothrow || mpl::All_Have<nothrow_copy_constructible, First, Types...>::value
 
   /***
    * Prohibit references
@@ -154,7 +155,7 @@ private:
   }
 
   template <size_t index, typename... Args>
-  void initialize(Args && ... args) {
+  void initialize(Args &&... args) {
     using target_type = mpl::Index_t<index, First, Types...>;
     new (m_storage) target_type(std::forward<Args>(args)...);
     this->m_which = static_cast<int>(index);
@@ -206,7 +207,7 @@ private:
   template <typename Rhs>
   struct find_which {
     static constexpr size_t value =
-              mpl::Find_With<same_modulo_const_ref_wrapper<Rhs>::template prop, First, Types...>::value;
+      mpl::Find_With<same_modulo_const_ref_wrapper<Rhs>::template prop, First, Types...>::value;
     static_assert(value < (sizeof...(Types) + 1), "No match for value");
   };
 
@@ -297,7 +298,7 @@ private:
         SAFE_VARIANT_ASSERT(m_rhs_which == index, "Bad access!");
         (*m_self.unchecked_access<index>()) = std::move(rhs);
       } else {
-        m_self.destroy();                 // nothrow
+        m_self.destroy();                         // nothrow
         m_self.initialize<index>(std::move(rhs)); // nothrow (please)
       }
     }
@@ -344,8 +345,9 @@ private:
     }
   };
 
-  #define SAFE_VARIANT_WHICH_INVARIANT_ASSERT                                 \
-    SAFE_VARIANT_ASSERT(static_cast<unsigned>(this->which()) < sizeof...(Types) + 1, "Postcondition failed!")
+#define SAFE_VARIANT_WHICH_INVARIANT_ASSERT                                                        \
+  SAFE_VARIANT_ASSERT(static_cast<unsigned>(this->which()) < sizeof...(Types) + 1,                 \
+                      "Postcondition failed!")
 
 public:
   template <typename = void> // only allow if First() is ok
@@ -410,7 +412,8 @@ public:
     constexpr size_t which_idx =
       mpl::Find_With<detail::allow_variant_construct_from<T>::template prop, First,
                      Types...>::value;
-    static_assert(which_idx < (sizeof...(Types) + 1), "Could not construct variant from this type!");
+    static_assert(which_idx < (sizeof...(Types) + 1),
+                  "Could not construct variant from this type!");
     this->initialize<which_idx>(std::forward<T>(t));
     SAFE_VARIANT_WHICH_INVARIANT_ASSERT;
   }
@@ -448,7 +451,7 @@ public:
   struct emplace_tag {};
 
   template <typename T, typename... Args>
-  explicit variant(emplace_tag<T>, Args && ... args) {
+  explicit variant(emplace_tag<T>, Args &&... args) {
     constexpr size_t idx = find_which<T>::value;
     static_assert(idx < sizeof...(Types) + 1,
                   "Requested type is not a member of this variant type");
@@ -500,8 +503,7 @@ public:
                   "Requested type is not a member of this variant type");
 
     if (idx == m_which) {
-      return &maybe_pierce_recursive_wrapper<T>(
-        *this->unchecked_access<idx>());
+      return &maybe_pierce_recursive_wrapper<T>(*this->unchecked_access<idx>());
     } else {
       return nullptr;
     }
@@ -514,8 +516,7 @@ public:
                   "Requested type is not a member of this variant type");
 
     if (idx == m_which) {
-      return &maybe_pierce_recursive_wrapper<T>(
-        *this->unchecked_access<idx>());
+      return &maybe_pierce_recursive_wrapper<T>(*this->unchecked_access<idx>());
     } else {
       return nullptr;
     }
