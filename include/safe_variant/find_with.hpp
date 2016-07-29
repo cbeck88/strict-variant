@@ -46,11 +46,18 @@ struct Negate_Property {
   };
 };
 
+// None_Have
+template <template <typename> class Property, typename... Ts>
+struct None_Have {
+  static constexpr bool value = !Find_Any<Property, Ts...>::value;
+};
+
 // All_Have
 template <template <typename> class Property, typename... Ts>
 struct All_Have {
   static constexpr bool value = !Find_Any<Negate_Property<Property>::template prop, Ts...>::value;
 };
+
 
 } // end namespace mpl
 } // end namespace safe_variant

@@ -205,12 +205,14 @@ namespace safe_variant {
 
 
 Compiler Compatibility
-=============
+======================
 
 `safe_variant` is coded to the C++11 standard.
 
-This code has been tested with multiple versions of `gcc` and `clang` over an extended period of time.  
-The oldest compilers that I tested with were `gcc >= 4.8` and `clang >= 3.5`.
+It is known to work with `gcc >= 4.9` and `clang >= 3.5`.  
+
+(It used to work with `gcc-4.8`, but at some point that was lost, I'm not
+ sure exactly why. `gcc-4.8` seems to have some `constexpr` troubles now.)
 
 Usage
 =====

@@ -14,23 +14,10 @@
  * Fully supports move semantics, and arbitrary numbers of types.
  * A major advantage is the use of variadic templates instead of the
  * boost mpl / boost macro library, which make compilation take a long
- * time and can be hard to follow.
- *
- * User beware -- in this project, we have mostly banned exceptions from the
- * code-base, and this variant has been configured to assume that it's
- * underlying types don't throw generally, as an optimisation.
- * If you are using it in another project, you may want to turn off the
- * "assume_copy_nothrow" flag below.
- *
- * At minimum, any type used with this should not throw exceptions from dtor,
- * or from move ctor, or from move assignment, regardless of that flag.
- *
- * If one of the types does throw in these situations, generally it will cause a
- * call to std::terminate due to noexcept specification
+ * time and can be hard to follow, at least for the uninitiated.
  *
  * This code is derived from (an early version of) Jarryd Beck's variant:
  *   https://github.com/jarro2783/thenewcpp
- *
  */
 
 #include <safe_variant/recursive_wrapper.hpp>
@@ -76,8 +63,24 @@ class variant {
 
 private:
   /***
-   * TODO: Prohibit const and reference types
+   * Configuration
    */
+
+  // Treat all input types as if they were nothrow moveable,
+  // regardless of their noexcept declarations.
+  // (Note: It is a core assumption of the variant that these operations don't
+  //  throw, you will get UB and likely an immediate crash if they do throw.
+  //  Only use this as a workaround for e.g. old code which is not
+  //  noexcept-correct. For instance if you require compatibility with a
+  //  gcc-4-series version of libstdc++= and std::string isn't noexcept.)
+  static constexpr bool assume_move_nothrow = false;
+
+  // Treat all input types as if they were nothrow copyable,
+  // regardless of thier noexcept declarations.
+  // (Note: This is usually quite risky, only appropriate in projects which
+  //  assume already that dynamic memory allocation will never fail, and want to
+  //  go as fast as possible given that assumption.)
+  static constexpr bool assume_copy_nothrow = false;
 
   /***
    * Check noexcept status of special member functions of our types
@@ -88,31 +91,29 @@ private:
   static_assert(mpl::All_Have<std::is_nothrow_destructible, Types...>::value,
                 "All types in this variant type must be nothrow destructible");
 
-  // static_assert(mpl::All_Have<std::is_nothrow_move_constructible,
-  // First>::value,
-  //               "All types in this variant type must be nothrow move
-  //               constructible");
-  // static_assert(mpl::All_Have<std::is_nothrow_move_constructible,
-  // Types...>::value,
-  //               "All types in this variant type must be nothrow move
-  //               constructible");
+  static_assert(assume_move_nothrow || mpl::All_Have<std::is_nothrow_move_constructible, First>::value,
+                 "All types in this variant type must be nothrow move constructible");
 
-  /// Detect what happens for copy ctor, copy assignment
-  // static constexpr bool noexcept_copy_operations =
-  // //mpl::All_Have<std::nothrow_copy_assignable,
-  // First, Types...>::value &&
-  //           mpl::All_Have<std::is_nothrow_copy_constructible, First,
-  //           Types...>::value;
+  static_assert(assume_move_nothrow || mpl::All_Have<std::is_nothrow_move_constructible, Types...>::value,
+                 "All types in this variant type must be nothrow move constructible");
 
-  // This "assume_copy_nothrow" assumption allows us to go faster in cases of
-  // e.g. copy assign from
-  // std::string, since we avoid an unnecessary "safety copy on the stack". With
-  // the downside that,
-  // if we run out of memory and std::string copy ctor throws, we lose strong
-  // exception safey, but
-  // in this project we will crash in that case anyways. Not appropriate for
-  // fighter-jet code :p
-  static constexpr bool assume_copy_nothrow = false;
+  template <typename T>
+  struct nothrow_copy_constructible {
+    static constexpr bool value = noexcept(T(*static_cast<const T *>(nullptr)));
+  };
+
+  #define SAFE_VARIANT_NOTHROW_COPY_CTORS \
+    assume_copy_nothrow || mpl::All_Have<nothrow_copy_constructible, First, Types...>::value
+
+
+  /***
+   * Prohibit references
+   */
+
+  static_assert(mpl::None_Have<std::is_reference, First>::value,
+                "Cannot store references in this variant, use `std::reference_wrapper`");
+  static_assert(mpl::None_Have<std::is_reference, Types...>::value,
+                "Cannot store references in this variant, use `std::reference_wrapper`");
 
   /***
    * Determine size and alignment of our storage
@@ -348,7 +349,7 @@ private:
 
 public:
   template <typename = void> // only allow if First() is ok
-  variant() {
+  variant() noexcept(noexcept(First())) {
     static_assert(std::is_same<void, decltype(static_cast<void>(First()))>::value,
                   "First type must be default constructible or variant is not!");
     this->initialize<0>();
@@ -358,7 +359,7 @@ public:
   ~variant() noexcept { this->destroy(); }
 
   // Special member functions
-  variant(const variant & rhs) noexcept(assume_copy_nothrow) {
+  variant(const variant & rhs) noexcept(SAFE_VARIANT_NOTHROW_COPY_CTORS) {
     copy_constructor c(*this);
     rhs.apply_visitor_internal(c);
     SAFE_VARIANT_ASSERT(rhs.which() == this->which(), "Postcondition failed!");
@@ -372,7 +373,7 @@ public:
     SAFE_VARIANT_WHICH_INVARIANT_ASSERT;
   }
 
-  variant & operator=(const variant & rhs) noexcept(assume_copy_nothrow) {
+  variant & operator=(const variant & rhs) noexcept(SAFE_VARIANT_NOTHROW_COPY_CTORS) {
     if (this != &rhs) {
       copy_assigner a(*this, rhs.which());
       rhs.apply_visitor_internal(a);
@@ -425,7 +426,7 @@ public:
   template <typename OFirst, typename... OTypes,
             typename Enable = mpl::enable_if_t<detail::proper_subvariant<variant<OFirst, OTypes...>,
                                                                          variant>::value>>
-  variant(const variant<OFirst, OTypes...> & other) {
+  variant(const variant<OFirst, OTypes...> & other) noexcept(SAFE_VARIANT_NOTHROW_COPY_CTORS) {
     copy_constructor c(*this);
     other.apply_visitor_internal(c);
     SAFE_VARIANT_WHICH_INVARIANT_ASSERT;
@@ -439,62 +440,6 @@ public:
     move_constructor c(*this);
     other.apply_visitor_internal(c);
     SAFE_VARIANT_WHICH_INVARIANT_ASSERT;
-  }
-
-  /***
-   * operator ==
-   */
-
-  bool operator==(const variant & rhs) const {
-    eq_checker eq(*this, rhs.which());
-    return rhs.apply_visitor_internal(eq);
-  }
-
-  bool operator!=(const variant & rhs) const { return !(*this == rhs); }
-
-  // Access which()
-  int which() const { return m_which; }
-
-  // Apply visitor
-  template <typename Internal, typename Visitor, typename... Args>
-  auto apply_visitor(Visitor && visitor, Args &&... args) -> vis_result_t<Visitor> {
-    return detail::visitor_dispatch<First, Types...>()(
-      Internal(), m_which, m_storage, std::forward<Visitor>(visitor), std::forward<Args>(args)...);
-  }
-
-  template <typename Internal, typename Visitor, typename... Args>
-  auto apply_visitor(Visitor && visitor, Args &&... args) const -> vis_result_t<Visitor> {
-    return detail::visitor_dispatch<First, Types...>()(
-      Internal(), m_which, m_storage, std::forward<Visitor>(visitor), std::forward<Args>(args)...);
-  }
-
-  // get
-  template <typename T>
-  T * get() {
-    constexpr size_t idx = find_which<T>::value;
-    static_assert(idx < sizeof...(Types) + 1,
-                  "Requested type is not a member of this variant type");
-
-    if (idx == m_which) {
-      return &maybe_pierce_recursive_wrapper<T>(
-        *this->unchecked_access<idx>());
-    } else {
-      return nullptr;
-    }
-  }
-
-  template <typename T>
-  const T * get() const {
-    constexpr size_t idx = find_which<T>::value;
-    static_assert(idx < sizeof...(Types) + 1,
-                  "Requested type is not a member of this variant type");
-
-    if (idx == m_which) {
-      return &maybe_pierce_recursive_wrapper<T>(
-        *this->unchecked_access<idx>());
-    } else {
-      return nullptr;
-    }
   }
 
   // Emplace ctor. Used to explicitly specify the type of the variant, and
@@ -518,6 +463,62 @@ public:
   template <typename T, typename... Args>
   void emplace(Args &&... args) {
     *this = variant(emplace_tag<T>{}, std::forward<Args>(args)...);
+  }
+
+  /***
+   * Accessors
+   */
+
+  int which() const noexcept { return m_which; }
+
+  // operator ==
+  bool operator==(const variant & rhs) const {
+    eq_checker eq(*this, rhs.which());
+    return rhs.apply_visitor_internal(eq);
+  }
+
+  bool operator!=(const variant & rhs) const { return !(*this == rhs); }
+
+  // Apply visitor
+  template <typename Internal, typename Visitor, typename... Args>
+  auto apply_visitor(Visitor && visitor, Args &&... args) -> vis_result_t<Visitor> {
+    return detail::visitor_dispatch<First, Types...>()(
+      Internal(), m_which, m_storage, std::forward<Visitor>(visitor), std::forward<Args>(args)...);
+  }
+
+  template <typename Internal, typename Visitor, typename... Args>
+  auto apply_visitor(Visitor && visitor, Args &&... args) const -> vis_result_t<Visitor> {
+    return detail::visitor_dispatch<First, Types...>()(
+      Internal(), m_which, m_storage, std::forward<Visitor>(visitor), std::forward<Args>(args)...);
+  }
+
+  // get
+  template <typename T>
+  T * get() noexcept {
+    constexpr size_t idx = find_which<T>::value;
+    static_assert(idx < sizeof...(Types) + 1,
+                  "Requested type is not a member of this variant type");
+
+    if (idx == m_which) {
+      return &maybe_pierce_recursive_wrapper<T>(
+        *this->unchecked_access<idx>());
+    } else {
+      return nullptr;
+    }
+  }
+
+  template <typename T>
+  const T * get() const noexcept {
+    constexpr size_t idx = find_which<T>::value;
+    static_assert(idx < sizeof...(Types) + 1,
+                  "Requested type is not a member of this variant type");
+
+    if (idx == m_which) {
+      return &maybe_pierce_recursive_wrapper<T>(
+        *this->unchecked_access<idx>());
+    } else {
+      return nullptr;
+    }
   }
 };
 
@@ -563,3 +564,7 @@ get_or_default(variant<Types...> & v, T def = {}) {
 }
 
 } // end namespace safe_variant
+
+#undef SAFE_VARIANT_ASSERT
+#undef SAFE_VARIANT_WHICH_INVARIANT_ASSERT
+#undef SAFE_VARIANT_NOTHROW_COPY_CTORS
