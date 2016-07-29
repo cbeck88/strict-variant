@@ -133,25 +133,25 @@ using unwrap_type_t = typename unwrap_type<T>::type;
  */
 template <typename T>
 inline T &
-maybe_pierce_recursive_wrapper(T & t) {
+pierce_recursive_wrapper(T & t) {
   return t;
 }
 
 template <typename T>
 inline T &
-maybe_pierce_recursive_wrapper(recursive_wrapper<T> & t) {
+pierce_recursive_wrapper(recursive_wrapper<T> & t) {
   return t.get();
 }
 
 template <typename T>
 inline const T &
-maybe_pierce_recursive_wrapper(const T & t) {
+pierce_recursive_wrapper(const T & t) {
   return t;
 }
 
 template <typename T>
 inline const T &
-maybe_pierce_recursive_wrapper(const recursive_wrapper<T> & t) {
+pierce_recursive_wrapper(const recursive_wrapper<T> & t) {
   return t.get();
 }
 

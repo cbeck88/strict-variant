@@ -544,7 +544,7 @@ public:
                   "Requested type is not a member of this variant type");
 
     if (idx == m_which) {
-      return &maybe_pierce_recursive_wrapper<T>(*this->unchecked_access<idx>());
+      return &pierce_recursive_wrapper<T>(*this->unchecked_access<idx>());
     } else {
       return nullptr;
     }
@@ -557,7 +557,7 @@ public:
                   "Requested type is not a member of this variant type");
 
     if (idx == m_which) {
-      return &maybe_pierce_recursive_wrapper<T>(*this->unchecked_access<idx>());
+      return &pierce_recursive_wrapper<T>(*this->unchecked_access<idx>());
     } else {
       return nullptr;
     }
