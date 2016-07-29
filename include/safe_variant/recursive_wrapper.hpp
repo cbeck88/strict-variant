@@ -159,10 +159,10 @@ pierce_recursive_wrapper(const recursive_wrapper<T> & t) {
  * Trait to add the wrapper if a type is not no-throw move constructible
  */
 
-template <typename T, typename = mpl::enable_if_t<std::is_nothrow_destructible<T>::value && !std::is_reference<T>::value>>
+template <typename T, typename = mpl::enable_if_t<std::is_nothrow_destructible<T>::value
+                                                  && !std::is_reference<T>::value>>
 struct wrap_if_throwing_move {
-  using type = typename std::conditional<std::is_nothrow_move_constructible<T>::value,
-                                         T,
+  using type = typename std::conditional<std::is_nothrow_move_constructible<T>::value, T,
                                          recursive_wrapper<T>>::type;
 };
 

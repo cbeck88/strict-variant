@@ -537,7 +537,6 @@ UNIT_TEST(noncopyable) {
   TEST_EQ(v.which(), 1);
   v = test_a{};
   TEST_EQ(v.which(), 0);
-
 }
 
 template <int i>
@@ -564,7 +563,6 @@ UNIT_TEST(throwing_move) {
   v.emplace<test_a>();
   TEST_EQ(v.which(), 0);
 }
-
 
 UNIT_TEST(easy_variant) {
   using test_a = test_throwmove<0>;
