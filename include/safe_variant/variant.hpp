@@ -48,7 +48,7 @@
 #include <type_traits>
 #include <utility>
 
-#define SAFE_VARIANT_DEBUG
+// #define SAFE_VARIANT_DEBUG
 
 #ifdef SAFE_VARIANT_DEBUG
 #include <cassert>
