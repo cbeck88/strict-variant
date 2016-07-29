@@ -417,6 +417,10 @@ there are no dynamic allocations taking place that you don't explicitly opt in
 to. And besides, for the use cases where `safe_variant` is attractive in the
 first place, the types will all likely be no-throw move constructible anyways.
 
+Regardless, at least when your types are in fact no-throw move constructible,
+we enjoy essentially the same interface as `boost::variant`, without the extra
+copies or dynamic allocations that were required prior to C++11.
+
 Visitation
 ----------
 
@@ -431,8 +435,8 @@ visitation, which can be done using an explicit `switch` statement.
 In a variadic template-based implementation, switch statements cannot be used,
 because there is no pack-expansion analogue for switch statements. The most
 common strategy that I saw is to declare an array of function pointers, and
-fill it with pointers to a series of instantiations of template functions,
-corresponding to indices in the list of input types. Then this array is indexed
+fill it with a series of instantiations of a template function. Each pointer
+corresponds to an one of the input types. Then this array is indexed
 and the appropriate function pointer is called, passing along the visitor,
 the variant storage, etc. The array thus forms a little manual jump table of
 sorts.

@@ -141,7 +141,7 @@ struct binary_search_dispatch<base, TypeList<T1, T2, Types...>> {
 /// Needs more rigorous benchmarking
 template <typename... AllTypes>
 struct visitor_dispatch {
-  static constexpr unsigned int switch_point = 4;
+  static constexpr unsigned int switch_point = 8;
 
   // using chosen_dispatch_t = jumptable_dispatch<AllTypes...>;
 

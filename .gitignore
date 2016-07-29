@@ -3,3 +3,4 @@
 /test/stage
 /bench/bin
 /bench/stage
+/bench/*.s
