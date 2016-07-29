@@ -79,24 +79,46 @@ Instead, it uses a very simple iterative strategy.
   - Conversions like `char *` to `const char *` are permitted, and standard conversions like array-to-pointer are permitted, but otherwise no pointer conversions are permitted.
 
 - You can force the variant to a particular type using the `emplace` template function. Rarely necessary but sometimes useful, and saves a `move`.
+  (There is also an emplace-ctor, where you select the type using tag dispatch.)
 
-Another decision which I made, in order to side-step the "never empty" issue, is that any type used with the variant must be no-throw move constructible.
-This allows the implementation to be very simple and efficient compared with some other variant types, which may have to make extra copies to facilitate
-exception-safety, or make only a "rarely empty" guarantee.
+
+So, keep in mind, this is not a drop-in replacement for `boost::variant` or one of the other versions, its semantics are fundamentally different.
+But in scenarios like those it was designed for, it may be easier to reason about and less error-prone.
+
+Never Empty Guarantee
+=====================
+
+We deal with the "never empty" issue as follows:
+
+Any type used with the variant must be no-throw move constructible.
 
 This is enforced using static asserts, but sometimes that can be a pain if you are forced to use e.g. GCC 4-series versions of the C++ standard library which
 are not C++11 conforming. So there is also a flag to turn the static asserts off, see `static constexpr bool assume_no_throw_move_constructible`.
+
+This allows the implementation to be very simple and efficient compared with some other variant types, which may have to make extra copies to facilitate
+exception-safety, or make only a "rarely empty" guarantee.
+
+If you have a type with a throwing move, you are encouraged to use `safe_variant::recursive_wrapper<T>` instead of `T` in the variant.
+
+`recursive_wrapper<T>` is behaviorally equivalent to `std::unique_ptr<T>`, making a copy of `T` on the heap. But it is implicitly convertible to `T&`, and so
+for most purposes is syntactically the same as `T`. There is special support within `safe_variant::variant` so that you can call `get<T>(&v)` and get a pointer
+to a `T` rather than the wrapper, for instance.
+
+`recursive_wrapper<T>` always has a `noexcept` move ctor even if `T` does not.
+
+This decision allows the guts of the variant to be very clean and simple -- there are no dynamic allocations taking place behind your back.
+If you want dynamic allocations to support throwing-moves, you opt-in to that using `recursive_wrapper`.
+
+Note that the *stated* purpose of recursive wrapper, in `boost::variant` docs, is to allow you to declare variants which contain an incomplete type.
+They also work great for that in `safe_variant::variant`.
+
+Synopsis
+========
 
 The actual interface is in most ways the same as `boost::variant`, which strongly inspired this.  
 
 (However, my interface is exception-free, if you want to have
 analogues of the throwing functions in `boost::variant` you'll have to write them, which is pretty easy to do on top of the exception-free interface.)
-
-So, keep in mind, this is not a drop-in replacement for `boost::variant` or one of the other versions, its semantics are fundamentally different.
-But in scenarios like those it was designed for, it may be easier to reason about and less error-prone.
-
-Synopsis
-========
 
 ```c++
 namespace safe_variant {
@@ -108,7 +130,7 @@ namespace safe_variant {
     // If First is not default-constructible then this is not available.
     variant();
 
-    // Nothing special here
+    // Special member functions: Nothing special here
     variant(const variant &);
     variant & operator=(const variant &);
 
@@ -131,16 +153,8 @@ namespace safe_variant {
     template <typename... OTypes>
     variant(variant<Otypes...> &&);
 
-    // Reports the runtime type. The returned value is an index into the list
-    // <First, Types...>.
-    int which() const;
-
-    // Test for equality. The which values must match, and operator == for the
-    // underlying values must match.
-    bool operator == (const variant &) const;
-    bool operator != (const variant &) const;
-
-    // Emplace ctor. Used to explicitly specify the type of the variant.
+    // Emplace ctor. Used to explicitly specify the type of the variant, and
+    // invoke an arbitrary ctor of that type.
     template <typename T>
     struct emplace_tag {};
 
@@ -155,6 +169,15 @@ namespace safe_variant {
     void emplace(Args &&... args) {
       *this = variant(emplace_tag<T>, std::forward<Args>(args)...);
     }
+
+    // Reports the runtime type. The returned value is an index into the list
+    // <First, Types...>.
+    int which() const;
+
+    // Test for equality. The which values must match, and operator == for the
+    // underlying values must return true.
+    bool operator == (const variant &) const;
+    bool operator != (const variant &) const;
   };
 
   // Apply a static_visitor to the variant. It is called using the current value

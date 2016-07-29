@@ -343,7 +343,7 @@ private:
     }
   };
 
-  #define SAFE_VARIANT_CTOR_POSTCONDITION_ASSERT                                   \
+  #define SAFE_VARIANT_WHICH_INVARIANT_ASSERT                                 \
     SAFE_VARIANT_ASSERT(static_cast<unsigned>(this->which()) < sizeof...(Types) + 1, "Postcondition failed!")
 
 public:
@@ -352,7 +352,7 @@ public:
     static_assert(std::is_same<void, decltype(static_cast<void>(First()))>::value,
                   "First type must be default constructible or variant is not!");
     this->initialize<0>();
-    SAFE_VARIANT_CTOR_POSTCONDITION_ASSERT;
+    SAFE_VARIANT_WHICH_INVARIANT_ASSERT;
   }
 
   ~variant() noexcept { this->destroy(); }
@@ -362,14 +362,14 @@ public:
     copy_constructor c(*this);
     rhs.apply_visitor_internal(c);
     SAFE_VARIANT_ASSERT(rhs.which() == this->which(), "Postcondition failed!");
-    SAFE_VARIANT_CTOR_POSTCONDITION_ASSERT;
+    SAFE_VARIANT_WHICH_INVARIANT_ASSERT;
   }
 
   variant(variant && rhs) noexcept {
     move_constructor mc(*this);
     rhs.apply_visitor_internal(mc);
     SAFE_VARIANT_ASSERT(rhs.which() == this->which(), "Postcondition failed!");
-    SAFE_VARIANT_CTOR_POSTCONDITION_ASSERT;
+    SAFE_VARIANT_WHICH_INVARIANT_ASSERT;
   }
 
   variant & operator=(const variant & rhs) noexcept(assume_copy_nothrow) {
@@ -378,7 +378,7 @@ public:
       rhs.apply_visitor_internal(a);
       SAFE_VARIANT_ASSERT(rhs.which() == this->which(), "Postcondition failed!");
     }
-    SAFE_VARIANT_CTOR_POSTCONDITION_ASSERT;
+    SAFE_VARIANT_WHICH_INVARIANT_ASSERT;
     return *this;
   }
 
@@ -390,7 +390,7 @@ public:
       rhs.apply_visitor_internal(ma);
       SAFE_VARIANT_ASSERT(rhs.which() == this->which(), "Postcondition failed!");
     }
-    SAFE_VARIANT_CTOR_POSTCONDITION_ASSERT;
+    SAFE_VARIANT_WHICH_INVARIANT_ASSERT;
     return *this;
   }
 
@@ -411,7 +411,7 @@ public:
                      Types...>::value;
     static_assert(which_idx < (sizeof...(Types) + 1), "Could not construct variant from this type!");
     this->initialize<which_idx>(std::forward<T>(t));
-    SAFE_VARIANT_CTOR_POSTCONDITION_ASSERT;
+    SAFE_VARIANT_WHICH_INVARIANT_ASSERT;
   }
 
   /// Friend all other instances of variant (needed for next two ctors)
@@ -428,7 +428,7 @@ public:
   variant(const variant<OFirst, OTypes...> & other) {
     copy_constructor c(*this);
     other.apply_visitor_internal(c);
-    SAFE_VARIANT_CTOR_POSTCONDITION_ASSERT;
+    SAFE_VARIANT_WHICH_INVARIANT_ASSERT;
   }
 
   /// "Generalizing" move ctor, similar as above
@@ -438,7 +438,7 @@ public:
   variant(variant<OFirst, OTypes...> && other) noexcept {
     move_constructor c(*this);
     other.apply_visitor_internal(c);
-    SAFE_VARIANT_CTOR_POSTCONDITION_ASSERT;
+    SAFE_VARIANT_WHICH_INVARIANT_ASSERT;
   }
 
   /***
@@ -497,7 +497,8 @@ public:
     }
   }
 
-  // Emplace ctor. Used to explicitly specify the type of the variant.
+  // Emplace ctor. Used to explicitly specify the type of the variant, and
+  // invoke an arbitrary ctor of that type.
   template <typename T>
   struct emplace_tag {};
 
