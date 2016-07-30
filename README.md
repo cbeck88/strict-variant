@@ -142,6 +142,10 @@ Even if the variant is not assignable, you can still use the `emplace` function 
 
 ```c++
   variant<const char *, std::string> v;
+
+  v = "foo";
+  assert(v.which() == 0);
+
   v.emplace<std::string>("foo");
   assert(v.which() == 1);
 ```
