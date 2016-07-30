@@ -31,8 +31,9 @@ main() {
   using bench_task_t = bench_task<safe_variant::variant, num_variants, seq_length>;
   std::unique_ptr<bench_task_t> task{new bench_task_t(RNG_SEED)};
 
-  std::fprintf(stdout, "safe_variant::variant:\n  num_variants = %u\n  seq_length = %u\n  repeat_num = %u\n\n", num_variants,
-               seq_length, repeat_num);
+  std::fprintf(
+    stdout, "safe_variant::variant:\n  num_variants = %u\n  seq_length = %u\n  repeat_num = %u\n\n",
+    num_variants, seq_length, repeat_num);
 
   auto const start = std::chrono::high_resolution_clock::now();
 

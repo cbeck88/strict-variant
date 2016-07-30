@@ -31,19 +31,20 @@ main() {
   using bench_task_t = bench_task<std::experimental::variant, num_variants, seq_length>;
   std::unique_ptr<bench_task_t> task{new bench_task_t(RNG_SEED)};
 
-  std::fprintf(stdout, "experimental::variant:\n  num_variants = %u\n  seq_length = %u\n  repeat_num = %u\n\n", num_variants,
-               seq_length, repeat_num);
+  std::fprintf(
+    stdout, "experimental::variant:\n  num_variants = %u\n  seq_length = %u\n  repeat_num = %u\n\n",
+    num_variants, seq_length, repeat_num);
 
   auto const start = std::chrono::high_resolution_clock::now();
 
   uint32_t result = 0;
   uint32_t count = repeat_num;
   while (count--) {
-   DoNotOptimize(result);
-   result += task->run(visitor_applier{});
-   result *= 3;
-   // DoNotOptimize(task->run(visitor_applier{}));
-   ClobberMemory();
+    DoNotOptimize(result);
+    result += task->run(visitor_applier{});
+    result *= 3;
+    // DoNotOptimize(task->run(visitor_applier{}));
+    ClobberMemory();
   }
 
   auto const end = std::chrono::high_resolution_clock::now();

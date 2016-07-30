@@ -31,8 +31,9 @@ main() {
   using bench_task_t = bench_task<boost::variant, num_variants, seq_length>;
   std::unique_ptr<bench_task_t> task{new bench_task_t(RNG_SEED)};
 
-  std::fprintf(stdout, "boost::variant:\n  num_variants = %u\n  seq_length = %u\n  repeat_num = %u\n\n", num_variants,
-               seq_length, repeat_num);
+  std::fprintf(stdout,
+               "boost::variant:\n  num_variants = %u\n  seq_length = %u\n  repeat_num = %u\n\n",
+               num_variants, seq_length, repeat_num);
 
   DoNotOptimize(task);
 

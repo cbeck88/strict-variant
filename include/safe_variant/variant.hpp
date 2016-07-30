@@ -106,11 +106,13 @@ private:
 #define SAFE_VARIANT_ASSERT_NOTHROW_MOVE_CTORS                                                     \
   static_assert(assume_move_nothrow                                                                \
                   || mpl::All_Have<std::is_nothrow_move_constructible, First>::value,              \
-                "All types in this variant type must be nothrow move constructible");              \
+                "All types in this variant must be nothrow move constructible or the variant "     \
+                "cannot be assigned!");                                                            \
                                                                                                    \
   static_assert(assume_move_nothrow                                                                \
                   || mpl::All_Have<std::is_nothrow_move_constructible, Types...>::value,           \
-                "All types in this variant type must be nothrow move constructible");              \
+                "All types in this variant must be nothrow move constructible or the variant "     \
+                "cannot be assigned!");                                                            \
   static_assert(true, "")
 
   template <typename T>
