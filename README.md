@@ -534,7 +534,7 @@ Test subjects:
 
 - `boost::variant` at version 1.58
 - `std::experimental::variant` from [this repository](https://github.com/mpark/variant)
-- `std::variant` draft at EricWF `variant` branch from [this repository](https://github.com/efcs/libcxx/tree/variant) at commit d93edff042e7b9d333eb5b6f16145953e00fd182
+- `std::variant` draft at `variant` branch from [this repository](https://github.com/efcs/libcxx/tree/variant) at commit d93edff042e7b9d333eb5b6f16145953e00fd182
 - `safe_variant` from this repository at commit 624ce985d2ac349fa5416a3804f7c6b56b88256b
 
 My `/proc/cpuinfo` looks like this:
