@@ -464,13 +464,22 @@ which are already quite favorable to the "binary" search strategy for small
 numbers of types.
 
 Therefore, `safe_variant` uses a hybrid strategy. When the number of variants
-is four or less, the binary search is used, and for more than that, the jump
+is eight or less, the binary search is used, and for more than that, the jump
 table is used. (See [variant_detail.hpp](/include/safe_variant/variant_detail.hpp) for details.)
 
-There is a benchmarks suite in the `/bench` folder of the repository.
+See below for benchmark data.
+
+Compile-Times
+-------------
+
+I did not attempt to benchmark the compile-time performance, but I expect that
+the differences would be negligible, especially in comparison to other common
+libraries which are known to have heavy compile times.
 
 Visitation Benchmarks
 =====================
+
+There is a [benchmarks suite](/bench) included in the repository.
 
 *Take these benchmarks with a large grain of salt,* as actual performance will
 depend greatly on success of branch prediction / whether the instructions in the
@@ -489,6 +498,9 @@ g++ (5.4.0)
 | `boost::variant`          | 6.384400  | 7.243500 | 7.897800 | 8.305600 | 8.586300 | 8.932100 | 9.090600 | 9.399300  | 9.511400  | 9.497400  | N/A       |
 | `experimental::variant`   | 5.711800  | 6.785600 | 7.413100 | 8.225000 | 8.487400 | 9.209100 | 9.828700 | 10.854800 | 19.337500 | 18.314100 | 24.344000 |
 | `safe_variant::variant`   | 0.656500  | 2.878900 | 3.534200 | 5.116300 | 4.786400 | 5.431900 | 8.368500 | 8.508500  | 8.645700  | 8.710400  | 8.877500  |
+
+# `boost::variant` at version 1.58
+# `std::experimental::variant` from [this repository](https://github.com/mpark/variant)
 
 configuration data
 ------------------
@@ -532,13 +544,6 @@ power management:
 ```
 
 with three additional cores identical to that one.
-
-Compile-Times
--------------
-
-I did not attempt to benchmark the compile-time performance, but I expect that
-the differences would be negligible, especially in comparison to other common
-libraries which are known to have heavy compile times.
 
 Known issues
 ============
