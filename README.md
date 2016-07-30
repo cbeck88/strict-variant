@@ -105,18 +105,17 @@ We deal with the "never empty" issue as follows:
 
 **Every type used with the variant must be no-throw move constructible, or the variant is not assignable.**
 
-This is enforced using static asserts within the assignment operators. (There is also a way to turn off the static asserts with a preprocessor symbol, see "configuration". This doesn't lift the requirement though, it just makes it UB if one of the move ctors throws.)
+This restriction is enforced using static asserts within the assignment operators. (There is also a way to turn off the static asserts with a preprocessor symbol, see "configuration". This doesn't lift the requirement though, it just makes it UB if one of the move ctors throws.)
 
 This allows the implementation to be very simple and efficient compared with some other variant types, which may have to make extra copies to facilitate
 exception-safety, or make only a "rarely empty" guarantee.
 
-For a fully general `variant`, read on in regards to `recursive_wrapper` and `easy_variant`.
+**If you have a type `T` with a throwing move, you are encouraged to use `safe_variant::recursive_wrapper<T>` instead of `T` in the variant.**
+
+For a fully general `variant`, see also `easy_variant` below.
 
 recursive wrapper
 -----------------
-
-*If you have a type `T` with a throwing move*, you are encouraged to use `safe_variant::recursive_wrapper<T>` instead of `T` in the variant.
-
 
 `recursive_wrapper<T>` represents a heap-allocated instance of `T`. The wrapper doesn't do anything special, but there is special support
 within `safe_variant::variant` so that you can call `get<T>(&v)` and get a pointer
@@ -144,7 +143,7 @@ Even if the variant is not assignable, you can still use the `emplace` function 
 easy variant
 -------------
 
-Additionally, we provide a template `easy_variant` which takes care of these details if you don't care to be bothered by the compiler about a throwing move / dynamic allocation.  
+We provide a template `easy_variant` which takes care of these details if you don't care to be bothered by the compiler about a throwing move / dynamic allocation.  
 
 (Some programmers would prefer that the compiler not start making dynamic allocations without a warning though, just because some `noexcept` annotation was not deduced the way they expected. But programmer convenience is a good thing too.)
 
@@ -469,6 +468,70 @@ is four or less, the binary search is used, and for more than that, the jump
 table is used. (See [variant_detail.hpp](/include/safe_variant/variant_detail.hpp) for details.)
 
 There is a benchmarks suite in the `/bench` folder of the repository.
+
+Visitation Benchmarks
+=====================
+
+*Take these benchmarks with a large grain of salt,* as actual performance will
+depend greatly on success of branch prediction / whether the instructions in the
+jump table are prefetched, and compiler inline decisions will be affected by
+what the actual visitor is doing. But with that in mind, here are some
+benchmark numbers for visiting ten thousand variants in randomly distributed
+states, with varying numbers of types in the variant.
+
+Benchmark numbers represent average number of nanoseconds per visit.
+
+g++ (5.4.0)
+-----------
+
+| Number of types           | 2         | 3        | 4        | 5        | 6        | 8        | 10       | 15        | 18        | 20        | 50        |
+| ------------------------- | --------  | -------- | -------- | -------- | -------- | -------- | -------- | --------- | --------- | --------- | --------- |
+| `boost::variant`          | 6.384400  | 7.243500 | 7.897800 | 8.305600 | 8.586300 | 8.932100 | 9.090600 | 9.399300  | 9.511400  | 9.497400  | N/A       |
+| `experimental::variant`   | 5.711800  | 6.785600 | 7.413100 | 8.225000 | 8.487400 | 9.209100 | 9.828700 | 10.854800 | 19.337500 | 18.314100 | 24.344000 |
+| `safe_variant::variant`   | 0.656500  | 2.878900 | 3.534200 | 5.116300 | 4.786400 | 5.431900 | 8.368500 | 8.508500  | 8.645700  | 8.710400  | 8.877500  |
+
+configuration data
+------------------
+
+The settings used for these numbers are:
+```
+  seq_length = 10000
+  repeat_num = 1000
+```
+
+My `/proc/cpuinfo` looks like this:
+
+```
+$ cat /proc/cpuinfo 
+processor	: 0
+vendor_id	: GenuineIntel
+cpu family	: 6
+model		: 78
+model name	: Intel(R) Core(TM) i7-6600U CPU @ 2.60GHz
+stepping	: 3
+microcode	: 0x6a
+cpu MHz		: 438.484
+cache size	: 4096 KB
+physical id	: 0
+siblings	: 4
+core id		: 0
+cpu cores	: 2
+apicid		: 0
+initial apicid	: 0
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 22
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx pdpe1gb rdtscp lm constant_tsc art arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc aperfmperf eagerfpu pni pclmulqdq dtes64 monitor ds_cpl vmx smx est tm2 ssse3 sdbg fma cx16 xtpr pdcm pcid sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm abm 3dnowprefetch epb intel_pt tpr_shadow vnmi flexpriority ept vpid fsgsbase tsc_adjust bmi1 hle avx2 smep bmi2 erms invpcid rtm mpx rdseed adx smap clflushopt xsaveopt xsavec xgetbv1 dtherm ida arat pln pts hwp hwp_notify hwp_act_window hwp_epp
+bugs		:
+bogomips	: 5615.78
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 39 bits physical, 48 bits virtual
+power management:
+```
+
+with three additional cores identical to that one.
 
 Compile-Times
 -------------
