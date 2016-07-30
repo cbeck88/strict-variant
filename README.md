@@ -285,7 +285,7 @@ namespace safe_variant {
 Compiler Compatibility
 ======================
 
-`safe_variant` is targets the C++11 standard.
+`safe_variant` targets the C++11 standard.
 
 It is known to work with `gcc >= 4.9` and `clang >= 3.5`.  
 
