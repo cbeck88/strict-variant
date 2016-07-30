@@ -7,7 +7,7 @@
 Do you use `boost::variant` or one of the many open-source C++11 implementations of a "tagged union" or variant type
 in your C++ projects?
 
-Do you get annoyed that code like this will compile, without any warning or error message?
+Do you get annoyed that code like this may compile, without any warning or error message?
 
 ```c++
   boost::variant<std::string, int> v;  
@@ -15,7 +15,7 @@ Do you get annoyed that code like this will compile, without any warning or erro
   v = true;  
 ```
 
-Do you get annoyed that code like this will compile on some machines, but not others?
+Do you get annoyed that code like this may compile on some machines, but not others?
 
 ```c++
   boost::variant<long, unsigned int> v;  
@@ -33,7 +33,7 @@ overload ambiguity differently from other C++ variant types.
 It may be well-suited for use in scenarios where you need to have a variant holding multiple different integral types,
 and really don't want to have any loss of precision or any "gotcha" conversions happening.
 
-**safe variant** provides a strict never-empty guarantee, for ease of visitation. But it does not incur the cost of
+**safe variant** provides a strict never-empty guarantee like `boost::variant`, for ease of visitation. But it does not incur the cost of
 backup copies which `boost::variant` pays, due to a different implementation approach. In some cases this allows
 improved performance.
 
