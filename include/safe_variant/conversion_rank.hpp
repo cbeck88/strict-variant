@@ -83,27 +83,28 @@ RANK(long double, 2);
 #undef RANK
 
 /***
- * Compare two types to see if they are same class and sign and rank A >= rank
- * B,
+ * Compare two types to see if they are same class, sign and rank A >= rank B,
  * or it is a signed -> unsigned conversion of same rank
  *
  * Rationale:
  * For two integral types, signed -> unsigned is allowed if they have the same
- * size
+ * rank.
+ *
  * This conversion is well-defined by the standard to be a no-op for most
  * implementations.
  * (Since it means there is no truncation.)
  * [conv.integral][2]
+ *
  * For things like signed char -> unsigned int, we don't allow it, since it's
- * potentially confusing
- * that this won't be the same as signed char -> unsigned char -> unsigned int.
+ * potentially confusing that this won't be the same as
+ * signed char -> unsigned char -> unsigned int.
  */
 template <typename A, typename B>
 struct safe_by_rank {
   static constexpr bool same_class =
     (mpl::classify_numeric<A>::value == mpl::classify_numeric<B>::value);
-  static constexpr bool sa = std::is_unsigned<A>::value;
-  static constexpr bool sb = std::is_unsigned<B>::value;
+  static constexpr bool sa = std::is_unsigned<A>::value && !std::is_same<char, A>::value;
+  static constexpr bool sb = std::is_unsigned<B>::value && !std::is_same<char, B>::value;
 
   static constexpr bool same_sign = (sa == sb);
   static constexpr bool sign_to_unsign = (sa && !sb);
@@ -113,6 +114,22 @@ struct safe_by_rank {
 
   static constexpr bool value =
     same_class && (same_sign ? (ra >= rb) : (sign_to_unsign && ra == rb));
+};
+
+// Technically, the standard specifies that `char, signed char, unsigned char`
+// have the same rank.
+//
+// However, we can't do that because we only want to allow conversions that are
+// portable everywhere, and `char` has ambiguous sign, so we don't want to allow
+// char -> signed char.
+//
+// As a hack, we defined rank of signed char to be -1 above,
+// because that almost gets the correct behavior everywhere.
+// We just need this fixup:
+
+template <>
+struct safe_by_rank<unsigned char, signed char> {
+  static constexpr bool value = true;
 };
 
 } // end namespace mpl

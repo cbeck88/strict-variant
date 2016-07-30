@@ -32,10 +32,7 @@ static_assert(!safely_constructible<int, signed char>::value, "failed a unit tes
 static_assert(!safely_constructible<signed char, int>::value, "failed a unit test");
 
 static_assert(safely_constructible<char, signed char>::value, "failed a unit test");
-// TODO: Can fix this somehow? It's not that important, we don't use signed
-// char...
-// static_assert(safely_constructible<unsigned char, signed char>::value,
-// "failed a unit test");
+static_assert(safely_constructible<unsigned char, signed char>::value, "failed a unit test");
 static_assert(safely_constructible<unsigned char, char>::value, "failed a unit test");
 static_assert(!safely_constructible<signed char, char>::value, "failed a unit test");
 static_assert(!safely_constructible<signed char, unsigned char>::value, "failed a unit test");
@@ -69,8 +66,8 @@ static_assert(!safely_constructible<float, int>::value, "failed a unit test");
 static_assert(!safely_constructible<signed int, unsigned int>::value, "failed a unit test");
 static_assert(safely_constructible<unsigned int, signed int>::value, "failed a unit test");
 
-static_assert(!safely_constructible<signed char, unsigned char>::value, "failed a unit test");
-static_assert(!safely_constructible<unsigned char, signed char>::value, "failed a unit test");
+static_assert(!safely_constructible<signed long, unsigned long>::value, "failed a unit test");
+static_assert(safely_constructible<unsigned long, signed long>::value, "failed a unit test");
 
 static_assert(!safely_constructible<signed char, unsigned int>::value, "failed a unit test");
 static_assert(!safely_constructible<unsigned int, signed char>::value, "failed a unit test");
@@ -112,7 +109,7 @@ static_assert(!safely_constructible<char *, const char *>::value, "failed a unit
 static_assert(safely_constructible<const char *, char * const>::value, "failed a unit test");
 static_assert(!safely_constructible<char *, const char * const>::value, "failed a unit test");
 
-} // end namespace mpl
+} // end anonymous namespace
 
 /////////////////////////
 // TYPELIST OPERATIONS //
