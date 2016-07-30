@@ -4,3 +4,4 @@
 /bench/bin
 /bench/stage
 /bench/*.s
+/bench/bench.log
