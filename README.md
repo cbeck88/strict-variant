@@ -65,13 +65,13 @@ scripting language will permit a variety of primitive values, so when binding to
 
 **safe variant** therefore does not use overload resolution in its implementation.  
 
-Instead, it uses a very simple iterative strategy.
+Instead, it uses a simple iterative strategy.
 
 - When the variant is constructed from a value, each type is checked one by one, to see if a *safe* conversion to that type is possible.
   If so, it is selected. If not, we check the next type. If no safe conversion is possible, then a compile-time error results.  
   This means that usually, when you declare your variants you simply list your integral types in "increasing" order, and it does the right thing.
 
-- What conversions are safe?  
+- What conversions are "safe"?  
   I wrote a type trait that implements a strict notion of safety which was appropriate for the project in which
   I developed this. (See [1](include/safe_variant/conversion_rank.hpp), [2](include/safe_variant/safely_constructible.hpp)).
   - Conversions are not permitted between any two of the following classes:  
