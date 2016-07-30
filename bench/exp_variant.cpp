@@ -1,22 +1,21 @@
-#include "bench.hpp"
-#include "bench_api.hpp"
-#include <chrono>
-#include <cstddef>
-#include <cstdio>
+#include "bench_framework.hpp"
 #include <experimental/variant.hpp>
-#include <memory>
-#include <utility>
 
 static constexpr uint32_t num_variants{NUM_VARIANTS};
 static constexpr uint32_t seq_length{SEQ_LENGTH};
 static constexpr uint32_t repeat_num{REPEAT_NUM};
+static constexpr uint32_t rng_seed{RNG_SEED};
 
 // Dummy visitor
 
 struct dummy_visitor {
   template <uint32_t N>
   uint32_t operator()(const dummy<N> &) const {
-    return N;
+    uint32_t result{N};
+    // This makes the return value of the visitor opaque to the optimizer
+    benchmark::DoNotOptimize(result);
+    benchmark::ClobberMemory();
+    return result;
   }
 };
 
@@ -29,38 +28,5 @@ struct visitor_applier {
 
 int
 main() {
-  using bench_task_t = bench_task<std::experimental::variant, num_variants, seq_length>;
-  std::unique_ptr<bench_task_t> task{new bench_task_t(RNG_SEED)};
-
-  std::fprintf(
-    stdout, "experimental::variant:\n  num_variants = %u\n  seq_length = %u\n  repeat_num = %u\n\n",
-    num_variants, seq_length, repeat_num);
-
-  benchmark::DoNotOptimize(task);
-
-  auto const start = std::chrono::high_resolution_clock::now();
-
-  benchmark::ClobberMemory();
-
-  uint32_t result = 0;
-  uint32_t count = repeat_num;
-  while (count--) {
-    benchmark::DoNotOptimize(result);
-    static_cast<volatile void>(result += task->run(visitor_applier{}));
-    result *= 3;
-    benchmark::ClobberMemory();
-  }
-
-  benchmark::ClobberMemory();
-
-  auto const end = std::chrono::high_resolution_clock::now();
-
-  benchmark::ClobberMemory();
-
-  unsigned long us = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
-  std::fprintf(stdout, "took %lu microseconds\n", us);
-  std::fprintf(stdout, "average nanoseconds per visit: %f\n\n\n",
-               (static_cast<double>(us) / (seq_length * repeat_num)) * 1000);
-
-  return result != 0;
+  return 0 != run_benchmark<std::experimental::variant, num_variants, seq_length, repeat_num, visitor_applier>("std::experimental::variant", rng_seed);
 }

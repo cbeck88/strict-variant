@@ -470,7 +470,7 @@ which are already quite favorable to the "binary" search strategy for small
 numbers of types.
 
 Therefore, `safe_variant` uses a hybrid strategy. When the number of variants
-is eight or less, the binary search is used, and for more than that, the jump
+is four or less, the binary search is used, and for more than that, the jump
 table is used. (See [variant_detail.hpp](/include/safe_variant/variant_detail.hpp) for details.)
 
 See below for benchmark data.
@@ -490,20 +490,34 @@ There is a [benchmarks suite](/bench) included in the repository.
 *Take these benchmarks with a large grain of salt,* as actual performance will
 depend greatly on success of branch prediction / whether the instructions in the
 jump table are prefetched, and compiler inline decisions will be affected by
-what the actual visitor is doing. But with that in mind, here are some
+what the actual visitor is doing. (Also in these benchmarks, we also had to make
+the action of the visitor opaque to the optimizer or else it will defeat the
+benchmark, but in some practical cases the visitor's action won't be opaque,
+which favors the binary search strategy.)
+
+But with that in mind, here are some
 benchmark numbers for visiting ten thousand variants in randomly distributed
 states, with varying numbers of types in the variant.
 
-Benchmark numbers represent average number of nanoseconds per visit.
+Benchmark numbers represent *average number of nanoseconds per visit*.
 
 g++ (5.4.0)
 -----------
 
-| Number of types           | 2         | 3        | 4        | 5        | 6        | 8        | 10       | 15        | 18        | 20        | 50        |
-| ------------------------- | --------  | -------- | -------- | -------- | -------- | -------- | -------- | --------- | --------- | --------- | --------- |
-| `boost::variant`          | 6.384400  | 7.243500 | 7.897800 | 8.305600 | 8.586300 | 8.932100 | 9.090600 | 9.399300  | 9.511400  | 9.497400  | N/A       |
-| `experimental::variant`   | 5.711800  | 6.785600 | 7.413100 | 8.225000 | 8.487400 | 9.209100 | 9.828700 | 10.854800 | 19.337500 | 18.314100 | 24.344000 |
-| `safe_variant::variant`   | 0.656500  | 2.878900 | 3.534200 | 5.116300 | 4.786400 | 5.431900 | 8.368500 | 8.508500  | 8.645700  | 8.710400  | 8.877500  |
+| Number of types           | 2         | 3        | 4        | 5        | 6        | 8        | 10       | 12        | 15        | 18        | 20        | 50        |
+| ------------------------- | --------  | -------- | -------- | -------- | -------- | -------- | -------- | --------- | --------- | --------- | --------- | --------- |
+| `boost::variant`          | 6.231400  | 7.172600 | 9.452000 | 8.189000 | 8.537600 | 8.826800 | 9.025700 | 9.178100  | 9.323600  | 9.455500  | 9.454700  | N/A       |
+| `experimental::variant`   | 5.318200  | 6.577200 | 7.273900 | 7.783200 | 8.508200 | 9.053700 | 9.712200 | 10.001500 | 10.900000 | 20.945900 | 19.736000 | 21.984300 |
+| `safe_variant::variant`   | 3.898800  | 5.022900 | 6.467900 | 7.465000 | 7.813400 | 8.058400 | 8.290100 | 8.341600  | 8.520600  | 8.546400  | 8.555300  | 8.793900  |
+
+clang++ (3.8.0)
+---------------
+
+| Number of types           | 2         | 3        | 4        | 5        | 6        | 8        | 10       | 12        | 15        | 18        | 20        | 50        |
+| ------------------------- | --------  | -------- | -------- | -------- | -------- | -------- | -------- | --------- | --------- | --------- | --------- | --------- |
+| `boost::variant`          | 7.109700  | 8.045700 | 8.802500 | 9.194000 | 9.407500 | 9.886200 | 9.969300 | 10.122600 | 10.442100 | 10.624900 | 10.513200 | N/A       |
+| `experimental::variant`   | 5.534500  | 6.775800 | 7.506400 | 7.841700 | 8.004100 | 8.414300 | 9.555000 | 8.549600  | 8.684300  | 8.725500  | 8.844100  | 8.956700  |
+| `safe_variant::variant`   | 4.189200  | 5.428300 | 6.655400 | 7.662600 | 7.891600 | 8.082900 | 8.329800 | 8.398300  | 8.555800  | 8.655400  | 8.686900  | 8.891800  |
 
 
 configuration data
