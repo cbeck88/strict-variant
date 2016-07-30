@@ -125,8 +125,8 @@ to a `T` rather than the wrapper, for instance, and similarly throughout the `va
 
 By mostly restricting attention to no-throw move constructible types, the guts of the variant enjoy a very clean and simple implementation
 -- there are no dynamic allocations taking place behind your back, and you mostly "intuitively" know what the variant is doing and what the costs
-are when you manipulate it. Moving the variant won't be inherently more expensive than moving an individual object, and when copying, which let's imagine
-can throw, something similar to "copy and swap" (or rather "copy and move") takes place, with a single copy occuring on the stack before we move it into
+are when you manipulate it. Moving assigning the variant won't be inherently more expensive than moving or move assigning an individual object, and when copy assigning,
+which let's imagine can throw, something similar to "copy and swap" (or rather "copy and move") takes place, with a single copy occuring on the stack before we move it into
 storage.
 
 If you want additional dynamic allocations beyond this in order to support throwing moves, you opt-in to that using `recursive_wrapper`, and otherwise you don't pay for
@@ -505,8 +505,6 @@ g++ (5.4.0)
 | `experimental::variant`   | 5.711800  | 6.785600 | 7.413100 | 8.225000 | 8.487400 | 9.209100 | 9.828700 | 10.854800 | 19.337500 | 18.314100 | 24.344000 |
 | `safe_variant::variant`   | 0.656500  | 2.878900 | 3.534200 | 5.116300 | 4.786400 | 5.431900 | 8.368500 | 8.508500  | 8.645700  | 8.710400  | 8.877500  |
 
-# `boost::variant` at version 1.58
-# `std::experimental::variant` from [this repository](https://github.com/mpark/variant)
 
 configuration data
 ------------------
@@ -516,6 +514,12 @@ The settings used for these numbers are:
   seq_length = 10000
   repeat_num = 1000
 ```
+
+Test subjects:
+
+- `boost::variant` at version 1.58
+- `std::experimental::variant` from [this repository](https://github.com/mpark/variant)
+
 
 My `/proc/cpuinfo` looks like this:
 
