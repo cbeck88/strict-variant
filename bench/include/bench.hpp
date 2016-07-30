@@ -114,6 +114,9 @@ struct bench_task {
       seed ^= 2753;
       seed *= 43;
       seed -= (seed >> 9);
+      seed ^= 3;
+      seed *= 17;
+      seed -= (seed >> 3);
     }
     /*
     std::mt19937 rng{seed};
