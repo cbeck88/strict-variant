@@ -29,6 +29,10 @@ if [ GLOB $(BOOST_INCLUDE_DIR)/boost/ : version.hpp ] {
 
 alias safe_variant_lib : : : : <include>../include/  ;
 
+### Setup safe_variant target
+
+alias juice_variant_lib : : : : <include>juice-variant/include/  ;
+
 ### Setup exp_variant target
 
 alias exp_variant_lib : : : : <include>mpark_variant/include/ ;
@@ -43,20 +47,21 @@ alias bench_harness : : : : <include>include/ ;
 
 ### Build tests
 
-STRICT = <cxxflags>"-O3 -Wall -Werror -Wextra -pedantic -DSEQ_LENGTH=10000 -DREPEAT_NUM=1000 -DRNG_SEED=422911" ;
+CONFIG = <cxxflags>"-O3 -DSEQ_LENGTH=10000 -DREPEAT_NUM=1000 -DRNG_SEED=422911" ;
+STRICT = <cxxflags>"-Wall -Werror -Wextra -pedantic " ;
 
-obj sv02 : safe_variant.cpp safe_variant_lib bench_harness : $(STRICT) <cxxflags>"-std=c++11 -DNUM_VARIANTS=2 " ;
-obj sv03 : safe_variant.cpp safe_variant_lib bench_harness : $(STRICT) <cxxflags>"-std=c++11 -DNUM_VARIANTS=3 " ;
-obj sv04 : safe_variant.cpp safe_variant_lib bench_harness : $(STRICT) <cxxflags>"-std=c++11 -DNUM_VARIANTS=4 " ;
-obj sv05 : safe_variant.cpp safe_variant_lib bench_harness : $(STRICT) <cxxflags>"-std=c++11 -DNUM_VARIANTS=5 " ;
-obj sv06 : safe_variant.cpp safe_variant_lib bench_harness : $(STRICT) <cxxflags>"-std=c++11 -DNUM_VARIANTS=6 " ;
-obj sv08 : safe_variant.cpp safe_variant_lib bench_harness : $(STRICT) <cxxflags>"-std=c++11 -DNUM_VARIANTS=8 " ;
-obj sv10 : safe_variant.cpp safe_variant_lib bench_harness : $(STRICT) <cxxflags>"-std=c++11 -DNUM_VARIANTS=10 " ;
-obj sv12 : safe_variant.cpp safe_variant_lib bench_harness : $(STRICT) <cxxflags>"-std=c++11 -DNUM_VARIANTS=12 " ;
-obj sv15 : safe_variant.cpp safe_variant_lib bench_harness : $(STRICT) <cxxflags>"-std=c++11 -DNUM_VARIANTS=15 " ;
-obj sv18 : safe_variant.cpp safe_variant_lib bench_harness : $(STRICT) <cxxflags>"-std=c++11 -DNUM_VARIANTS=18 " ;
-obj sv20 : safe_variant.cpp safe_variant_lib bench_harness : $(STRICT) <cxxflags>"-std=c++11 -DNUM_VARIANTS=20 " ;
-obj sv50 : safe_variant.cpp safe_variant_lib bench_harness : $(STRICT) <cxxflags>"-std=c++11 -DNUM_VARIANTS=50 " ;
+obj sv02 : safe_variant.cpp safe_variant_lib bench_harness : $(CONFIG) $(STRICT) <cxxflags>"-std=c++11 -DNUM_VARIANTS=2 " ;
+obj sv03 : safe_variant.cpp safe_variant_lib bench_harness : $(CONFIG) $(STRICT) <cxxflags>"-std=c++11 -DNUM_VARIANTS=3 " ;
+obj sv04 : safe_variant.cpp safe_variant_lib bench_harness : $(CONFIG) $(STRICT) <cxxflags>"-std=c++11 -DNUM_VARIANTS=4 " ;
+obj sv05 : safe_variant.cpp safe_variant_lib bench_harness : $(CONFIG) $(STRICT) <cxxflags>"-std=c++11 -DNUM_VARIANTS=5 " ;
+obj sv06 : safe_variant.cpp safe_variant_lib bench_harness : $(CONFIG) $(STRICT) <cxxflags>"-std=c++11 -DNUM_VARIANTS=6 " ;
+obj sv08 : safe_variant.cpp safe_variant_lib bench_harness : $(CONFIG) $(STRICT) <cxxflags>"-std=c++11 -DNUM_VARIANTS=8 " ;
+obj sv10 : safe_variant.cpp safe_variant_lib bench_harness : $(CONFIG) $(STRICT) <cxxflags>"-std=c++11 -DNUM_VARIANTS=10 " ;
+obj sv12 : safe_variant.cpp safe_variant_lib bench_harness : $(CONFIG) $(STRICT) <cxxflags>"-std=c++11 -DNUM_VARIANTS=12 " ;
+obj sv15 : safe_variant.cpp safe_variant_lib bench_harness : $(CONFIG) $(STRICT) <cxxflags>"-std=c++11 -DNUM_VARIANTS=15 " ;
+obj sv18 : safe_variant.cpp safe_variant_lib bench_harness : $(CONFIG) $(STRICT) <cxxflags>"-std=c++11 -DNUM_VARIANTS=18 " ;
+obj sv20 : safe_variant.cpp safe_variant_lib bench_harness : $(CONFIG) $(STRICT) <cxxflags>"-std=c++11 -DNUM_VARIANTS=20 " ;
+obj sv50 : safe_variant.cpp safe_variant_lib bench_harness : $(CONFIG) $(STRICT) <cxxflags>"-std=c++11 -DNUM_VARIANTS=50 " ;
 
 exe safe_variant02 : sv02 ;
 exe safe_variant03 : sv03 ;
@@ -73,18 +78,18 @@ exe safe_variant50 : sv50 ;
 
 install install-sv-bin : safe_variant02 safe_variant03 safe_variant04 safe_variant05 safe_variant06 safe_variant08 safe_variant10 safe_variant12 safe_variant15 safe_variant18 safe_variant20 safe_variant50 : $(INSTALL_LOC) ;
 
-obj xv02 : exp_variant.cpp exp_variant_lib bench_harness : $(STRICT) <cxxflags>"-std=c++14 -DNUM_VARIANTS=2 " ;
-obj xv03 : exp_variant.cpp exp_variant_lib bench_harness : $(STRICT) <cxxflags>"-std=c++14 -DNUM_VARIANTS=3 " ;
-obj xv04 : exp_variant.cpp exp_variant_lib bench_harness : $(STRICT) <cxxflags>"-std=c++14 -DNUM_VARIANTS=4 " ;
-obj xv05 : exp_variant.cpp exp_variant_lib bench_harness : $(STRICT) <cxxflags>"-std=c++14 -DNUM_VARIANTS=5 " ;
-obj xv06 : exp_variant.cpp exp_variant_lib bench_harness : $(STRICT) <cxxflags>"-std=c++14 -DNUM_VARIANTS=6 " ;
-obj xv08 : exp_variant.cpp exp_variant_lib bench_harness : $(STRICT) <cxxflags>"-std=c++14 -DNUM_VARIANTS=8 " ;
-obj xv10 : exp_variant.cpp exp_variant_lib bench_harness : $(STRICT) <cxxflags>"-std=c++14 -DNUM_VARIANTS=10 " ;
-obj xv12 : exp_variant.cpp exp_variant_lib bench_harness : $(STRICT) <cxxflags>"-std=c++14 -DNUM_VARIANTS=12 " ;
-obj xv15 : exp_variant.cpp exp_variant_lib bench_harness : $(STRICT) <cxxflags>"-std=c++14 -DNUM_VARIANTS=15 " ;
-obj xv18 : exp_variant.cpp exp_variant_lib bench_harness : $(STRICT) <cxxflags>"-std=c++14 -DNUM_VARIANTS=18 " ;
-obj xv20 : exp_variant.cpp exp_variant_lib bench_harness : $(STRICT) <cxxflags>"-std=c++14 -DNUM_VARIANTS=20 " ;
-obj xv50 : exp_variant.cpp exp_variant_lib bench_harness : $(STRICT) <cxxflags>"-std=c++14 -DNUM_VARIANTS=50 " ;
+obj xv02 : exp_variant.cpp exp_variant_lib bench_harness : $(CONFIG) $(STRICT) <cxxflags>"-std=c++14 -DNUM_VARIANTS=2 " ;
+obj xv03 : exp_variant.cpp exp_variant_lib bench_harness : $(CONFIG) $(STRICT) <cxxflags>"-std=c++14 -DNUM_VARIANTS=3 " ;
+obj xv04 : exp_variant.cpp exp_variant_lib bench_harness : $(CONFIG) $(STRICT) <cxxflags>"-std=c++14 -DNUM_VARIANTS=4 " ;
+obj xv05 : exp_variant.cpp exp_variant_lib bench_harness : $(CONFIG) $(STRICT) <cxxflags>"-std=c++14 -DNUM_VARIANTS=5 " ;
+obj xv06 : exp_variant.cpp exp_variant_lib bench_harness : $(CONFIG) $(STRICT) <cxxflags>"-std=c++14 -DNUM_VARIANTS=6 " ;
+obj xv08 : exp_variant.cpp exp_variant_lib bench_harness : $(CONFIG) $(STRICT) <cxxflags>"-std=c++14 -DNUM_VARIANTS=8 " ;
+obj xv10 : exp_variant.cpp exp_variant_lib bench_harness : $(CONFIG) $(STRICT) <cxxflags>"-std=c++14 -DNUM_VARIANTS=10 " ;
+obj xv12 : exp_variant.cpp exp_variant_lib bench_harness : $(CONFIG) $(STRICT) <cxxflags>"-std=c++14 -DNUM_VARIANTS=12 " ;
+obj xv15 : exp_variant.cpp exp_variant_lib bench_harness : $(CONFIG) $(STRICT) <cxxflags>"-std=c++14 -DNUM_VARIANTS=15 " ;
+obj xv18 : exp_variant.cpp exp_variant_lib bench_harness : $(CONFIG) $(STRICT) <cxxflags>"-std=c++14 -DNUM_VARIANTS=18 " ;
+obj xv20 : exp_variant.cpp exp_variant_lib bench_harness : $(CONFIG) $(STRICT) <cxxflags>"-std=c++14 -DNUM_VARIANTS=20 " ;
+obj xv50 : exp_variant.cpp exp_variant_lib bench_harness : $(CONFIG) $(STRICT) <cxxflags>"-std=c++14 -DNUM_VARIANTS=50 " ;
 
 exe exp_variant02 : xv02 ;
 exe exp_variant03 : xv03 ;
@@ -101,18 +106,47 @@ exe exp_variant50 : xv50 ;
 
 install install-ev-bin : exp_variant02 exp_variant03 exp_variant04 exp_variant05 exp_variant06 exp_variant08 exp_variant10 exp_variant12 exp_variant15 exp_variant18 exp_variant20 exp_variant50 : $(INSTALL_LOC) ;
 
-obj lv02 : std_variant.cpp libcxx_lib bench_harness : $(STRICT) <cxxflags>"-std=c++1z -DNUM_VARIANTS=2 " ;
-obj lv03 : std_variant.cpp libcxx_lib bench_harness : $(STRICT) <cxxflags>"-std=c++1z -DNUM_VARIANTS=3 " ;
-obj lv04 : std_variant.cpp libcxx_lib bench_harness : $(STRICT) <cxxflags>"-std=c++1z -DNUM_VARIANTS=4 " ;
-obj lv05 : std_variant.cpp libcxx_lib bench_harness : $(STRICT) <cxxflags>"-std=c++1z -DNUM_VARIANTS=5 " ;
-obj lv06 : std_variant.cpp libcxx_lib bench_harness : $(STRICT) <cxxflags>"-std=c++1z -DNUM_VARIANTS=6 " ;
-obj lv08 : std_variant.cpp libcxx_lib bench_harness : $(STRICT) <cxxflags>"-std=c++1z -DNUM_VARIANTS=8 " ;
-obj lv10 : std_variant.cpp libcxx_lib bench_harness : $(STRICT) <cxxflags>"-std=c++1z -DNUM_VARIANTS=10 " ;
-obj lv12 : std_variant.cpp libcxx_lib bench_harness : $(STRICT) <cxxflags>"-std=c++1z -DNUM_VARIANTS=12 " ;
-obj lv15 : std_variant.cpp libcxx_lib bench_harness : $(STRICT) <cxxflags>"-std=c++1z -DNUM_VARIANTS=15 " ;
-obj lv18 : std_variant.cpp libcxx_lib bench_harness : $(STRICT) <cxxflags>"-std=c++1z -DNUM_VARIANTS=18 " ;
-obj lv20 : std_variant.cpp libcxx_lib bench_harness : $(STRICT) <cxxflags>"-std=c++1z -DNUM_VARIANTS=20 " ;
-obj lv50 : std_variant.cpp libcxx_lib bench_harness : $(STRICT) <cxxflags>"-std=c++1z -DNUM_VARIANTS=50 " ;
+obj jv02 : juice_variant.cpp juice_variant_lib bench_harness : $(CONFIG) <cxxflags>"-std=c++14 -DNUM_VARIANTS=2 " ;
+obj jv03 : juice_variant.cpp juice_variant_lib bench_harness : $(CONFIG) <cxxflags>"-std=c++14 -DNUM_VARIANTS=3 " ;
+obj jv04 : juice_variant.cpp juice_variant_lib bench_harness : $(CONFIG) <cxxflags>"-std=c++14 -DNUM_VARIANTS=4 " ;
+obj jv05 : juice_variant.cpp juice_variant_lib bench_harness : $(CONFIG) <cxxflags>"-std=c++14 -DNUM_VARIANTS=5 " ;
+obj jv06 : juice_variant.cpp juice_variant_lib bench_harness : $(CONFIG) <cxxflags>"-std=c++14 -DNUM_VARIANTS=6 " ;
+obj jv08 : juice_variant.cpp juice_variant_lib bench_harness : $(CONFIG) <cxxflags>"-std=c++14 -DNUM_VARIANTS=8 " ;
+obj jv10 : juice_variant.cpp juice_variant_lib bench_harness : $(CONFIG) <cxxflags>"-std=c++14 -DNUM_VARIANTS=10 " ;
+obj jv12 : juice_variant.cpp juice_variant_lib bench_harness : $(CONFIG) <cxxflags>"-std=c++14 -DNUM_VARIANTS=12 " ;
+obj jv15 : juice_variant.cpp juice_variant_lib bench_harness : $(CONFIG) <cxxflags>"-std=c++14 -DNUM_VARIANTS=15 " ;
+obj jv18 : juice_variant.cpp juice_variant_lib bench_harness : $(CONFIG) <cxxflags>"-std=c++14 -DNUM_VARIANTS=18 " ;
+obj jv20 : juice_variant.cpp juice_variant_lib bench_harness : $(CONFIG) <cxxflags>"-std=c++14 -DNUM_VARIANTS=20 " ;
+obj jv50 : juice_variant.cpp juice_variant_lib bench_harness : $(CONFIG) <cxxflags>"-std=c++14 -DNUM_VARIANTS=50 " ;
+
+exe juice_variant02 : jv02 ;
+exe juice_variant03 : jv03 ;
+exe juice_variant04 : jv04 ;
+exe juice_variant05 : jv05 ;
+exe juice_variant06 : jv06 ;
+exe juice_variant08 : jv08 ;
+exe juice_variant10 : jv10 ;
+exe juice_variant12 : jv12 ;
+exe juice_variant15 : jv15 ;
+exe juice_variant18 : jv18 ;
+exe juice_variant20 : jv20 ;
+exe juice_variant50 : jv50 ;
+
+install install-jv-bin : juice_variant02 juice_variant03 juice_variant04 juice_variant05 juice_variant06 juice_variant08 juice_variant10 juice_variant12 juice_variant15 juice_variant18 juice_variant20 juice_variant50 : $(INSTALL_LOC) ;
+
+
+obj lv02 : std_variant.cpp libcxx_lib bench_harness : $(CONFIG) $(STRICT) <cxxflags>"-std=c++1z -DNUM_VARIANTS=2 " ;
+obj lv03 : std_variant.cpp libcxx_lib bench_harness : $(CONFIG) $(STRICT) <cxxflags>"-std=c++1z -DNUM_VARIANTS=3 " ;
+obj lv04 : std_variant.cpp libcxx_lib bench_harness : $(CONFIG) $(STRICT) <cxxflags>"-std=c++1z -DNUM_VARIANTS=4 " ;
+obj lv05 : std_variant.cpp libcxx_lib bench_harness : $(CONFIG) $(STRICT) <cxxflags>"-std=c++1z -DNUM_VARIANTS=5 " ;
+obj lv06 : std_variant.cpp libcxx_lib bench_harness : $(CONFIG) $(STRICT) <cxxflags>"-std=c++1z -DNUM_VARIANTS=6 " ;
+obj lv08 : std_variant.cpp libcxx_lib bench_harness : $(CONFIG) $(STRICT) <cxxflags>"-std=c++1z -DNUM_VARIANTS=8 " ;
+obj lv10 : std_variant.cpp libcxx_lib bench_harness : $(CONFIG) $(STRICT) <cxxflags>"-std=c++1z -DNUM_VARIANTS=10 " ;
+obj lv12 : std_variant.cpp libcxx_lib bench_harness : $(CONFIG) $(STRICT) <cxxflags>"-std=c++1z -DNUM_VARIANTS=12 " ;
+obj lv15 : std_variant.cpp libcxx_lib bench_harness : $(CONFIG) $(STRICT) <cxxflags>"-std=c++1z -DNUM_VARIANTS=15 " ;
+obj lv18 : std_variant.cpp libcxx_lib bench_harness : $(CONFIG) $(STRICT) <cxxflags>"-std=c++1z -DNUM_VARIANTS=18 " ;
+obj lv20 : std_variant.cpp libcxx_lib bench_harness : $(CONFIG) $(STRICT) <cxxflags>"-std=c++1z -DNUM_VARIANTS=20 " ;
+obj lv50 : std_variant.cpp libcxx_lib bench_harness : $(CONFIG) $(STRICT) <cxxflags>"-std=c++1z -DNUM_VARIANTS=50 " ;
 
 exe libcxx_std_variant02 : lv02 ;
 exe libcxx_std_variant03 : lv03 ;
@@ -134,17 +168,17 @@ if $(BOOST_INCLUDE_DIR) {
 
   alias boost_headers : : : : <include>$(BOOST_INCLUDE_DIR) ;
 
-  obj bv02 : boost_variant.cpp boost_headers bench_harness : $(STRICT) <cxxflags>"-std=c++11 -DNUM_VARIANTS=2 " ;
-  obj bv03 : boost_variant.cpp boost_headers bench_harness : $(STRICT) <cxxflags>"-std=c++11 -DNUM_VARIANTS=3 " ;
-  obj bv04 : boost_variant.cpp boost_headers bench_harness : $(STRICT) <cxxflags>"-std=c++11 -DNUM_VARIANTS=4 " ;
-  obj bv05 : boost_variant.cpp boost_headers bench_harness : $(STRICT) <cxxflags>"-std=c++11 -DNUM_VARIANTS=5 " ;
-  obj bv06 : boost_variant.cpp boost_headers bench_harness : $(STRICT) <cxxflags>"-std=c++11 -DNUM_VARIANTS=6 " ;
-  obj bv08 : boost_variant.cpp boost_headers bench_harness : $(STRICT) <cxxflags>"-std=c++11 -DNUM_VARIANTS=8 " ;
-  obj bv10 : boost_variant.cpp boost_headers bench_harness : $(STRICT) <cxxflags>"-std=c++11 -DNUM_VARIANTS=10 " ;
-  obj bv12 : boost_variant.cpp boost_headers bench_harness : $(STRICT) <cxxflags>"-std=c++11 -DNUM_VARIANTS=12 " ;
-  obj bv15 : boost_variant.cpp boost_headers bench_harness : $(STRICT) <cxxflags>"-std=c++11 -DNUM_VARIANTS=15 " ;
-  obj bv18 : boost_variant.cpp boost_headers bench_harness : $(STRICT) <cxxflags>"-std=c++11 -DNUM_VARIANTS=18 " ;
-  obj bv20 : boost_variant.cpp boost_headers bench_harness : $(STRICT) <cxxflags>"-std=c++11 -DNUM_VARIANTS=20 " ;
+  obj bv02 : boost_variant.cpp boost_headers bench_harness : $(CONFIG) $(STRICT) <cxxflags>"-std=c++11 -DNUM_VARIANTS=2 " ;
+  obj bv03 : boost_variant.cpp boost_headers bench_harness : $(CONFIG) $(STRICT) <cxxflags>"-std=c++11 -DNUM_VARIANTS=3 " ;
+  obj bv04 : boost_variant.cpp boost_headers bench_harness : $(CONFIG) $(STRICT) <cxxflags>"-std=c++11 -DNUM_VARIANTS=4 " ;
+  obj bv05 : boost_variant.cpp boost_headers bench_harness : $(CONFIG) $(STRICT) <cxxflags>"-std=c++11 -DNUM_VARIANTS=5 " ;
+  obj bv06 : boost_variant.cpp boost_headers bench_harness : $(CONFIG) $(STRICT) <cxxflags>"-std=c++11 -DNUM_VARIANTS=6 " ;
+  obj bv08 : boost_variant.cpp boost_headers bench_harness : $(CONFIG) $(STRICT) <cxxflags>"-std=c++11 -DNUM_VARIANTS=8 " ;
+  obj bv10 : boost_variant.cpp boost_headers bench_harness : $(CONFIG) $(STRICT) <cxxflags>"-std=c++11 -DNUM_VARIANTS=10 " ;
+  obj bv12 : boost_variant.cpp boost_headers bench_harness : $(CONFIG) $(STRICT) <cxxflags>"-std=c++11 -DNUM_VARIANTS=12 " ;
+  obj bv15 : boost_variant.cpp boost_headers bench_harness : $(CONFIG) $(STRICT) <cxxflags>"-std=c++11 -DNUM_VARIANTS=15 " ;
+  obj bv18 : boost_variant.cpp boost_headers bench_harness : $(CONFIG) $(STRICT) <cxxflags>"-std=c++11 -DNUM_VARIANTS=18 " ;
+  obj bv20 : boost_variant.cpp boost_headers bench_harness : $(CONFIG) $(STRICT) <cxxflags>"-std=c++11 -DNUM_VARIANTS=20 " ;
 
   exe boost_variant02 : bv02 ;
   exe boost_variant03 : bv03 ;

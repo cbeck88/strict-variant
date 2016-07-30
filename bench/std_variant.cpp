@@ -51,7 +51,7 @@ public:
           assert(false && "clock_gettime(CLOCK_MONOTONIC) failed");
       return time_point(std::chrono::seconds(tp.tv_sec) + std::chrono::nanoseconds(tp.tv_nsec));
 #else
-#error "monotonic clock is needed for this implementation of stead_clock, go check chrono.cpp in libc++ for alternate implementation
+#error "monotonic clock is needed for this implementation of steady_clock, go check chrono.cpp in libc++ for alternate implementation"
 #endif
     }
 };
