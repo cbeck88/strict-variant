@@ -103,11 +103,24 @@ struct bench_task {
   std::array<var_t, seq_length> sequence_;
 
   bench_task(uint32_t seed) {
+    for (var_t & v : sequence_) {
+      set_type<variant_template, num_variants>(v, seed);
+      seed += 31;
+      seed *= 13;
+      seed -= (seed >> 2);
+      seed ^= 3117;
+      seed *= 59;
+      seed -= (seed >> 6);
+      seed ^= 2753;
+      seed *= 43;
+      seed -= (seed >> 9);
+    }
+    /*
     std::mt19937 rng{seed};
     for (var_t & v : sequence_) {
       uint32_t x = static_cast<uint32_t>(rng());
       set_type<variant_template, num_variants>(v, x);
-    }
+    }*/
   }
 
   template <typename AV>

@@ -40,7 +40,7 @@ main() {
   uint32_t count = repeat_num;
   while (count--) {
     DoNotOptimize(result);
-    result ^= task->run(visitor_applier{});
+    result += task->run(visitor_applier{});
     result *= 3;
     ClobberMemory();
   }

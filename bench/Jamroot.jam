@@ -39,7 +39,7 @@ alias bench_harness : : : : <include>include/ ;
 
 ### Build tests
 
-STRICT = <cxxflags>"-O3 -Wall -Werror -Wextra -pedantic -DSEQ_LENGTH=1000 -DREPEAT_NUM=10000 -DRNG_SEED=422342" ;
+STRICT = <cxxflags>"-O3 -Wall -Werror -Wextra -pedantic -DSEQ_LENGTH=10000 -DREPEAT_NUM=1000 -DRNG_SEED=422911" ;
 
 obj sv02 : safe_variant.cpp safe_variant_lib bench_harness : $(STRICT) <cxxflags>"-std=c++11 -DNUM_VARIANTS=2 " ;
 obj sv03 : safe_variant.cpp safe_variant_lib bench_harness : $(STRICT) <cxxflags>"-std=c++11 -DNUM_VARIANTS=3 " ;
@@ -120,5 +120,5 @@ if $(BOOST_INCLUDE_DIR) {
   exe boost_variant18 : bv18 ;
   exe boost_variant20 : bv20 ;
 
-  install install-bv-bin : boost_variant02 boost_variant03 boost_variant04 boost_variant05 boost_variant06 boost_variant08 boost_variant15 boost_variant18 boost_variant20 : $(INSTALL_LOC) ;
+  install install-bv-bin : boost_variant02 boost_variant03 boost_variant04 boost_variant05 boost_variant06 boost_variant08 boost_variant10 boost_variant15 boost_variant18 boost_variant20 : $(INSTALL_LOC) ;
 }
