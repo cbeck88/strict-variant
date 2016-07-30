@@ -33,6 +33,10 @@ overload ambiguity differently from other C++ variant types.
 It may be well-suited for use in scenarios where you need to have a variant holding multiple different integral types,
 and really don't want to have any loss of precision or any "gotcha" conversions happening.
 
+**safe variant** provides a strict never-empty guarantee, for ease of visitation. But it does not incur the cost of
+backup copies which `boost::variant` pays, due to a different implementation approach. In some cases this allows
+improved performance.
+
 Overview
 ========
 
@@ -106,14 +110,17 @@ This is enforced using static asserts within the assignment operators. (There is
 This allows the implementation to be very simple and efficient compared with some other variant types, which may have to make extra copies to facilitate
 exception-safety, or make only a "rarely empty" guarantee.
 
+For a fully general `variant`, read on in regards to `recursive_wrapper` and `easy_variant`.
+
 recursive wrapper
 -----------------
 
 *If you have a type `T` with a throwing move*, you are encouraged to use `safe_variant::recursive_wrapper<T>` instead of `T` in the variant.
 
-`recursive_wrapper<T>` is behaviorally equivalent to `std::unique_ptr<T>`, making a copy of `T` on the heap. But it is convertible to `T&`, and so
-for most purposes is syntactically the same as `T`. There is special support within `safe_variant::variant` so that you can call `get<T>(&v)` and get a pointer
-to a `T` rather than the wrapper, for instance, and similarly throughout the `variant` interface.
+
+`recursive_wrapper<T>` represents a heap-allocated instance of `T`. The wrapper doesn't do anything special, but there is special support
+within `safe_variant::variant` so that you can call `get<T>(&v)` and get a pointer
+to a `T` rather than the wrapper, for instance, and similarly throughout the `variant` interface. This is exactly the same as the `recursive_wrapper` of `boost::variant`.
 
 `recursive_wrapper<T>` always has a `noexcept` move ctor even if `T` does not.
 
@@ -139,7 +146,7 @@ easy variant
 
 Additionally, we provide a template `easy_variant` which takes care of these details if you don't care to be bothered by the compiler about a throwing move / dynamic allocation.  
 
-(Some programmers would prefer that the compiler not start making dynamic allocations without a warning though, just because some `noexcept` annotation was not deduced the way they expected, but on the other hand this may be particularly convenient for generic programming.)  
+(Some programmers would prefer that the compiler not start making dynamic allocations without a warning though, just because some `noexcept` annotation was not deduced the way they expected. But programmer convenience is a good thing too.)
 
 Specifically, any type that you put in the `easy_variant` which has a throwing move will be wrapped in `recursive_wrapper` implicitly.
 
@@ -459,7 +466,7 @@ numbers of types.
 
 Therefore, `safe_variant` uses a hybrid strategy. When the number of variants
 is four or less, the binary search is used, and for more than that, the jump
-table is used. 
+table is used. (See [variant_detail.hpp](/include/safe_variant/variant_detail.hpp) for details.)
 
 There is a benchmarks suite in the `/bench` folder of the repository.
 
