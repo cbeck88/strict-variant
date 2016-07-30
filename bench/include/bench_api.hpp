@@ -14,28 +14,31 @@ namespace benchmark {
 #define BENCHMARK_ALWAYS_INLINE
 #endif
 
-
 #if defined(__GNUC__)
 template <class Tp>
-inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp const& value) {
-    asm volatile("" : : "g"(value) : "memory");
+inline BENCHMARK_ALWAYS_INLINE void
+DoNotOptimize(Tp const & value) {
+  asm volatile("" : : "g"(value) : "memory");
 }
 // Force the compiler to flush pending writes to global memory. Acts as an
 // effective read/write barrier
-inline BENCHMARK_ALWAYS_INLINE void ClobberMemory() {
-    asm volatile("" : : : "memory");
+inline BENCHMARK_ALWAYS_INLINE void
+ClobberMemory() {
+  asm volatile("" : : : "memory");
 }
 
 #else
 
 template <class Tp>
-inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp const& value) {
+inline BENCHMARK_ALWAYS_INLINE void
+DoNotOptimize(Tp const & value) {
     static_cast<volatile void>(&reinterpret_cast<char const volatile&>(value)));
 }
 
 // TODO
 template <class Tp>
-inline BENCHMARK_ALWAYS_INLINE void ClobberMemory() {}
+inline BENCHMARK_ALWAYS_INLINE void
+ClobberMemory() {}
 
 #endif
 

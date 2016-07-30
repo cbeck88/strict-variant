@@ -29,5 +29,6 @@ struct visitor_applier {
 
 int
 main() {
-  return 0 != run_benchmark<boost::variant, num_variants, seq_length, repeat_num, visitor_applier>("boost::variant", rng_seed);
+  return 0 != run_benchmark<boost::variant, num_variants, seq_length, repeat_num, visitor_applier>(
+                "boost::variant", rng_seed);
 }

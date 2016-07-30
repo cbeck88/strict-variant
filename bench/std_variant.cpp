@@ -1,9 +1,9 @@
 #include "bench_api.hpp"
 #include "bench_framework.hpp"
 
-#include <time.h>        // clock_gettime, CLOCK_MONOTONIC and CLOCK_REALTIME
 #include <cassert>
 #include <chrono>
+#include <time.h> // clock_gettime, CLOCK_MONOTONIC and CLOCK_REALTIME
 #include <variant>
 
 static constexpr uint32_t num_variants{NUM_VARIANTS};
@@ -35,28 +35,29 @@ struct visitor_applier {
 // This is easier when using custom standard library instances.
 // This is taken from implementation details of libcxx at chrono.cpp
 
-class custom_clock
-{
+class custom_clock {
 public:
-    typedef std::chrono::nanoseconds                           duration;
-    typedef long long                                          rep;
-    typedef std::nano                                          period;
-    typedef std::chrono::time_point<custom_clock, duration>    time_point;
-    static constexpr bool is_steady =                          true;
+  typedef std::chrono::nanoseconds duration;
+  typedef long long rep;
+  typedef std::nano period;
+  typedef std::chrono::time_point<custom_clock, duration> time_point;
+  static constexpr bool is_steady = true;
 
-    static time_point now() noexcept {
+  static time_point now() noexcept {
 #ifdef CLOCK_MONOTONIC
-      struct timespec tp;
-      if (0 != clock_gettime(CLOCK_MONOTONIC, &tp))
-          assert(false && "clock_gettime(CLOCK_MONOTONIC) failed");
-      return time_point(std::chrono::seconds(tp.tv_sec) + std::chrono::nanoseconds(tp.tv_nsec));
+    struct timespec tp;
+    if (0 != clock_gettime(CLOCK_MONOTONIC, &tp))
+      assert(false && "clock_gettime(CLOCK_MONOTONIC) failed");
+    return time_point(std::chrono::seconds(tp.tv_sec) + std::chrono::nanoseconds(tp.tv_nsec));
 #else
-#error "monotonic clock is needed for this implementation of steady_clock, go check chrono.cpp in libc++ for alternate implementation"
+#error                                                                                             \
+  "monotonic clock is needed for this implementation of steady_clock, go check chrono.cpp in libc++ for alternate implementation"
 #endif
-    }
+  }
 };
 
 int
 main() {
-  return 0 != run_benchmark<std::variant, num_variants, seq_length, repeat_num, visitor_applier, custom_clock>("std::variant", rng_seed);
+  return 0 != run_benchmark<std::variant, num_variants, seq_length, repeat_num, visitor_applier,
+                            custom_clock>("std::variant", rng_seed);
 }
