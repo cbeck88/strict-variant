@@ -35,18 +35,26 @@ main() {
     stdout, "safe_variant::variant:\n  num_variants = %u\n  seq_length = %u\n  repeat_num = %u\n\n",
     num_variants, seq_length, repeat_num);
 
+  benchmark::DoNotOptimize(task);
+
   auto const start = std::chrono::high_resolution_clock::now();
+
+  benchmark::ClobberMemory();
 
   uint32_t result = 0;
   uint32_t count = repeat_num;
   while (count--) {
-    DoNotOptimize(result);
-    result += task->run(visitor_applier{});
+    benchmark::DoNotOptimize(result);
+    static_cast<volatile void>(result += task->run(visitor_applier{}));
     result *= 3;
-    ClobberMemory();
+    benchmark::ClobberMemory();
   }
 
+  benchmark::ClobberMemory();
+
   auto const end = std::chrono::high_resolution_clock::now();
+
+  benchmark::ClobberMemory();
 
   unsigned long us = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
   std::fprintf(stdout, "took %lu microseconds\n", us);

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "bench_api.hpp"
 #include <array>
 #include <cstddef>
 #include <random>
@@ -81,21 +82,6 @@ set_type(dummy_variant_t<variant_template, N> & v, uint32_t idx) {
   funcs[idx % N](v);
 }
 
-// Helper to prevent compiler from optimizing things
-// c.f. https://github.com/google/benchmark/blob/master/include/benchmark/benchmark_api.h
-#define BENCHMARK_ALWAYS_INLINE __attribute__((always_inline))
-
-template <class Tp>
-inline BENCHMARK_ALWAYS_INLINE void
-DoNotOptimize(Tp const & value) {
-  asm volatile("" : : "g"(value) : "memory");
-}
-
-inline BENCHMARK_ALWAYS_INLINE void
-ClobberMemory() {
-  asm volatile("" : : : "memory");
-}
-
 // Bench task, sets up a sequence of variant instances, and runs a task.
 
 template <template <class...> class variant_template, uint32_t num_variants, uint32_t seq_length>
@@ -132,10 +118,9 @@ struct bench_task {
   uint32_t run(AV && apply_visitor) const {
     uint32_t result = 0;
     for (const auto & v : sequence_) {
-      // static_cast<volatile void>(result ^= std::forward<AV>(apply_visitor)(v));
-      DoNotOptimize(result);
-      result += std::forward<AV>(apply_visitor)(v);
-      ClobberMemory();
+      benchmark::DoNotOptimize(result);
+      static_cast<volatile void>(result += std::forward<AV>(apply_visitor)(v));
+      benchmark::ClobberMemory();
     }
     return result;
   }
