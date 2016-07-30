@@ -151,7 +151,7 @@ easy variant
 
 We provide a template `easy_variant` which takes care of these details if you don't care to be bothered by the compiler about a throwing move / dynamic allocation.  
 
-(Some programmers would prefer that the compiler not start making dynamic allocations without a warning though, just because some `noexcept` annotation was not deduced the way they expected. But programmer convenience is a good thing too.)
+(Some programmers would prefer that the compiler not start making dynamic allocations without a warning, just because some `noexcept` annotation was not deduced the way they expected. But programmer convenience is a good thing too.)
 
 Specifically, any type that you put in the `easy_variant` which has a throwing move will be wrapped in `recursive_wrapper` implicitly.
 
