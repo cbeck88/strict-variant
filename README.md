@@ -140,6 +140,12 @@ emplace
 
 Even if the variant is not assignable, you can still use the `emplace` function to change the type of its value, provided that the constructor you invoke is `noexcept` or the requested type is no-throw move constructible.
 
+```
+  variant<const char *, std::string> v;
+  v.emplace<std::string>("foo");
+  assert(v.which() == 1);
+```
+
 easy variant
 -------------
 
