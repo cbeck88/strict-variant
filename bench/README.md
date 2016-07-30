@@ -1,10 +1,11 @@
 Benchmarks:
 ===========
 
-This is a benchmark framework that measures speed of static visitation for three different variant types.
+This is a benchmark framework that measures speed of static visitation for four different variant types.
 
 - `safe_variant::variant`
 - `std::experimental::variant` (as [provided by mpark](https://github.com/mpark/variant))
+- `std::variant` ([from development branch in libcxx](https://github.com/efcs/libcxx/blob/3de7abb16f6733746e1720f6a1ee904e32ad7b82/include/variant) Note that it was modified in some trivial ways so that we can test using the libcxx headers only, that is, we made `bad_variant_access::what()` definition inline)
 - `boost::variant` (using whatever boost version is installed at environment variable BOOST_ROOT or /usr/include)
 
 For each tested variant, it generates an executable which tests the cases of 2, 3, 4, 5, 6, 8, 10, 15, 20, and 50 items in a variant.

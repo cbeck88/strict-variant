@@ -33,6 +33,10 @@ alias safe_variant_lib : : : : <include>../include/  ;
 
 alias exp_variant_lib : : : : <include>mpark_variant/include/ ;
 
+### Setup libcxx target
+
+alias libcxx_lib : : : : <cxxflags>"-nostdinc++ " <include>libcxx-variant/include/ ;
+
 ### Setup bench harness
 
 alias bench_harness : : : : <include>include/ ;
@@ -96,6 +100,34 @@ exe exp_variant20 : xv20 ;
 exe exp_variant50 : xv50 ;
 
 install install-ev-bin : exp_variant02 exp_variant03 exp_variant04 exp_variant05 exp_variant06 exp_variant08 exp_variant10 exp_variant12 exp_variant15 exp_variant18 exp_variant20 exp_variant50 : $(INSTALL_LOC) ;
+
+obj lv02 : std_variant.cpp libcxx_lib bench_harness : $(STRICT) <cxxflags>"-std=c++1z -DNUM_VARIANTS=2 " ;
+obj lv03 : std_variant.cpp libcxx_lib bench_harness : $(STRICT) <cxxflags>"-std=c++1z -DNUM_VARIANTS=3 " ;
+obj lv04 : std_variant.cpp libcxx_lib bench_harness : $(STRICT) <cxxflags>"-std=c++1z -DNUM_VARIANTS=4 " ;
+obj lv05 : std_variant.cpp libcxx_lib bench_harness : $(STRICT) <cxxflags>"-std=c++1z -DNUM_VARIANTS=5 " ;
+obj lv06 : std_variant.cpp libcxx_lib bench_harness : $(STRICT) <cxxflags>"-std=c++1z -DNUM_VARIANTS=6 " ;
+obj lv08 : std_variant.cpp libcxx_lib bench_harness : $(STRICT) <cxxflags>"-std=c++1z -DNUM_VARIANTS=8 " ;
+obj lv10 : std_variant.cpp libcxx_lib bench_harness : $(STRICT) <cxxflags>"-std=c++1z -DNUM_VARIANTS=10 " ;
+obj lv12 : std_variant.cpp libcxx_lib bench_harness : $(STRICT) <cxxflags>"-std=c++1z -DNUM_VARIANTS=12 " ;
+obj lv15 : std_variant.cpp libcxx_lib bench_harness : $(STRICT) <cxxflags>"-std=c++1z -DNUM_VARIANTS=15 " ;
+obj lv18 : std_variant.cpp libcxx_lib bench_harness : $(STRICT) <cxxflags>"-std=c++1z -DNUM_VARIANTS=18 " ;
+obj lv20 : std_variant.cpp libcxx_lib bench_harness : $(STRICT) <cxxflags>"-std=c++1z -DNUM_VARIANTS=20 " ;
+obj lv50 : std_variant.cpp libcxx_lib bench_harness : $(STRICT) <cxxflags>"-std=c++1z -DNUM_VARIANTS=50 " ;
+
+exe libcxx_std_variant02 : lv02 ;
+exe libcxx_std_variant03 : lv03 ;
+exe libcxx_std_variant04 : lv04 ;
+exe libcxx_std_variant05 : lv05 ;
+exe libcxx_std_variant06 : lv06 ;
+exe libcxx_std_variant08 : lv08 ;
+exe libcxx_std_variant10 : lv10 ;
+exe libcxx_std_variant12 : lv12 ;
+exe libcxx_std_variant15 : lv15 ;
+exe libcxx_std_variant18 : lv18 ;
+exe libcxx_std_variant20 : lv20 ;
+exe libcxx_std_variant50 : lv50 ;
+
+install install-stdv-bin : libcxx_std_variant02 libcxx_std_variant03 libcxx_std_variant04 libcxx_std_variant05 libcxx_std_variant06 libcxx_std_variant08 libcxx_std_variant10 libcxx_std_variant12 libcxx_std_variant15 libcxx_std_variant18 libcxx_std_variant20 libcxx_std_variant50 : $(INSTALL_LOC) ;
 
 
 if $(BOOST_INCLUDE_DIR) {

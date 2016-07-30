@@ -1,3 +1,4 @@
+#include "bench_api.hpp"
 #include "bench_framework.hpp"
 #include <experimental/variant.hpp>
 
