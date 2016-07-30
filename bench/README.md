@@ -17,7 +17,9 @@ You must build using `b2`.
 
 Test executables are produced in `/bench/stage`.
 
-Use `./run.sh` to do a clean build and run all benchmarks.
+Use `./run.sh` to do a clean build and run all benchmarks.  
+
+You can pipe the results of that into `./format_benchmark_results.lua` to get a table formatted as github-flavored markdown.  
 
 There is also a `./generate_asm.sh` script which will generate assembly for each of the variant types, at some particular configuration.
 
