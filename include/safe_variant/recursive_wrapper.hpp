@@ -8,7 +8,7 @@
 /***
  * For use with safe_variant::variant
  */
-#include <safe_variant/std_traits.hpp>
+#include <safe_variant/mpl/std_traits.hpp>
 #include <safe_variant/variant_fwd.hpp>
 #include <type_traits>
 #include <utility>

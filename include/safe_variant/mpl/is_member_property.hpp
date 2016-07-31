@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include <type_traits>
+
 namespace safe_variant {
 namespace mpl {
 

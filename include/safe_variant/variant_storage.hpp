@@ -5,8 +5,8 @@
 
 #pragma once
 
-#include <safe_variant/index.hpp>
-#include <safe_variant/max.hpp>
+#include <safe_variant/mpl/index.hpp>
+#include <safe_variant/mpl/max.hpp>
 #include <utility>
 
 namespace safe_variant {

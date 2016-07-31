@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include <safe_variant/find_with.hpp>
+#include <safe_variant/mpl/find_with.hpp>
 #include <safe_variant/variant_fwd.hpp>
 
 #include <boost/mpl/bool.hpp>

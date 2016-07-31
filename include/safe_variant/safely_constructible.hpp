@@ -6,7 +6,7 @@
 #pragma once
 
 #include <safe_variant/conversion_rank.hpp>
-#include <safe_variant/std_traits.hpp>
+#include <safe_variant/mpl/std_traits.hpp>
 #include <type_traits>
 
 namespace safe_variant {
