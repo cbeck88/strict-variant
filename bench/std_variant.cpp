@@ -60,6 +60,6 @@ public:
 
 int
 main() {
-  run_benchmark<std::variant, num_variants, seq_length, repeat_num, visitor_applier,
+  benchmark::run_benchmark<std::variant, num_variants, seq_length, repeat_num, visitor_applier,
                             custom_clock>("std::variant", rng_seed);
 }

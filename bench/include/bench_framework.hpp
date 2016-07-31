@@ -9,6 +9,8 @@
 #include <memory>
 #include <utility>
 
+namespace benchmark {
+
 // Should be instantiated using a bench_task type specialized for the variant
 // and the task complexity, and a VisitorApplier function object which visits
 // the variant, and a seed for the rng.
@@ -42,3 +44,5 @@ run_benchmark(const char * variant_name, const uint32_t seed) {
   std::fprintf(stdout, "average nanoseconds per visit: %f\n\n\n",
                (static_cast<double>(us) / (seq_length * repeat_num)) * 1000);
 }
+
+} // end namespace benchmark

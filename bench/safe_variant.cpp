@@ -30,6 +30,6 @@ struct visitor_applier {
 
 int
 main() {
-  run_benchmark<safe_variant::variant, num_variants, seq_length, repeat_num,
+  benchmark::run_benchmark<safe_variant::variant, num_variants, seq_length, repeat_num,
                             visitor_applier>("safe_variant::variant", rng_seed);
 }

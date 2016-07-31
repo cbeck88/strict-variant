@@ -31,6 +31,6 @@ struct visitor_applier {
 
 int
 main() {
-  run_benchmark<mapbox::util::variant, num_variants, seq_length, repeat_num,
+  benchmark::run_benchmark<mapbox::util::variant, num_variants, seq_length, repeat_num,
                             visitor_applier>("mapbox::variant", rng_seed);
 }
