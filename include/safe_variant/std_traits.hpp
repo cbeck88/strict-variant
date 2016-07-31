@@ -10,6 +10,7 @@
  */
 
 #include <type_traits>
+#include <utility>
 
 namespace safe_variant {
 namespace mpl {
@@ -31,6 +32,34 @@ using decay_t = typename std::decay<T>::type;
 
 template <bool b, typename U = void>
 using enable_if_t = typename std::enable_if<b, U>::type;
+
+// Common Type backport
+
+template <typename T, typename... Ts>
+struct common_type;
+
+template <typename T>
+struct common_type<T> {
+  using type = decay_t<T>;
+};
+
+template <typename T1, typename T2>
+struct common_type<T1, T2> {
+  using type = decay_t<decltype(true ? std::declval<T1>() : std::declval<T2>())>;
+};
+
+template <typename T>
+struct common_type<T, T> {
+  using type = T;
+};
+
+template <typename T1, typename T2, typename T3, typename... Ts>
+struct common_type<T1, T2, T3, Ts...> {
+  using type = typename common_type<typename common_type<T1, T2>::type, T3, Ts...>::type;
+};
+
+template <typename T, typename... Ts>
+using common_type_t = typename common_type<T, Ts...>::type;
 
 } // end namespace mpl
 } // end namsepace safe_variant

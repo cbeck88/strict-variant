@@ -17,15 +17,6 @@
 
 namespace safe_variant {
 
-// Trait: Succinctly access result_type of a visitor, passed by forwarding ref
-template <typename T>
-struct visitor_result {
-  using type = typename mpl::remove_reference_t<T>::result_type;
-};
-
-template <typename T>
-using vis_result_t = typename visitor_result<T>::type;
-
 namespace detail {
 
 /***
@@ -40,18 +31,33 @@ namespace detail {
 /// Function which evaluates a visitor against a variant's internals
 /// Reinteprets' the "storage" pointer as a value of type T or const T,
 /// then applies the visitor object.
-template <typename Internal, typename T, typename Storage, typename Visitor, typename... Args>
+template <typename T, typename Internal, typename Storage, typename Visitor, typename... Args>
 auto
-visitor_caller(Internal && internal, Storage && storage, Visitor && visitor, Args &&... args)
-  -> vis_result_t<Visitor> {
-  typedef typename std::
-    conditional<std::is_const<
-                  typename std::remove_extent<mpl::remove_reference_t<Storage>>::type>::value,
-                const T, T>::type ConstType;
-
-  return std::forward<Visitor>(visitor)(
-    get_value(*reinterpret_cast<ConstType *>(storage), internal), std::forward<Args>(args)...);
+visitor_caller(Storage && storage, Visitor && visitor, Args &&... args)
+  -> decltype(std::forward<Visitor>(std::declval<Visitor>())(get_value( std::forward<Storage>(std::declval<Storage>()).template as<T>(), Internal()), std::forward<Args>(std::declval<Args>())...)) {
+  auto & val = get_value( std::forward<Storage>(storage).template as<T>(), Internal());
+  return std::forward<Visitor>(visitor)(val, std::forward<Args>(args)...);
 }
+
+/// Trait which figures out what the return type of visitor caller is
+template <typename T, typename Internal, typename Storage, typename Visitor, typename... Args>
+struct visitor_caller_return_type {
+   using type = decltype(visitor_caller<T, Internal, Storage, Args...>(std::forward<Storage>(std::declval<Storage>()), std::forward<Visitor>(std::declval<Visitor>()), std::forward<Args>(std::declval<Args>())... ));
+};
+
+/// Helper which figures out the return type of multiple visitor calls
+/// It's better for this to be separate of the dispatch mechanism, because
+/// std::common_type can technically be order dependent. It's confusing if the
+/// return type can change depending on the dispatch strategy used, and it
+/// simplifies the dispatch code to only have to implement this once.
+template <typename Internal, typename Storage, typename Visitor, typename... Args>
+struct return_typer {
+  template <typename T>
+  struct helper {
+    using type = typename visitor_caller_return_type<T, Internal, Storage, Visitor, Args...>::type;
+  };
+};
+
 
 /// Helper object which dispatches a visitor object to the appropriate
 /// interpretation of our storage value, based on value of "which".
@@ -63,20 +69,22 @@ visitor_caller(Internal && internal, Storage && storage, Visitor && visitor, Arg
 /// Then we dereference the array at index `m_which` and call that function.
 /// This means we pick out the right function very quickly, but it may not be
 /// inlined by the compiler even if it is small.
-template <typename... AllTypes>
+template <typename return_t, typename Internal, typename... AllTypes>
 struct jumptable_dispatch {
-  template <typename Internal, typename VoidPtrCV, typename Visitor, typename... Args>
-  auto operator()(Internal && internal, const unsigned int which, VoidPtrCV && storage,
-                  Visitor && visitor, Args &&... args) -> vis_result_t<Visitor> {
+  template <typename Storage, typename Visitor, typename... Args>
+  return_t operator()(const unsigned int which, Storage && storage,
+                  Visitor && visitor, Args &&... args)
+
+{
     using whichCaller = typename mpl::remove_reference_t<Visitor>::result_type (*)(
-      Internal &&, VoidPtrCV &&, Visitor &&, Args && ...);
+      Storage, Visitor, Args ...);
 
     static whichCaller callers[sizeof...(AllTypes)] = {
-      &visitor_caller<Internal &&, AllTypes, VoidPtrCV &&, Visitor, Args &&...>...};
+      &visitor_caller<AllTypes, Internal, Storage, Visitor, Args...>...};
 
     // ASSERT(which < static_cast<unsigned int>(sizeof...(AllTypes)));
 
-    return (*callers[which])(std::forward<Internal>(internal), std::forward<VoidPtrCV>(storage),
+    return (*callers[which])(std::forward<Storage>(storage),
                              std::forward<Visitor>(visitor), std::forward<Args>(args)...);
   }
 };
@@ -93,42 +101,43 @@ struct jumptable_dispatch {
 ///
 /// The "which" value is not changed even as the type list gets smaller,
 /// instead, the "base" value is increased.
-template <unsigned int, typename /*Type List */>
+template <typename return_t, typename Internal, unsigned int, typename /*Type List */>
 struct binary_search_dispatch;
 
-template <unsigned int base, typename T>
-struct binary_search_dispatch<base, TypeList<T>> {
-  template <typename Internal, typename VoidPtrCV, typename Visitor, typename... Args>
-  auto operator()(Internal && internal, const unsigned int which, VoidPtrCV && storage,
-                  Visitor && visitor, Args &&... args) -> vis_result_t<Visitor> {
+template <typename return_t, typename Internal, unsigned int base, typename T>
+struct binary_search_dispatch<return_t, Internal, base, TypeList<T>> {
+  template <typename Storage, typename Visitor, typename... Args>
+  return_t operator()(const unsigned int which, Storage && storage,
+                  Visitor && visitor, Args &&... args)
+  {
     // ASSERT(which == base);
     static_cast<void>(which);
 
-    return visitor_caller<Internal &&, T, VoidPtrCV &&, Visitor, Args &&...>(
-      std::forward<Internal>(internal), std::forward<VoidPtrCV>(storage),
+    return visitor_caller<T, Internal, Storage, Visitor, Args...>(
+      std::forward<Storage>(storage),
       std::forward<Visitor>(visitor), std::forward<Args>(args)...);
   }
 };
 
-template <unsigned int base, typename T1, typename T2, typename... Types>
-struct binary_search_dispatch<base, TypeList<T1, T2, Types...>> {
+template <typename return_t, typename Internal, unsigned int base, typename T1, typename T2, typename... Types>
+struct binary_search_dispatch<return_t, Internal, base, TypeList<T1, T2, Types...>> {
   typedef TypeList<T1, T2, Types...> TList;
   typedef Subdivide<TList> Subdiv;
   typedef typename Subdiv::L TL;
   typedef typename Subdiv::R TR;
   static constexpr unsigned int split_point = base + static_cast<unsigned int>(TL::size);
 
-  template <typename Internal, typename VoidPtrCV, typename Visitor, typename... Args>
-  auto operator()(Internal && internal, const unsigned int which, VoidPtrCV && storage,
-                  Visitor && visitor, Args &&... args) -> vis_result_t<Visitor> {
+  template <typename Storage, typename Visitor, typename... Args>
+  return_t operator()(const unsigned int which, Storage && storage,
+                  Visitor && visitor, Args &&... args) {
 
     if (which < split_point) {
-      return binary_search_dispatch<base, TL>{}(
-        std::forward<Internal>(internal), which, std::forward<VoidPtrCV>(storage),
+      return binary_search_dispatch<return_t, Internal, base, TL>{}(
+        which, std::forward<Storage>(storage),
         std::forward<Visitor>(visitor), std::forward<Args>(args)...);
     } else {
-      return binary_search_dispatch<split_point, TR>{}(
-        std::forward<Internal>(internal), which, std::forward<VoidPtrCV>(storage),
+      return binary_search_dispatch<return_t, Internal, split_point, TR>{}(
+        which, std::forward<Storage>(storage),
         std::forward<Visitor>(visitor), std::forward<Args>(args)...);
     }
   }
@@ -139,26 +148,63 @@ struct binary_search_dispatch<base, TypeList<T1, T2, Types...>> {
 /// choose the binary search dispatch for less than that.
 /// Tentatively choosing 4 for switch point, potentially 8 is better... ?
 /// Needs more rigorous benchmarking
-template <typename... AllTypes>
+template <typename Internal, typename... AllTypes>
 struct visitor_dispatch {
   static constexpr unsigned int switch_point = 4;
 
-  // using chosen_dispatch_t = jumptable_dispatch<AllTypes...>;
-  using chosen_dispatch_t = binary_search_dispatch<0, TypeList<AllTypes...>>;
+  /*
+  template <typename Visitor, typename Enable = void>
+  struct has_return_typedef {
+    static constexpr bool value = false;
+  };
 
-  // using chosen_dispatch_t =
-  //  typename std::conditional<(sizeof...(AllTypes) > switch_point),
-  //  jumptable_dispatch<AllTypes...>,
-  //                            binary_search_dispatch<0, TypeList<AllTypes...>>>::type;
+  template <typename Visitor>
+  struct has_return_typedef<Visitor, decltype(static_cast<typename mpl::remove_reference_t<Visitor>::return_type *>(nullptr), void())> {
+    static constexpr bool value = true;
+    using type = typename mpl::remove_reference_t<Visitor>::return_type;
+  };
+  */
 
-  template <typename Internal, typename VoidPtrCV, typename Visitor, typename... Args>
-  auto operator()(Internal && internal, const unsigned int which, VoidPtrCV && storage,
-                  Visitor && visitor, Args &&... args) -> vis_result_t<Visitor> {
+  template <typename Storage, typename Visitor, typename... Args>
+  auto operator()(const unsigned int which, Storage && storage,
+                  Visitor && visitor, Args &&... args) -> typename mpl::typelist_fwd<mpl::common_type_t, typename mpl::typelist_map<return_typer<Internal, Storage, Visitor, Args...>::template helper, TypeList<AllTypes...>>::type>::type {
+    using return_t = typename mpl::typelist_fwd<mpl::common_type_t, typename mpl::typelist_map<return_typer<Internal, Storage, Visitor, Args...>::template helper, TypeList<AllTypes...>>::type>::type;
 
-    return chosen_dispatch_t{}(std::forward<Internal>(internal), which,
-                               std::forward<VoidPtrCV>(storage), std::forward<Visitor>(visitor),
+    // using chosen_dispatch_t = jumptable_dispatch<return_t, Internal, AllTypes...>;
+
+    // using chosen_dispatch_t =
+    //  typename std::conditional<(sizeof...(AllTypes) > switch_point),
+    //  jumptable_dispatch<return_t, Internal, AllTypes...>,
+    //                            binary_search_dispatch<return_t, Internal, 0, TypeList<AllTypes...>>>::type;
+
+    using chosen_dispatch_t = binary_search_dispatch<return_t, Internal, 0, TypeList<AllTypes...>>;
+
+    return chosen_dispatch_t{}(which,
+                               std::forward<Storage>(storage), std::forward<Visitor>(visitor),
                                std::forward<Args>(args)...);
   }
+
+/*
+  template <typename Storage, typename Visitor, typename... Args>
+  auto operator()(const unsigned int which, Storage && storage,
+                  Visitor && visitor, Args &&... args) -> typename has_return_typedef<Visitor>::type {
+    using return_t = typename has_return_typedef<Visitor>::type;
+
+    // using chosen_dispatch_t = jumptable_dispatch<return_t, Internal, AllTypes...>;
+
+    // using chosen_dispatch_t =
+    //  typename std::conditional<(sizeof...(AllTypes) > switch_point),
+    //  jumptable_dispatch<return_t, Internal, AllTypes...>,
+    //                            binary_search_dispatch<return_t, Internal, 0, TypeList<AllTypes...>>>::type;
+
+    using chosen_dispatch_t = binary_search_dispatch<return_t, Internal, 0, TypeList<AllTypes...>>;
+
+    return chosen_dispatch_t{}(which,
+                               std::forward<Storage>(storage), std::forward<Visitor>(visitor),
+                               std::forward<Args>(args)...);
+  }
+*/
+
 };
 
 /***
@@ -260,47 +306,6 @@ struct allow_variant_construct_from {
   };
 };
 
-/***
- * Self contained implementation of 'std::max' over a list of sizes...
- * by Jarryd Beck
- */
-template <template <typename> class Size, typename SoFar, typename... Args>
-struct max_helper;
-
-template <template <typename> class Size, typename SoFar>
-struct max_helper<Size, SoFar> {
-  static constexpr decltype(Size<SoFar>::value) value = Size<SoFar>::value;
-  typedef SoFar type;
-};
-
-template <template <typename> class Size, typename SoFar, typename Next, typename... Args>
-struct max_helper<Size, SoFar, Next, Args...> {
-private:
-  typedef typename std::conditional<(Size<Next>::value > Size<SoFar>::value),
-                                    max_helper<Size, Next, Args...>,
-                                    max_helper<Size, SoFar, Args...>>::type m_next;
-
-public:
-  static constexpr decltype(Size<SoFar>::value) value = m_next::value;
-
-  typedef typename m_next::type type;
-};
-} // end namespace detail
-
-namespace mpl {
-template <template <typename> class Size, typename... Args>
-struct max;
-
-template <template <typename> class Size, typename First, typename... Args>
-struct max<Size, First, Args...> {
-private:
-  typedef decltype(Size<First>::value) m_size_type;
-  typedef detail::max_helper<Size, First, Args...> m_helper;
-
-public:
-  static constexpr m_size_type value = m_helper::value;
-  typedef typename m_helper::type type;
-};
 } // end namespace mpl
 
 } // end namespace safe_variant

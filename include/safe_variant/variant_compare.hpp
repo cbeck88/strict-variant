@@ -44,7 +44,7 @@ struct variant_comparator<variant<types...>, ComparatorTemplate, WhichComparator
 
   typedef variant<types...> var_t;
 
-  struct helper : public safe_variant::static_visitor<bool> {
+  struct helper {
 
     const var_t & first;
     const var_t & other;
@@ -61,8 +61,7 @@ struct variant_comparator<variant<types...>, ComparatorTemplate, WhichComparator
       } else {
         static_assert(std::is_same<int, decltype(first.which())>::value,
                       "The return type of 'variant::which' was changed and "
-                      "variant_compare was not "
-                      "updated");
+                      "variant_compare was not updated");
         WhichComparator_t c;
         return c(first.which(), other.which());
       }

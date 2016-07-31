@@ -447,7 +447,73 @@ UNIT_TEST(promotion) {
   }
 }
 
-struct test_visitor : static_visitor<> {
+
+UNIT_TEST(visitation_value_type) {
+
+struct foo {};
+struct bar {};
+
+struct test_visitor {
+  mutable int flag_ = 0;
+
+  void operator()(const foo &) const {
+    flag_ = 1;
+  }
+
+  void operator()(const bar &) const {
+    flag_ = 4;
+  }
+
+  void operator()(foo &) const {
+    flag_ = 2;
+  }
+
+  void operator()(bar &) const {
+    flag_ = 5;
+  }
+
+  void operator()(foo &&) const {
+    flag_ = 3;
+  }
+
+  void operator()(bar &&) const {
+    flag_ = 6;
+  }
+} vis;
+
+  using var_t = variant<foo, bar>;
+  var_t x;
+
+  apply_visitor(vis, x);
+  TEST_EQ(vis.flag_, 2);
+
+  // TODO:
+  // apply_visitor(vis, std::move(x));
+  // TEST_EQ(vis.flag_, 3);
+
+  apply_visitor(vis, static_cast<const var_t &>(x));
+  TEST_EQ(vis.flag_, 1);
+
+
+/// Test that it works if the visitor is restricted
+
+struct test_visitor2 {
+  mutable int flag_ = 0;
+
+  void operator()(foo &) const { flag_ = 1; }
+  void operator()(bar &) const { flag_ = 2; }
+} vis2;
+
+  TEST_EQ(vis2.flag_, 0);
+  apply_visitor(vis2, x);
+  TEST_EQ(vis2.flag_, 1);
+
+  x = bar{};
+  apply_visitor(vis2, x);
+  TEST_EQ(vis2.flag_, 2);
+}
+
+struct test_visitor {
   mutable int flag_ = 0;
 
   template <typename T>
@@ -466,7 +532,7 @@ struct test_visitor : static_visitor<> {
   }
 };
 
-UNIT_TEST(visitation) {
+UNIT_TEST(visitor_value_type) {
   using var_t = variant<std::string, int>;
   var_t x;
 
@@ -483,6 +549,17 @@ UNIT_TEST(visitation) {
   const test_visitor & vis_cref = vis;
   apply_visitor(vis_cref, x);
   TEST_EQ(2, vis.flag_);
+}
+
+UNIT_TEST(lambda_visitation) {
+  using var_t = variant<int, double>;
+  var_t x{5};
+
+  TEST_EQ(10.0, (apply_visitor([](double d) -> double { return d * 2; }, x)));
+
+  x = 7.7;
+
+  TEST_EQ(15.4, (apply_visitor([](double d) -> double { return d * 2; }, x)));
 }
 
 UNIT_TEST(move) {

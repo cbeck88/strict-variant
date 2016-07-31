@@ -141,4 +141,30 @@ struct Back_Of_s<TypeList<T, Ts...>> : Index_At<TypeList<T, Ts...>, sizeof...(Ts
 template <typename T>
 using Back_Of = Back_Of_s<T>;
 
+namespace mpl {
+/***
+ * typelist_map metafunction
+ * Apply a metafunction to each member of a typelist, producing a new typelist
+ */
+template <template <class> class F, typename TL>
+struct typelist_map;
+
+template <template <class> class F, typename... Ts>
+struct typelist_map<F, TypeList<Ts...>> {
+  using type = TypeList<typename F<Ts>::type...>;
+};
+
+/***
+ * typelist_fwd metafunction
+ * Pass the members of a typelist to a variadic template
+ */
+template <template <class...> class, typename TL>
+struct typelist_fwd;
+
+template <template <class...> class F, typename ... Ts>
+struct typelist_fwd<F, TypeList<Ts...>> {
+  using type = F<Ts...>;
+};
+
+} // end namespace mpl
 } // end namespace safe_variant

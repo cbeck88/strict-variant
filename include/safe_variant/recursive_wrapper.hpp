@@ -72,8 +72,9 @@ public:
     return *this;
   }
 
-  T & get() { return *m_t; }
-  const T & get() const { return *m_t; }
+  T & get() & { return *m_t; }
+  const T & get() const & { return *m_t; }
+  T && get() && { return std::move(*m_t); }
 
 private:
   T * m_t;
@@ -90,12 +91,19 @@ private:
 
 namespace detail {
 
+// Implementation note:
+// Internal visitors need to be able to access the "true" type, the
+// reference_wrapper<T> when it is within the variant, to implement ctors
+// and special memeber functions.
+// External visitors are supposed to have this elided.
+// The `get_value` function uses tag dispatch to do the right thing.
+
 struct true_ {};
 struct false_ {};
 
 template <typename T, typename Internal>
-T &
-get_value(T & t, const Internal &) {
+T &&
+get_value(T && t, const Internal &) {
   return t;
 }
 
@@ -110,6 +118,14 @@ const T &
 get_value(const recursive_wrapper<T> & t, const false_ &) {
   return t.get();
 }
+
+
+template <typename T>
+T &&
+get_value(recursive_wrapper<T> && t, const false_ &) {
+  return t.get();
+}
+
 } // end namespace detail
 
 /***

@@ -253,7 +253,7 @@ namespace safe_variant {
     bool operator != (const variant &) const;
   };
 
-  // Apply a static_visitor to the variant. It is called using the current value
+  // Apply a visitor to the variant. It is called using the current value
   // of the variant with its current type as the argument.
   // Any additional arguments to `apply_visitor` are forwarded to the visitor. 
   template <typename V, typename... Types, typename... Args>
@@ -273,14 +273,6 @@ namespace safe_variant {
   // This is noexcept if T is no_throw_move_constructible.
   template <typename T, typename ... Types>
   T & get_or_default(variant<Types...> & v, T def = {});
-
-  // Base class, provided to conveniently derive visitors from.
-  // Analogous to boost::static_visitor
-  template <typename T = void>
-  class static_visitor {
-  public:
-    typedef T result_type;
-  };
 
 } // end namespace safe_variant
 ```
@@ -310,8 +302,6 @@ Forward-facing includes:
   Defines the variant type, as well as `apply_visitor`, `get`, `get_or_default` functions.  
 - `#include <safe_variant/recursive_wrapper.hpp>`  
   Similar to `boost::recursive_wrapper`, but for this variant type.  
-- `#include <safe_variant/static_visitor.hpp>`  
-  Similar to `boost::static_visitor`, but for this variant type.
 - `#include <safe_variant/variant_compare.hpp>`  
   Gets a template type `variant_comparator`, which is appropriate to use with `std::map` or `std::set`.  
   By default `safe_variant::variant` is not comparable.  
@@ -342,7 +332,6 @@ use a series of using declarations. In another project that uses this library, I
 ```c++
     // util/variant.hpp
     #include <safe_variant/variant.hpp>
-    #include <safe_variant/static_visitor.hpp>
     #include <safe_variant/recursive_wrapper.hpp>
     #include <safe_variant/variant_hash.hpp>
 
@@ -352,7 +341,6 @@ use a series of using declarations. In another project that uses this library, I
       using safe_variant::get_or_default;
       using safe_variant::apply_visitor;
       using safe_variant::recursive_wrapper;
-      using safe_variant::static_visitor;
     }
 ```
 
@@ -598,11 +586,6 @@ Known issues
   There is no reason for this restriction, but some of the dispatch code needs to be fixed
   to support this. I didn't need it in my original application.  
   It's okay for the visitor to be an rvalue-reference.  
-- You can't use a lambda directly as a visitor. It needs to derive from `safe_variant::static_visitor`.
-  This is similar to `boost::variant`.  
-  Since generic lambdas are a C++14 feature anyways, this isn't that big a deal.
-  However in all the modern variants, the `static_visitor` is deprecated.
-  This could be fixed by using `auto` and `decltype` throughout the dispatch mechanism.
 - No `constexpr` support. This is really extremely difficult to do in a variant at
   C++11 standard, it's only really feasible in C++14. If you want `constexpr` support
   then I suggest having a look at [`eggs::variant`](https://github.com/eggs-cpp/variant).

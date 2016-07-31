@@ -21,8 +21,8 @@
  */
 
 #include <safe_variant/recursive_wrapper.hpp>
-#include <safe_variant/static_visitor.hpp>
 #include <safe_variant/variant_detail.hpp>
+#include <safe_variant/variant_storage.hpp>
 #include <safe_variant/variant_fwd.hpp>
 
 #include <safe_variant/find_with.hpp>
@@ -135,35 +135,11 @@ private:
   static_assert(mpl::None_Have<std::is_reference, Types...>::value,
                 "Cannot store references in this variant, use `std::reference_wrapper`");
 
-  /***
-   * Determine size and alignment of our storage
-   */
-  template <typename T>
-  struct Sizeof {
-    static constexpr size_t value = sizeof(T);
-  };
-
-  template <typename T>
-  struct Alignof {
-    static constexpr size_t value = alignof(T);
-  };
-
-  // size = max of size of each thing
-  static constexpr size_t m_size = mpl::max<Sizeof, First, Types...>::value;
-
-  // align = max align of each thing
-  static constexpr size_t m_align = mpl::max<Alignof, First, Types...>::value;
-
-  /***
-   * Storage
-   */
-
-  alignas(m_align) char m_storage[m_size];
+  using storage_t = detail::storage<First, Types...>;
+  storage_t m_storage;
 
   int m_which;
 
-  void * address() { return m_storage; }
-  const void * address() const { return m_storage; }
 
   /***
    * Initialize and destroy
@@ -176,34 +152,36 @@ private:
   template <size_t index, typename... Args>
   void initialize(Args &&... args) {
     using target_type = mpl::Index_t<index, First, Types...>;
-    new (m_storage) target_type(std::forward<Args>(args)...);
+    new (m_storage.address()) target_type(std::forward<Args>(args)...);
     this->m_which = static_cast<int>(index);
   }
 
   /***
-   * Unchecked typed access to storage
+   * Unchecked typed access
    */
+
   template <size_t index>
-  mpl::Index_t<index, First, Types...> * unchecked_access() {
-    return reinterpret_cast<mpl::Index_t<index, First, Types...> *>(this->address());
+  mpl::Index_t<index, First, Types...> & unchecked_access() {
+    return *(m_storage.template unchecked_access<index>());
   }
 
   template <size_t index>
-  const mpl::Index_t<index, First, Types...> * unchecked_access() const {
-    return reinterpret_cast<const mpl::Index_t<index, First, Types...> *>(this->address());
+  const mpl::Index_t<index, First, Types...> & unchecked_access() const {
+    return *(m_storage.template unchecked_access<index>());
   }
+
 
   /***
    * Used for internal visitors
    */
-  template <typename Visitor>
+  template <typename Internal=detail::true_, typename Visitor>
   auto apply_visitor_internal(Visitor & visitor) -> typename Visitor::result_type {
-    return this->apply_visitor<detail::true_>(visitor);
+    return detail::visitor_dispatch<Internal, First, Types...>{}(m_which, m_storage, visitor);
   }
 
-  template <typename Visitor>
+  template <typename Internal=detail::true_, typename Visitor>
   auto apply_visitor_internal(Visitor & visitor) const -> typename Visitor::result_type {
-    return this->apply_visitor<detail::true_>(visitor);
+    return detail::visitor_dispatch<Internal, First, Types...>{}(m_which, m_storage, visitor);
   }
 
   /***
@@ -281,7 +259,7 @@ private:
       if (m_self.which() == m_rhs_which) {
         // the types are the same, so just assign into the lhs
         SAFE_VARIANT_ASSERT(m_rhs_which == index, "Bad access!");
-        (*m_self.unchecked_access<index>()) = rhs;
+        m_self.unchecked_access<index>() = rhs;
       } else if (assume_copy_nothrow || noexcept(Rhs(rhs))) {
         // If copy ctor is no-throw (think integral types), this is the fastest
         // way
@@ -319,7 +297,7 @@ private:
       if (m_self.which() == m_rhs_which) {
         // the types are the same, so just assign into the lhs
         SAFE_VARIANT_ASSERT(m_rhs_which == index, "Bad access!");
-        (*m_self.unchecked_access<index>()) = std::move(rhs);
+        m_self.unchecked_access<index>() = std::move(rhs);
       } else {
         m_self.destroy();                         // nothrow
         m_self.initialize<index>(std::move(rhs)); // nothrow (please)
@@ -347,7 +325,7 @@ private:
       if (m_self.which() == m_rhs_which) {
         // the types are the same, so use operator eq
         SAFE_VARIANT_ASSERT(m_rhs_which == index, "Bad access!");
-        return (*m_self.unchecked_access<index>()) == rhs;
+        return m_self.unchecked_access<index>() == rhs;
       } else {
         return false;
       }
@@ -520,23 +498,11 @@ public:
   // operator ==
   bool operator==(const variant & rhs) const {
     eq_checker eq(*this, rhs.which());
-    return rhs.apply_visitor_internal(eq);
+    // Pass detail::false because it needs to pierce the reference wrapper
+    return rhs.apply_visitor_internal<detail::false_>(eq);
   }
 
   bool operator!=(const variant & rhs) const { return !(*this == rhs); }
-
-  // Apply visitor
-  template <typename Internal, typename Visitor, typename... Args>
-  auto apply_visitor(Visitor && visitor, Args &&... args) -> vis_result_t<Visitor> {
-    return detail::visitor_dispatch<First, Types...>()(
-      Internal(), m_which, m_storage, std::forward<Visitor>(visitor), std::forward<Args>(args)...);
-  }
-
-  template <typename Internal, typename Visitor, typename... Args>
-  auto apply_visitor(Visitor && visitor, Args &&... args) const -> vis_result_t<Visitor> {
-    return detail::visitor_dispatch<First, Types...>()(
-      Internal(), m_which, m_storage, std::forward<Visitor>(visitor), std::forward<Args>(args)...);
-  }
 
   // get
   template <typename T>
@@ -546,7 +512,7 @@ public:
                   "Requested type is not a member of this variant type");
 
     if (idx == m_which) {
-      return &pierce_recursive_wrapper<T>(*this->unchecked_access<idx>());
+      return &pierce_recursive_wrapper<T>(this->unchecked_access<idx>());
     } else {
       return nullptr;
     }
@@ -559,21 +525,29 @@ public:
                   "Requested type is not a member of this variant type");
 
     if (idx == m_which) {
-      return &pierce_recursive_wrapper<T>(*this->unchecked_access<idx>());
+      return &pierce_recursive_wrapper<T>(this->unchecked_access<idx>());
     } else {
       return nullptr;
     }
   }
+
+  // Implementation details for apply_visitor
+  storage_t & storage() & { return m_storage; }
+  storage_t && storage() && { return std::move(m_storage); }
+  const storage_t & storage() const & { return m_storage; }
+
+  detail::visitor_dispatch<detail::false_, First, Types...> get_visitor_dispatch() { return {}; }
+  detail::visitor_dispatch<detail::false_, First, Types...> get_visitor_dispatch() const { return {}; }
 };
 
 /***
- * apply visitor function (same semantics as safe_variant::apply_visitor)
+ * apply visitor function (same semantics as juice_variant::apply_visitor)
  */
 template <typename Visitor, typename Visitable, typename... Args>
 auto
-apply_visitor(Visitor && visitor, Visitable & visitable, Args &&... args) -> vis_result_t<Visitor> {
-  return visitable.template apply_visitor<detail::false_>(std::forward<Visitor>(visitor),
-                                                          std::forward<Args>(args)...);
+apply_visitor(Visitor && visitor, Visitable && visitable, Args &&... args) -> decltype(std::declval<Visitable>().get_visitor_dispatch()(std::declval<Visitable>().which(), std::forward<Visitable>(std::declval<Visitable>()).storage(), std::forward<Visitor>(std::declval<Visitor>()), std::forward<Args>(std::declval<Args>())...)) {
+  return std::forward<Visitable>(visitable).get_visitor_dispatch()(
+           visitable.which(), std::forward<Visitable>(visitable).storage(), std::forward<Visitor>(visitor), std::forward<Args>(args)...);
 }
 
 /***
