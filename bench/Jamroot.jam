@@ -37,6 +37,10 @@ alias eggs_variant_lib : : : : <include>eggs-variant/include/ ;
 
 alias juice_variant_lib : : : : <include>juice-variant/include/  ;
 
+### Setup mapbox::variant target
+
+alias mapbox_variant_lib : : : : <include>mapbox-variant/include/ ;
+
 ### Setup experimental::variant target
 
 alias exp_variant_lib : : : : <include>mpark_variant/include/ ;
@@ -202,6 +206,35 @@ exe libcxx_std_variant20 : lv20 ;
 exe libcxx_std_variant50 : lv50 ;
 
 install install-stdv-bin : libcxx_std_variant02 libcxx_std_variant03 libcxx_std_variant04 libcxx_std_variant05 libcxx_std_variant06 libcxx_std_variant08 libcxx_std_variant10 libcxx_std_variant12 libcxx_std_variant15 libcxx_std_variant18 libcxx_std_variant20 libcxx_std_variant50 : $(INSTALL_LOC) ;
+
+alias mv_config : mapbox_variant_lib bench_harness : : : $(CONFIG) $(STRICT) <cxxflags>"-std=c++11" ;
+obj mv02 : mapbox_variant.cpp mv_config : <cxxflags>"-DNUM_VARIANTS=2 " ;
+obj mv03 : mapbox_variant.cpp mv_config : <cxxflags>"-DNUM_VARIANTS=3 " ;
+obj mv04 : mapbox_variant.cpp mv_config : <cxxflags>"-DNUM_VARIANTS=4 " ;
+obj mv05 : mapbox_variant.cpp mv_config : <cxxflags>"-DNUM_VARIANTS=5 " ;
+obj mv06 : mapbox_variant.cpp mv_config : <cxxflags>"-DNUM_VARIANTS=6 " ;
+obj mv08 : mapbox_variant.cpp mv_config : <cxxflags>"-DNUM_VARIANTS=8 " ;
+obj mv10 : mapbox_variant.cpp mv_config : <cxxflags>"-DNUM_VARIANTS=10 " ;
+obj mv12 : mapbox_variant.cpp mv_config : <cxxflags>"-DNUM_VARIANTS=12 " ;
+obj mv15 : mapbox_variant.cpp mv_config : <cxxflags>"-DNUM_VARIANTS=15 " ;
+obj mv18 : mapbox_variant.cpp mv_config : <cxxflags>"-DNUM_VARIANTS=18 " ;
+obj mv20 : mapbox_variant.cpp mv_config : <cxxflags>"-DNUM_VARIANTS=20 " ;
+obj mv50 : mapbox_variant.cpp mv_config : <cxxflags>"-DNUM_VARIANTS=50 " ;
+
+exe mapbox_variant02 : mv02 ;
+exe mapbox_variant03 : mv03 ;
+exe mapbox_variant04 : mv04 ;
+exe mapbox_variant05 : mv05 ;
+exe mapbox_variant06 : mv06 ;
+exe mapbox_variant08 : mv08 ;
+exe mapbox_variant10 : mv10 ;
+exe mapbox_variant12 : mv12 ;
+exe mapbox_variant15 : mv15 ;
+exe mapbox_variant18 : mv18 ;
+exe mapbox_variant20 : mv20 ;
+exe mapbox_variant50 : mv50 ;
+
+install install-mapbox-bin : mapbox_variant02 mapbox_variant03 mapbox_variant04 mapbox_variant05 mapbox_variant06 mapbox_variant08 mapbox_variant10 mapbox_variant12 mapbox_variant15  mapbox_variant18 mapbox_variant20  mapbox_variant50 : $(INSTALL_LOC) ;
 
 
 if $(BOOST_INCLUDE_DIR) {

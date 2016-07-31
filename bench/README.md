@@ -7,6 +7,7 @@ This is a benchmark framework that measures speed of static visitation for four 
 - `std::experimental::variant` (as [provided by mpark](https://github.com/mpark/variant))
 - `juice::variant` (as [provided by jarro2783](https://github.com/jarro2783/thenewcpp/blob/master/juice/variant.hpp) at commit dccc5d57df5a40f14b2cb61bb01f8daa8bb2c924)
 - `eggs::variant` (from [github](https://github.com/eggs-cpp/variant))
+- `mapbox::variant` (from [github](https://github.com/mapbox/variant))
 - `std::variant` ([from development branch in libcxx](https://github.com/efcs/libcxx/blob/3de7abb16f6733746e1720f6a1ee904e32ad7b82/include/variant) Note that it was modified in some trivial ways so that we can test using the libcxx headers only, that is, we made `bad_variant_access::what()` definition inline)
 - `boost::variant` (using whatever boost version is installed at environment variable BOOST_ROOT or /usr/include)
 

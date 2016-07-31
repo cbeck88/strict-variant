@@ -1,5 +1,6 @@
+#include "bench_api.hpp"
 #include "bench_framework.hpp"
-#include <eggs/variant.hpp>
+#include <mapbox/variant.hpp>
 
 static constexpr uint32_t num_variants{NUM_VARIANTS};
 static constexpr uint32_t seq_length{SEQ_LENGTH};
@@ -22,12 +23,12 @@ struct dummy_visitor {
 struct visitor_applier {
   template <typename T>
   uint32_t operator()(T && t) const {
-    return eggs::variants::apply(dummy_visitor{}, std::forward<T>(t));
+    return mapbox::util::apply_visitor(dummy_visitor{}, std::forward<T>(t));
   }
 };
 
 int
 main() {
-  return 0 != run_benchmark<eggs::variant, num_variants, seq_length, repeat_num, visitor_applier>(
-                "eggs::variant", rng_seed);
+  return 0 != run_benchmark<mapbox::util::variant, num_variants, seq_length, repeat_num,
+                            visitor_applier>("mapbox::variant", rng_seed);
 }
