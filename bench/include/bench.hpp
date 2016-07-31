@@ -16,8 +16,7 @@ template <uint32_t N>
 struct dummy {};
 
 // Dummy visitor
-
-struct dummy_visitor {
+struct visitor {
   using result_type = uint32_t;
 
   template <uint32_t N>
@@ -31,8 +30,6 @@ struct dummy_visitor {
     return result;
   }
 };
-
-
 
 // uint32_tlist
 template <uint32_t... is>
@@ -79,7 +76,6 @@ template <template <class...> class variant_template, uint32_t n>
 using dummy_variant_t = typename dummy_variant<variant_template, Count_t<n>>::type;
 
 // Assign a variant to the type represented by an uint32_t
-
 template <typename T, typename S>
 struct assignment_helper;
 
@@ -112,6 +108,7 @@ struct bench_task {
   std::array<var_t, seq_length> sequence_;
 
   bench_task(uint32_t seed) {
+    /* Generates less intimidating assembly than mt19937
     for (var_t & v : sequence_) {
       set_type<variant_template, num_variants>(v, seed);
       seed += 31;
@@ -126,13 +123,12 @@ struct bench_task {
       seed ^= 3;
       seed *= 17;
       seed -= (seed >> 3);
-    }
-    /*
+    }*/
     std::mt19937 rng{seed};
     for (var_t & v : sequence_) {
       uint32_t x = static_cast<uint32_t>(rng());
       set_type<variant_template, num_variants>(v, x);
-    }*/
+    }
   }
 
   template <typename AV>

@@ -9,7 +9,7 @@ static constexpr uint32_t rng_seed{RNG_SEED};
 struct visitor_applier {
   template <typename T>
   uint32_t operator()(T && t) const {
-    return eggs::variants::apply(benchmark::dummy_visitor{}, std::forward<T>(t));
+    return eggs::variants::apply(benchmark::visitor{}, std::forward<T>(t));
   }
 };
 

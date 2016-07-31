@@ -12,7 +12,7 @@ static constexpr uint32_t rng_seed{RNG_SEED};
 struct visitor_applier {
   template <typename T>
   uint32_t operator()(T && t) const {
-    return mapbox::util::apply_visitor(benchmark::dummy_visitor{}, std::forward<T>(t));
+    return mapbox::util::apply_visitor(benchmark::visitor{}, std::forward<T>(t));
   }
 };
 
