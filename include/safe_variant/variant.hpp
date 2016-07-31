@@ -22,8 +22,8 @@
 
 #include <safe_variant/recursive_wrapper.hpp>
 #include <safe_variant/variant_detail.hpp>
-#include <safe_variant/variant_storage.hpp>
 #include <safe_variant/variant_fwd.hpp>
+#include <safe_variant/variant_storage.hpp>
 
 #include <safe_variant/find_with.hpp>
 #include <safe_variant/index.hpp>
@@ -140,7 +140,6 @@ private:
 
   int m_which;
 
-
   /***
    * Initialize and destroy
    */
@@ -170,16 +169,15 @@ private:
     return *(m_storage.template unchecked_access<index>());
   }
 
-
   /***
    * Used for internal visitors
    */
-  template <typename Internal=detail::true_, typename Visitor>
+  template <typename Internal = detail::true_, typename Visitor>
   auto apply_visitor_internal(Visitor & visitor) -> typename Visitor::result_type {
     return detail::visitor_dispatch<Internal, First, Types...>{}(m_which, m_storage, visitor);
   }
 
-  template <typename Internal=detail::true_, typename Visitor>
+  template <typename Internal = detail::true_, typename Visitor>
   auto apply_visitor_internal(Visitor & visitor) const -> typename Visitor::result_type {
     return detail::visitor_dispatch<Internal, First, Types...>{}(m_which, m_storage, visitor);
   }
@@ -537,7 +535,9 @@ public:
   const storage_t & storage() const & { return m_storage; }
 
   detail::visitor_dispatch<detail::false_, First, Types...> get_visitor_dispatch() { return {}; }
-  detail::visitor_dispatch<detail::false_, First, Types...> get_visitor_dispatch() const { return {}; }
+  detail::visitor_dispatch<detail::false_, First, Types...> get_visitor_dispatch() const {
+    return {};
+  }
 };
 
 /***
@@ -545,9 +545,13 @@ public:
  */
 template <typename Visitor, typename Visitable, typename... Args>
 auto
-apply_visitor(Visitor && visitor, Visitable && visitable, Args &&... args) -> decltype(std::declval<Visitable>().get_visitor_dispatch()(std::declval<Visitable>().which(), std::forward<Visitable>(std::declval<Visitable>()).storage(), std::forward<Visitor>(std::declval<Visitor>()), std::forward<Args>(std::declval<Args>())...)) {
+apply_visitor(Visitor && visitor, Visitable && visitable, Args &&... args)
+  -> decltype(std::declval<Visitable>().get_visitor_dispatch()(
+    std::declval<Visitable>().which(), std::forward<Visitable>(std::declval<Visitable>()).storage(),
+    std::forward<Visitor>(std::declval<Visitor>()), std::forward<Args>(std::declval<Args>())...)) {
   return std::forward<Visitable>(visitable).get_visitor_dispatch()(
-           visitable.which(), std::forward<Visitable>(visitable).storage(), std::forward<Visitor>(visitor), std::forward<Args>(args)...);
+    visitable.which(), std::forward<Visitable>(visitable).storage(), std::forward<Visitor>(visitor),
+    std::forward<Args>(args)...);
 }
 
 /***

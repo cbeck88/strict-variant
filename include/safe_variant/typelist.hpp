@@ -161,7 +161,7 @@ struct typelist_map<F, TypeList<Ts...>> {
 template <template <class...> class, typename TL>
 struct typelist_fwd;
 
-template <template <class...> class F, typename ... Ts>
+template <template <class...> class F, typename... Ts>
 struct typelist_fwd<F, TypeList<Ts...>> {
   using type = F<Ts...>;
 };

@@ -119,7 +119,6 @@ get_value(const recursive_wrapper<T> & t, const false_ &) {
   return t.get();
 }
 
-
 template <typename T>
 T &&
 get_value(recursive_wrapper<T> && t, const false_ &) {

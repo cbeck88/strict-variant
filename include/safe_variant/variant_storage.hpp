@@ -61,19 +61,18 @@ struct storage {
    */
   template <typename T>
   T & as() & {
-    return *reinterpret_cast<T*>(this->address());
+    return *reinterpret_cast<T *>(this->address());
   }
 
   template <typename T>
   const T & as() const & {
-    return *reinterpret_cast<const T*>(this->address());
+    return *reinterpret_cast<const T *>(this->address());
   }
 
   template <typename T>
   T && as() && {
-    return std::move(*reinterpret_cast<T*>(this->address()));
+    return std::move(*reinterpret_cast<T *>(this->address()));
   }
-
 };
 
 } // end namespace detail

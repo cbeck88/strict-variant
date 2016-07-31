@@ -447,39 +447,26 @@ UNIT_TEST(promotion) {
   }
 }
 
-
 UNIT_TEST(visitation_value_type) {
 
-struct foo {};
-struct bar {};
+  struct foo {};
+  struct bar {};
 
-struct test_visitor {
-  mutable int flag_ = 0;
+  struct test_visitor {
+    mutable int flag_ = 0;
 
-  void operator()(const foo &) const {
-    flag_ = 1;
-  }
+    void operator()(const foo &) const { flag_ = 1; }
 
-  void operator()(const bar &) const {
-    flag_ = 4;
-  }
+    void operator()(const bar &) const { flag_ = 4; }
 
-  void operator()(foo &) const {
-    flag_ = 2;
-  }
+    void operator()(foo &) const { flag_ = 2; }
 
-  void operator()(bar &) const {
-    flag_ = 5;
-  }
+    void operator()(bar &) const { flag_ = 5; }
 
-  void operator()(foo &&) const {
-    flag_ = 3;
-  }
+    void operator()(foo &&) const { flag_ = 3; }
 
-  void operator()(bar &&) const {
-    flag_ = 6;
-  }
-} vis;
+    void operator()(bar &&) const { flag_ = 6; }
+  } vis;
 
   using var_t = variant<foo, bar>;
   var_t x;
@@ -494,15 +481,14 @@ struct test_visitor {
   apply_visitor(vis, static_cast<const var_t &>(x));
   TEST_EQ(vis.flag_, 1);
 
+  /// Test that it works if the visitor is restricted
 
-/// Test that it works if the visitor is restricted
+  struct test_visitor2 {
+    mutable int flag_ = 0;
 
-struct test_visitor2 {
-  mutable int flag_ = 0;
-
-  void operator()(foo &) const { flag_ = 1; }
-  void operator()(bar &) const { flag_ = 2; }
-} vis2;
+    void operator()(foo &) const { flag_ = 1; }
+    void operator()(bar &) const { flag_ = 2; }
+  } vis2;
 
   TEST_EQ(vis2.flag_, 0);
   apply_visitor(vis2, x);
