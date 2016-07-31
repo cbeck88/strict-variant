@@ -5,6 +5,8 @@
 #include <cstddef>
 #include <random>
 
+namespace benchmark {
+
 /***
  * To make generic tests of visitation speed.
  */
@@ -12,6 +14,25 @@
 // Dummy type
 template <uint32_t N>
 struct dummy {};
+
+// Dummy visitor
+
+struct dummy_visitor {
+  using result_type = uint32_t;
+
+  template <uint32_t N>
+  uint32_t operator()(const dummy<N> &) const {
+    uint32_t result{N};
+#ifdef OPAQUE_VISIT
+    // This makes the return value of the visitor opaque to the optimizer
+    benchmark::DoNotOptimize(result);
+    benchmark::ClobberMemory();
+#endif
+    return result;
+  }
+};
+
+
 
 // uint32_tlist
 template <uint32_t... is>
@@ -125,3 +146,5 @@ struct bench_task {
     }
   }
 };
+
+} // end namespace benchmark
