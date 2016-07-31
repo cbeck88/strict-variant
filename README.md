@@ -546,7 +546,7 @@ Test subjects:
 - `boost::variant` at version 1.58
 - `eggs::variant` from [this repository](https://github.com/eggs-cpp/variant) at commit 1692cb849311cd8dfe77146ad21b4f00299a68cd
 - `juice::variant` from [this repository](https://github.com/jarro2783/thenewcpp) at commit 5572c1b9017f50e9b39d9bf33b1a6719e1983476
-- `mapbox::variant` from [this repository[(https://github.com/mapbox/variant) at commit 388376ac9f0102feba2d2122873b08e15a66a879
+- `mapbox::variant` from [this repository](https://github.com/mapbox/variant) at commit 388376ac9f0102feba2d2122873b08e15a66a879
 - `std::experimental::variant` from [this repository](https://github.com/mpark/variant)
 - libcxx `std::variant` draft at `variant` branch from [this repository](https://github.com/efcs/libcxx/tree/variant) at commit d93edff042e7b9d333eb5b6f16145953e00fd182
 - `safe_variant` from this repository at commit 5e17d9edabe6a35ed2af8bc9c5d0dde3bd42efe4
