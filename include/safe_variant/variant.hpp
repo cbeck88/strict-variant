@@ -20,15 +20,16 @@
  *   https://github.com/jarro2783/thenewcpp
  */
 
-#include <safe_variant/recursive_wrapper.hpp>
-#include <safe_variant/variant_detail.hpp>
-#include <safe_variant/variant_fwd.hpp>
-#include <safe_variant/variant_storage.hpp>
-#include <safe_variant/safely_constructible.hpp>
 #include <safe_variant/mpl/find_with.hpp>
 #include <safe_variant/mpl/index.hpp>
 #include <safe_variant/mpl/std_traits.hpp>
 #include <safe_variant/mpl/typelist.hpp>
+#include <safe_variant/recursive_wrapper.hpp>
+#include <safe_variant/safely_constructible.hpp>
+#include <safe_variant/variant_detail.hpp>
+#include <safe_variant/variant_dispatch.hpp>
+#include <safe_variant/variant_fwd.hpp>
+#include <safe_variant/variant_storage.hpp>
 
 #include <new>
 #include <type_traits>
