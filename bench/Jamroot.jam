@@ -29,11 +29,15 @@ if [ GLOB $(BOOST_INCLUDE_DIR)/boost/ : version.hpp ] {
 
 alias safe_variant_lib : : : : <include>../include/  ;
 
-### Setup safe_variant target
+### Setup eggs::variant target
+
+alias eggs_variant_lib : : : : <include>eggs-variant/include/ ;
+
+### Setup juice::variant target
 
 alias juice_variant_lib : : : : <include>juice-variant/include/  ;
 
-### Setup exp_variant target
+### Setup experimental::variant target
 
 alias exp_variant_lib : : : : <include>mpark_variant/include/ ;
 
@@ -79,6 +83,35 @@ exe safe_variant20 : sv20 ;
 exe safe_variant50 : sv50 ;
 
 install install-sv-bin : safe_variant02 safe_variant03 safe_variant04 safe_variant05 safe_variant06 safe_variant08 safe_variant10 safe_variant12 safe_variant15 safe_variant18 safe_variant20 safe_variant50 : $(INSTALL_LOC) ;
+
+alias ev_config : eggs_variant_lib bench_harness : : : $(CONFIG) $(STRICT) <cxxflags>"-std=c++11" ;
+obj ev02 : eggs_variant.cpp ev_config : <cxxflags>"-DNUM_VARIANTS=2 " ;
+obj ev03 : eggs_variant.cpp ev_config : <cxxflags>"-DNUM_VARIANTS=3 " ;
+obj ev04 : eggs_variant.cpp ev_config : <cxxflags>"-DNUM_VARIANTS=4 " ;
+obj ev05 : eggs_variant.cpp ev_config : <cxxflags>"-DNUM_VARIANTS=5 " ;
+obj ev06 : eggs_variant.cpp ev_config : <cxxflags>"-DNUM_VARIANTS=6 " ;
+obj ev08 : eggs_variant.cpp ev_config : <cxxflags>"-DNUM_VARIANTS=8 " ;
+obj ev10 : eggs_variant.cpp ev_config : <cxxflags>"-DNUM_VARIANTS=10 " ;
+obj ev12 : eggs_variant.cpp ev_config : <cxxflags>"-DNUM_VARIANTS=12 " ;
+obj ev15 : eggs_variant.cpp ev_config : <cxxflags>"-DNUM_VARIANTS=15 " ;
+obj ev18 : eggs_variant.cpp ev_config : <cxxflags>"-DNUM_VARIANTS=18 " ;
+obj ev20 : eggs_variant.cpp ev_config : <cxxflags>"-DNUM_VARIANTS=20 " ;
+obj ev50 : eggs_variant.cpp ev_config : <cxxflags>"-DNUM_VARIANTS=50 " ;
+
+exe eggs_variant02 : ev02 ;
+exe eggs_variant03 : ev03 ;
+exe eggs_variant04 : ev04 ;
+exe eggs_variant05 : ev05 ;
+exe eggs_variant06 : ev06 ;
+exe eggs_variant08 : ev08 ;
+exe eggs_variant10 : ev10 ;
+exe eggs_variant12 : ev12 ;
+exe eggs_variant15 : ev15 ;
+exe eggs_variant18 : ev18 ;
+exe eggs_variant20 : ev20 ;
+exe eggs_variant50 : ev50 ;
+
+install install-eggs-bin : eggs_variant02 eggs_variant03 eggs_variant04 eggs_variant05 eggs_variant06 eggs_variant08 eggs_variant10 eggs_variant12 eggs_variant15  eggs_variant18 eggs_variant20  eggs_variant50 : $(INSTALL_LOC) ;
 
 alias xv_config : exp_variant_lib bench_harness : : : $(CONFIG) $(STRICT) <cxxflags>"-std=c++14" ;
 
