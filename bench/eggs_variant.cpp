@@ -16,5 +16,5 @@ struct visitor_applier {
 int
 main() {
   benchmark::run_benchmark<eggs::variant, num_variants, seq_length, repeat_num, visitor_applier>(
-                "eggs::variant", rng_seed);
+    "eggs::variant", rng_seed);
 }

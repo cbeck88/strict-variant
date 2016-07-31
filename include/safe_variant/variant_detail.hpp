@@ -144,10 +144,12 @@ struct visitor_dispatch {
   static constexpr unsigned int switch_point = 4;
 
   // using chosen_dispatch_t = jumptable_dispatch<AllTypes...>;
+  using chosen_dispatch_t = binary_search_dispatch<0, TypeList<AllTypes...>>;
 
-  using chosen_dispatch_t =
-    typename std::conditional<(sizeof...(AllTypes) > switch_point), jumptable_dispatch<AllTypes...>,
-                              binary_search_dispatch<0, TypeList<AllTypes...>>>::type;
+  // using chosen_dispatch_t =
+  //  typename std::conditional<(sizeof...(AllTypes) > switch_point),
+  //  jumptable_dispatch<AllTypes...>,
+  //                            binary_search_dispatch<0, TypeList<AllTypes...>>>::type;
 
   template <typename Internal, typename VoidPtrCV, typename Visitor, typename... Args>
   auto operator()(Internal && internal, const unsigned int which, VoidPtrCV && storage,

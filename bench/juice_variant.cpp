@@ -16,5 +16,5 @@ struct visitor_applier {
 int
 main() {
   benchmark::run_benchmark<juice::variant, num_variants, seq_length, repeat_num, visitor_applier>(
-                "juice::variant", rng_seed);
+    "juice::variant", rng_seed);
 }

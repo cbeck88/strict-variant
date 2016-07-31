@@ -457,10 +457,12 @@ and the appropriate function pointer is called, passing along the visitor,
 the variant storage, etc. The array thus forms a little manual jump table of
 sorts.
 
-This implementation scales very well to large numbers of elements, but it has
-the drawback that the function pointers cannot always be inlined by the compiler,
+This implementation is pretty straightforward, but it has the drawback that the
+function pointers cannot always be inlined by the compiler,
 and so for relatively small numbers of elements, it can be outperformed by
-another strategy. In the second strategy, a binary tree is formed which holds at
+other strategies.
+
+In a second strategy, a binary tree is formed which holds at
 each leaf one of the input types. We then search the binary tree using the
 "which" value which would have been the index to the jump table. When we arrive
 at the leaf, we know the runtime-type of the value, and can invoke the visitor
@@ -471,11 +473,11 @@ to have variants with only a handful of types. Particularly when there is one
 type which is the "most popular", branch prediction can significantly speed up
 the visitation well beyond what you will see in benchmarks with random data,
 which are already quite favorable to the "binary" search strategy for small
-numbers of types.
+numbers of types. This is the strategy currently used by `safe_variant`.
 
-Therefore, `safe_variant` uses a hybrid strategy. When the number of variants
-is four or less, the binary search is used, and for more than that, the jump
-table is used. (See [variant_detail.hpp](/include/safe_variant/variant_detail.hpp) for details.)
+A third strategy, naive tail recursion, is used by `mapbox::variant`.
+Surprisingly (for me), this is the best performing strategy, for both compilers
+and all regimes, according to my most recent benchmark investigations.
 
 See below for benchmark data.
 
@@ -494,10 +496,12 @@ There is a [benchmarks suite](/bench) included in the repository.
 *Take these benchmarks with a large grain of salt,* as actual performance will
 depend greatly on success of branch prediction / whether the instructions in the
 jump table are prefetched, and compiler inline decisions will be affected by
-what the actual visitor is doing. (Also in these benchmarks, we also had to make
-the action of the visitor opaque to the optimizer or else it will defeat the
-benchmark, but in some practical cases the visitor's action won't be opaque,
-which favors the binary search strategy.)
+what the actual visitor is doing.
+
+(From experience, these microbenchmarks are
+extremely sensitive to the benchmark framework -- marking different components
+at different steps as opaque to the optimizer has a very large effect. Feel free
+to poke it and see what I'm talking about.)
 
 But with that in mind, here are some
 benchmark numbers for visiting ten thousand variants in randomly distributed
@@ -510,26 +514,26 @@ g++ (5.4.0)
 
 |              Number of types |         2 |         3 |         4 |         5 |         6 |         8 |        10 |        12 |        15 |        18 |        20 |        50 |
 | ---------------------------- | --------- | --------- | --------- | --------- | --------- | --------- | --------- | --------- | --------- | --------- | --------- | --------- |
-|             `boost::variant` |  6.193800 |  7.113600 |  7.703900 |  8.154700 |  8.420900 |  8.741200 |  9.008800 |  9.173100 |  9.286500 |  9.408700 |  9.360500 |       N/A |
-|              `eggs::variant` |  5.322400 |  6.610000 |  7.463600 |  7.916700 |  7.971800 |  8.439700 |  8.526300 |  8.928200 |  8.754900 |  8.879800 |  9.236800 |  9.109200 |
-|  libcxx (dev) `std::variant` |  6.486100 |  9.666600 | 10.265600 | 11.289000 | 11.816000 | 12.619700 | 13.041800 | 12.579900 | 13.618700 | 22.116800 | 20.003000 | 23.076400 |
-|            `mapbox::variant` |  3.329500 |  4.326800 |  5.515100 |  6.229900 |  6.779900 |  7.628600 |  7.926300 |  7.526100 |  8.754000 |  9.784600 |  9.795200 | 14.573800 |
-|             `juice::variant` |  5.437500 |  6.471600 |  7.147400 |  7.560300 |  7.733900 |  8.032700 |  8.412400 |  8.413000 |  8.580300 |  8.548500 |  8.636100 |  8.812800 |
-|      `safe_variant::variant` |  3.956700 |  5.070600 |  6.586900 |  7.456600 |  7.835000 |  8.001500 |  8.257400 |  8.307900 |  8.448000 |  8.535100 |  8.548900 |  8.786000 |
-| `std::experimental::variant` |  5.267200 |  6.601300 |  7.208500 |  7.682900 |  8.441900 |  8.990900 |  9.655000 |  9.899400 | 10.735900 | 20.741700 | 19.605300 | 21.492700 |
+|             `boost::variant` |  6.401600 |  7.097300 |  8.054300 |  8.455100 |  8.512600 |  8.821300 |  9.025300 |  9.184600 |  9.282000 |  9.429400 |  9.428000 |       N/A |
+|              `eggs::variant` |  6.745800 |  8.519000 |  8.932000 |  9.355500 |  9.878400 | 10.131900 | 10.502100 | 10.648500 | 10.766800 | 10.810700 | 11.082700 | 11.135300 |
+|  libcxx (dev) `std::variant` |  8.124100 | 10.115100 | 11.158700 | 12.137400 | 12.205300 | 15.015400 | 14.729900 | 13.449000 | 13.284800 | 20.426200 | 20.371100 | 23.552300 |
+|            `mapbox::variant` |  0.704700 |  2.693700 |  3.327500 |  4.363400 |  5.023000 |  6.056900 |  6.875800 |  7.403600 |  7.535600 |  8.684800 |  9.435200 | 13.606900 |
+|             `juice::variant` |  8.359100 |  9.732000 | 10.542600 | 11.916000 | 13.019800 | 15.827900 | 18.159000 | 16.783400 | 19.671300 | 21.399900 | 22.595600 | 25.679100 |
+|      `safe_variant::variant` |  0.528500 |  2.997200 |  4.975100 |  7.948200 |  8.812900 |  9.894800 | 11.830600 | 13.579700 | 14.692000 | 14.726800 | 16.803200 | 24.791100 |
+| `std::experimental::variant` |  6.851700 |  8.374500 |  9.230800 |  9.691900 | 10.173600 | 10.589700 | 11.145200 | 11.605700 | 12.364800 | 19.994500 | 18.656700 | 21.930500 |
 
 clang++ (3.8.0)
 ---------------
 
 |              Number of types |         2 |         3 |         4 |         5 |         6 |         8 |        10 |        12 |        15 |        18 |        20 |        50 |
 | ---------------------------- | --------- | --------- | --------- | --------- | --------- | --------- | --------- | --------- | --------- | --------- | --------- | --------- |
-|             `boost::variant` |  7.115800 |  7.981100 |  8.766600 |  9.121400 |  9.355700 |  9.854600 |  9.927800 | 10.127300 | 10.354600 | 10.612400 | 10.784500 |       N/A |
-|              `eggs::variant` |  5.298300 |  6.792100 |  7.183600 |  7.797100 |  8.052600 |  8.321000 |  8.508300 |  8.657500 |  8.909900 |  8.899700 |  8.862900 |  9.067300 |
-|  libcxx (dev) `std::variant` |  6.142100 |  7.357800 |  8.081800 |  8.604800 |  9.019900 |  9.637100 |  9.807700 | 10.121500 | 10.383500 | 11.104900 | 10.551100 | 11.473900 |
-|            `mapbox::variant` |  4.392900 |  5.497300 |  5.915200 |  7.582000 |  7.977200 |  8.242800 |  8.639400 |  9.021100 |  9.136300 |  9.363500 |  9.478100 | 13.936800 |
-|             `juice::variant` |  5.538500 |  6.703700 |  7.292100 |  7.657600 |  7.882100 |  8.146500 |  8.348100 |  8.461000 |  8.656900 |  8.636900 |  8.690200 |  8.881200 |
-|      `safe_variant::variant` |  4.179700 |  5.426100 |  6.669900 |  7.632600 |  7.857000 |  8.093300 |  8.311900 |  8.395000 |  8.510600 |  8.622400 |  8.612300 |  8.819900 |
-| `std::experimental::variant` |  5.487600 |  6.741800 |  7.442900 |  7.727100 |  8.013200 |  8.382200 |  8.453900 |  8.493600 |  8.624500 |  8.598400 |  8.750100 |  8.849400 |
+|             `boost::variant` |  7.615800 |  6.611500 |  6.587400 |  6.598600 |  6.531100 |  6.554200 |  6.573100 |  6.542300 |  6.572600 |  7.663900 |  0.978600 |       N/A |
+|              `eggs::variant` |  6.925900 |  8.672100 |  9.811700 | 10.357700 | 10.474400 | 10.900800 | 11.219100 | 11.358900 | 11.914600 | 12.034900 | 11.703300 | 12.041200 |
+|  libcxx (dev) `std::variant` |  8.372000 | 11.307300 | 11.786800 | 12.869200 | 13.686700 | 14.720300 | 14.240400 | 14.233100 | 14.372100 | 14.371900 | 14.434000 | 15.388300 |
+|            `mapbox::variant` |  0.828200 |  1.195100 |  2.513900 |  4.224100 |  3.994300 |  6.023600 |  6.724500 |  7.614300 |  8.931000 |  9.974600 | 10.066500 | 13.406500 |
+|             `juice::variant` |  8.348200 |  9.730200 | 10.587900 | 10.857300 | 11.985100 | 15.497900 | 15.142700 | 17.893400 | 19.209700 | 20.189300 | 20.337800 | 27.006100 |
+|      `safe_variant::variant` |  0.799700 |  1.872300 |  2.078000 |  4.340500 |  5.089000 |  5.516400 |  7.603800 |  7.984200 |  8.152600 | 10.277700 | 12.062700 | 15.266700 |
+| `std::experimental::variant` |  7.142900 |  8.687600 |  9.527800 | 10.099500 | 10.451000 | 10.822700 | 11.185500 | 11.464700 | 11.515100 | 11.603700 | 11.668800 | 11.983700 |
 
 
 configuration data
