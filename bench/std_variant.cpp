@@ -17,9 +17,11 @@ struct dummy_visitor {
   template <uint32_t N>
   uint32_t operator()(const dummy<N> &) const {
     uint32_t result{N};
+#ifdef OPAQUE_VISIT
     // This makes the return value of the visitor opaque to the optimizer
     benchmark::DoNotOptimize(result);
     benchmark::ClobberMemory();
+#endif
     return result;
   }
 };
@@ -58,6 +60,6 @@ public:
 
 int
 main() {
-  return 0 != run_benchmark<std::variant, num_variants, seq_length, repeat_num, visitor_applier,
+  run_benchmark<std::variant, num_variants, seq_length, repeat_num, visitor_applier,
                             custom_clock>("std::variant", rng_seed);
 }

@@ -115,13 +115,13 @@ struct bench_task {
   }
 
   template <typename AV>
-  uint32_t run(AV && apply_visitor) const {
-    uint32_t result = 0;
+  void run(AV && apply_visitor) const {
     for (const auto & v : sequence_) {
-      benchmark::DoNotOptimize(result);
-      static_cast<volatile void>(result += std::forward<AV>(apply_visitor)(v));
+      var_t temp{v};
+      benchmark::DoNotOptimize(temp);
+      benchmark::ClobberMemory();
+      benchmark::DoNotOptimize(std::forward<AV>(apply_visitor)(temp));
       benchmark::ClobberMemory();
     }
-    return result;
   }
 };

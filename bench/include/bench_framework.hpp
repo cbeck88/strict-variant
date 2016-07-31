@@ -15,7 +15,7 @@
 template <template <class...> class var_t, uint32_t num_variants, uint32_t seq_length,
           uint32_t repeat_num, typename VisitorApplier,
           typename ClockType = std::chrono::high_resolution_clock>
-uint32_t
+void
 run_benchmark(const char * variant_name, const uint32_t seed) {
   using BenchTask_t = bench_task<var_t, num_variants, seq_length>;
   BenchTask_t task{seed};
@@ -29,16 +29,9 @@ run_benchmark(const char * variant_name, const uint32_t seed) {
 
   benchmark::ClobberMemory();
 
-  uint32_t result = 0;
-  uint32_t count = repeat_num;
-  while (count--) {
-    benchmark::DoNotOptimize(result);
-    static_cast<volatile void>(result += task.run(VisitorApplier{}));
-    result *= 3;
-    benchmark::ClobberMemory();
+  for (uint32_t count{repeat_num}; count; --count) {
+    task.run(VisitorApplier{});
   }
-
-  benchmark::ClobberMemory();
 
   auto const end = ClockType::now();
 
@@ -48,6 +41,4 @@ run_benchmark(const char * variant_name, const uint32_t seed) {
   std::fprintf(stdout, "took %lu microseconds\n", us);
   std::fprintf(stdout, "average nanoseconds per visit: %f\n\n\n",
                (static_cast<double>(us) / (seq_length * repeat_num)) * 1000);
-
-  return result;
 }
