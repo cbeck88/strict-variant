@@ -8,14 +8,13 @@
 #include <type_traits>
 
 namespace safe_variant {
+namespace mpl {
 
 // Poor man's boost::mpl::vector.
 template <class... Ts>
 struct TypeList {
   static constexpr int size = sizeof...(Ts);
 };
-
-namespace mpl {
 
 template <class List, class T>
 struct Append;

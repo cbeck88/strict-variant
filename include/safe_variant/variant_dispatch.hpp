@@ -88,26 +88,25 @@ struct return_typer {
 /// This means we pick out the right function very quickly, but it may not be
 /// inlined by the compiler even if it is small.
 
-// TODO: Fixup, we don't use AllTypes anymore
-/*
-template <typename return_t, typename Internal, typename... AllTypes>
-struct jumptable_dispatch {
+template <typename return_t, typename Internal, typename ulist>
+struct jumptable_dispatch;
+
+template <typename return_t, typename Internal, unsigned... Indices>
+struct jumptable_dispatch<return_t, Internal, mpl::ulist<Indices...>> {
   template <typename Storage, typename Visitor>
   return_t operator()(const unsigned int which, Storage && storage, Visitor && visitor)
 
   {
-    using whichCaller =
-      typename mpl::remove_reference_t<Visitor>::result_type (*)(Storage, Visitor);
+    using whichCaller = return_t (*)(Storage, Visitor);
 
-    static whichCaller callers[sizeof...(AllTypes)] = {
-      &visitor_caller<AllTypes, Internal, Storage, Visitor>...};
+    static whichCaller callers[sizeof...(Indices)] = {
+      &visitor_caller<Indices, Internal, Storage, Visitor>...};
 
-    SAFE_VARIANT_ASSERT(which < static_cast<unsigned int>(sizeof...(AllTypes)));
+    SAFE_VARIANT_ASSERT(which < static_cast<unsigned int>(sizeof...(Indices)));
 
     return (*callers[which])(std::forward<Storage>(storage), std::forward<Visitor>(visitor));
   }
 };
-*/
 
 /// Same as the above, but we use a different strategy based on a binary tree,
 /// and repeated testing of the "which" value.
@@ -152,12 +151,6 @@ struct binary_search_dispatch<return_t, Internal, base, 1u> {
   }
 };
 
-/*
-template <typename R, typename I, unsigned int b>
-struct binary_search_dispatch<R, I, b, 0u> {
-  static_assert(false, "Error in binary search dispatch implementation");
-};*/
-
 /// Choose the jumptable dispatch strategy when the number of types is > switch
 /// point
 /// choose the binary search dispatch for less than that.
@@ -166,20 +159,6 @@ struct binary_search_dispatch<R, I, b, 0u> {
 template <typename Internal, size_t num_types>
 struct visitor_dispatch {
   // static constexpr unsigned int switch_point = 4;
-
-  /*
-  template <typename Visitor, typename Enable = void>
-  struct has_return_typedef {
-    static constexpr bool value = false;
-  };
-
-  template <typename Visitor>
-  struct has_return_typedef<Visitor, decltype(static_cast<typename
-  mpl::remove_reference_t<Visitor>::return_type *>(nullptr), void())> {
-    static constexpr bool value = true;
-    using type = typename mpl::remove_reference_t<Visitor>::return_type;
-  };
-  */
 
   template <typename Storage, typename Visitor>
   auto operator()(const unsigned int which, Storage && storage,
@@ -193,42 +172,19 @@ struct visitor_dispatch {
                                                                       Visitor>::template helper,
                                                          mpl::count_t<num_types>>::type>::type;
 
-    // using chosen_dispatch_t = jumptable_dispatch<return_t, Internal, AllTypes...>;
+    // using chosen_dispatch_t = jumptable_dispatch<return_t, Internal, mpl::count_t<num_types>>;
 
     // using chosen_dispatch_t =
-    //  typename std::conditional<(sizeof...(AllTypes) > switch_point),
-    //  jumptable_dispatch<return_t, Internal, AllTypes...>,
+    //  typename std::conditional<(num_types > switch_point),
+    //  jumptable_dispatch<return_t, Internal,  mpl::count_t<num_types>>,
     //                            binary_search_dispatch<return_t, Internal, 0,
-    //                            TypeList<AllTypes...>>>::type;
+    //                             num_types>>::type;
 
     using chosen_dispatch_t = binary_search_dispatch<return_t, Internal, 0, num_types>;
 
     return chosen_dispatch_t{}(which, std::forward<Storage>(storage),
                                std::forward<Visitor>(visitor));
   }
-
-  /*
-    template <typename Storage, typename Visitor>
-    auto operator()(const unsigned int which, Storage && storage,
-                    Visitor && visitor) -> typename
-    has_return_typedef<Visitor>::type {
-      using return_t = typename has_return_typedef<Visitor>::type;
-
-      // using chosen_dispatch_t = jumptable_dispatch<return_t, Internal, AllTypes...>;
-
-      // using chosen_dispatch_t =
-      //  typename std::conditional<(sizeof...(AllTypes) > switch_point),
-      //  jumptable_dispatch<return_t, Internal, AllTypes...>,
-      //                            binary_search_dispatch<return_t, Internal, 0,
-    TypeList<AllTypes...>>>::type;
-
-      using chosen_dispatch_t = binary_search_dispatch<return_t, Internal, 0,
-    TypeList<AllTypes...>>;
-
-      return chosen_dispatch_t{}(which,
-                                 std::forward<Storage>(storage), std::forward<Visitor>(visitor));
-    }
-  */
 };
 
 } // end namespace detail
