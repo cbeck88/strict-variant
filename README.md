@@ -1,7 +1,7 @@
-# safe variant
+# strict variant
 
-[![Build Status](https://travis-ci.org/cbeck88/safe-variant.svg?branch=master)](http://travis-ci.org/cbeck88/safe-variant)
-[![Coverage Status](https://coveralls.io/repos/cbeck88/safe-variant/badge.svg?branch=master&service=github)](https://coveralls.io/github/cbeck88/safe-variant?branch=master)
+[![Build Status](https://travis-ci.org/cbeck88/strict-variant.svg?branch=master)](http://travis-ci.org/cbeck88/strict-variant)
+[![Coverage Status](https://coveralls.io/repos/cbeck88/strict-variant/badge.svg?branch=master&service=github)](https://coveralls.io/github/cbeck88/strict-variant?branch=master)
 [![Boost licensed](https://img.shields.io/badge/license-Boost-blue.svg)](./LICENSE)
 
 Do you use `boost::variant` or one of the many open-source C++11 implementations of a "tagged union" or variant type
@@ -26,14 +26,14 @@ Do you get annoyed that code like this may compile on some machines, but not oth
 
 If so, then this may be the variant type for you.
 
-**safe variant** is yet another C++11 variant type, with the twist that it prevents "unsafe" implicit conversions
+**strict variant** is yet another C++11 variant type, with the twist that it prevents "unsafe" implicit conversions
 such as narrowing conversions, conversions from bool to other integral types, pointer conversions, etc., and handles
 overload ambiguity differently from other C++ variant types.
 
 It may be well-suited for use in scenarios where you need to have a variant holding multiple different integral types,
 and really don't want to have any loss of precision or any "gotcha" conversions happening.
 
-**safe variant** provides a strict never-empty guarantee like `boost::variant`, for ease of visitation. But it does not incur the cost of
+**strict variant** provides a strict never-empty guarantee like `boost::variant`, for ease of visitation. But it does not incur the cost of
 backup copies which `boost::variant` pays, due to a different implementation approach. In some cases this allows
 improved performance.
 
@@ -63,7 +63,7 @@ scripting language will permit a variety of primitive values, so when binding to
     boost::variant<bool, int, float, std::string, ...>
 ```
 
-**safe variant** therefore does not use overload resolution in its implementation.  
+**strict variant** therefore does not use overload resolution in its implementation.  
 
 Instead, it uses a simple iterative strategy.
 
@@ -73,7 +73,7 @@ Instead, it uses a simple iterative strategy.
 
 - What conversions are "safe"?  
   I wrote a type trait that implements a strict notion of safety which was appropriate for the project in which
-  I developed this. (See [1](include/safe_variant/conversion_rank.hpp), [2](include/safe_variant/safely_constructible.hpp)).
+  I developed this. (See [1](include/strict_variant/conversion_rank.hpp), [2](include/strict_variant/safely_constructible.hpp)).
   - Conversions are not permitted between any two of the following classes:  
   Integral types, Floating point types, Character types, Boolean, Pointer types, and `wchar_t`.
   - If an integral or floating point conversion *could* be narrowing on some conforming implementation of C++, then it is not safe.  
@@ -110,7 +110,7 @@ This restriction is enforced using static asserts within the assignment operator
 This allows the implementation to be very simple and efficient compared with some other variant types, which may have to make extra copies to facilitate
 exception-safety, or make only a "rarely empty" guarantee.
 
-**If you have a type `T` with a throwing move, you are encouraged to use `safe_variant::recursive_wrapper<T>` instead of `T` in the variant.**
+**If you have a type `T` with a throwing move, you are encouraged to use `strict_variant::recursive_wrapper<T>` instead of `T` in the variant.**
 
 For a fully general `variant`, see also `easy_variant` below.
 
@@ -118,7 +118,7 @@ recursive wrapper
 -----------------
 
 `recursive_wrapper<T>` represents a heap-allocated instance of `T`. The wrapper doesn't do anything special, but there is special support
-within `safe_variant::variant` so that you can call `get<T>(&v)` and get a pointer
+within `strict_variant::variant` so that you can call `get<T>(&v)` and get a pointer
 to a `T` rather than the wrapper, for instance, and similarly throughout the `variant` interface. This is exactly the same as the `recursive_wrapper` of `boost::variant`.
 
 `recursive_wrapper<T>` always has a `noexcept` move ctor even if `T` does not.
@@ -133,7 +133,7 @@ If you want additional dynamic allocations beyond this in order to support throw
 what you don't use. There's no other additional storage in the variant or complexity added to the interface.
 
 Note that the *stated* purpose of recursive wrapper, in `boost::variant` docs, is to allow you to declare variants which contain an incomplete type.
-It also works great for that in `safe_variant::variant`.
+It also works great for that in `strict_variant::variant`.
 
 emplace
 -------
@@ -160,7 +160,7 @@ We provide a template `easy_variant` which takes care of these details if you do
 Specifically, any type that you put in the `easy_variant` which has a throwing move will be wrapped in `recursive_wrapper` implicitly.
 
 ```c++
-namespace safe_variant {
+namespace strict_variant {
   template <typename ... Ts>
   using easy_variant = variant<wrap_if_thowing_move_t<Ts>...>;
 }
@@ -169,7 +169,7 @@ namespace safe_variant {
 where `wrap_if_throwing_move_t` is
 
 ```c++
-namespace safe_variant {
+namespace strict_variant {
   struct <typename T, typename = mpl::enable_if_t<std::is_nothrow_destructible<T>::value && !std::is_reference<T>::value>>
   struct wrap_if_throwing_move {
     using type = typename std::conditional<std::is_nothrow_move_constructible<T>::value,
@@ -192,7 +192,7 @@ The actual interface to `variant` is in most ways the same as `boost::variant`, 
 analogues of the throwing functions in `boost::variant` you'll have to write them, which is pretty easy to do on top of the exception-free interface.)
 
 ```c++
-namespace safe_variant {
+namespace strict_variant {
 
   template <typename First, typename... Types>
   class variant {
@@ -273,14 +273,14 @@ namespace safe_variant {
   template <typename T, typename ... Types>
   T & get_or_default(variant<Types...> & v, T def = {});
 
-} // end namespace safe_variant
+} // end namespace strict_variant
 ```
 
 
 Compiler Compatibility
 ======================
 
-`safe_variant` targets the C++11 standard.
+`strict_variant` targets the C++11 standard.
 
 It is known to work with `gcc >= 4.9` and `clang >= 3.5`.  
 
@@ -295,51 +295,51 @@ add the `include` folder to your include path. Then use the following includes i
 
 Forward-facing includes:
 
-- `#include <safe_variant/variant_fwd.hpp>`  
+- `#include <strict_variant/variant_fwd.hpp>`  
   Forward declares the `variant type`, `recursive_wrapper` type.  
-- `#include <safe_variant/variant.hpp>`  
+- `#include <strict_variant/variant.hpp>`  
   Defines the variant type, as well as `apply_visitor`, `get`, `get_or_default` functions.  
-- `#include <safe_variant/recursive_wrapper.hpp>`  
+- `#include <strict_variant/recursive_wrapper.hpp>`  
   Similar to `boost::recursive_wrapper`, but for this variant type.  
-- `#include <safe_variant/variant_compare.hpp>`  
+- `#include <strict_variant/variant_compare.hpp>`  
   Gets a template type `variant_comparator`, which is appropriate to use with `std::map` or `std::set`.  
-  By default `safe_variant::variant` is not comparable.  
-- `#include <safe_variant/variant_hash.hpp>`  
+  By default `strict_variant::variant` is not comparable.  
+- `#include <strict_variant/variant_hash.hpp>`  
   Makes variant hashable. By default this is not brought in.
-- `#include <safe_variant/variant_stream_ops.hpp>`  
+- `#include <strict_variant/variant_stream_ops.hpp>`  
   Gets ostream operations for the variant template type.  
-  By default `safe_variant::variant` is not streamable.  
-- `#include <safe_variant/variant_spirit.hpp>`  
-  Defines customization points within `boost::spirit` so that `safe_variant::variant` can be used just like `boost::variant` in your `qi` grammars.
+  By default `strict_variant::variant` is not streamable.  
+- `#include <strict_variant/variant_spirit.hpp>`  
+  Defines customization points within `boost::spirit` so that `strict_variant::variant` can be used just like `boost::variant` in your `qi` grammars.
 
-All the library definitions are made within the namespace `safe_variant`.
+All the library definitions are made within the namespace `strict_variant`.
 
-I guess I recommend that you use a namespace alias for that, e.g. `namespace util = safe_variant;`, or
+I guess I recommend that you use a namespace alias for that, e.g. `namespace util = strict_variant;`, or
 use a series of using declarations. In another project that uses this library, I did this:
 
 
 ```c++
     // util/variant_fwd.hpp
     
-    #include <safe_variant/variant_fwd.hpp>
+    #include <strict_variant/variant_fwd.hpp>
 
     namespace util {
-      using variant = safe_variant::variant;
+      using variant = strict_variant::variant;
     }
 ```
 
 ```c++
     // util/variant.hpp
-    #include <safe_variant/variant.hpp>
-    #include <safe_variant/recursive_wrapper.hpp>
-    #include <safe_variant/variant_hash.hpp>
+    #include <strict_variant/variant.hpp>
+    #include <strict_variant/recursive_wrapper.hpp>
+    #include <strict_variant/variant_hash.hpp>
 
     namespace util {
-      using safe_variant::variant;
-      using safe_variant::get;
-      using safe_variant::get_or_default;
-      using safe_variant::apply_visitor;
-      using safe_variant::recursive_wrapper;
+      using strict_variant::variant;
+      using strict_variant::get;
+      using strict_variant::get_or_default;
+      using strict_variant::apply_visitor;
+      using strict_variant::recursive_wrapper;
     }
 ```
 
@@ -352,15 +352,15 @@ Configuration
 
 There are three preprocessor defines it responds to:
 
-- `SAFE_VARIANT_ASSUME_MOVE_NOTHROW`  
+- `STRICT_VARIANT_ASSUME_MOVE_NOTHROW`  
   Assume that moves of input types won't throw, regardless of their `noexcept`
   status. This might be useful if you are using old versions of the standard
   library and things like `std::string` are not no-throw move constructible for
-  you, but you want `safe_variant::variant` to act as though they are. This will
+  you, but you want `strict_variant::variant` to act as though they are. This will
   allow you to get assignment operators for the variant as though everything
   were move constructible, but if anything actually does throw you get UB.
 
-- `SAFE_VARIANT_ASSUME_COPY_NOTHROW`
+- `STRICT_VARIANT_ASSUME_COPY_NOTHROW`
   Assumes that copies of input types won't throw, regardless of their `noexcept`
   status. This is pretty dangerous, it only makes sense in projects where you
   already assume that dynamic allocations will never fail and just want to go
@@ -368,13 +368,13 @@ There are three preprocessor defines it responds to:
   `-fno-exceptions` anyways and a custom allocator, which you monitor on the side
   for memory exhaustion, or something like this.
 
-- `SAFE_VARIANT_DEBUG`  
+- `STRICT_VARIANT_DEBUG`  
   Turn on debugging assertions.
 
 Licensing and Distribution
 ==========================
 
-**safe variant** is available under the boost software license.
+**strict variant** is available under the boost software license.
 
 Performance Characteristics
 ===========================
@@ -403,7 +403,7 @@ construction fails. This greatly simplifies assignment and makes that more effic
 but it may complicate visitation, depending on how concerned you are about the
 empty state.
 
-In `safe_variant`, the focus is on a less general case. We are mostly concerned
+In `strict_variant`, the focus is on a less general case. We are mostly concerned
 anyways with cases when you have many types in the variant which are implicitly
 convertible, and for assignment we more or less assume that they are no-throw
 move constructible. Via `recursive_wrapper`, we support all the other types as
@@ -415,9 +415,9 @@ that you must dereference an extra pointer to find the object -- boost::variant
 tries to get the object in situ, and only puts it on the heap if an exception
 is thrown. However, if exceptions are thrown regularly, then you would already
 have had to tolerate this overhead with `boost::variant`. An advantage, though,
-is that operations on `safe_variant` are relatively easy to reason about, as
+is that operations on `strict_variant` are relatively easy to reason about, as
 there are no dynamic allocations taking place that you don't explicitly opt in
-to. And besides, for the use cases where `safe_variant` is attractive in the
+to. And besides, for the use cases where `strict_variant` is attractive in the
 first place, the types will all likely be no-throw move constructible anyways.
 
 Regardless, at least when your types are in fact no-throw move constructible,
@@ -460,7 +460,7 @@ to have variants with only a handful of types. Particularly when there is one
 type which is the "most popular", branch prediction can significantly speed up
 the visitation well beyond what you will see in benchmarks with random data,
 which are already quite favorable to the "binary" search strategy for small
-numbers of types. This is the strategy currently used by `safe_variant`.
+numbers of types. This is the strategy currently used by `strict_variant`.
 
 A third strategy, naive tail recursion, is used by `mapbox::variant`.
 Surprisingly (for me), this is the best performing strategy, for both compilers
@@ -506,7 +506,7 @@ g++ (5.4.0)
 |  libcxx (dev) `std::variant` |  8.124100 | 10.115100 | 11.158700 | 12.137400 | 12.205300 | 15.015400 | 14.729900 | 13.449000 | 13.284800 | 20.426200 | 20.371100 | 23.552300 |
 |            `mapbox::variant` |  0.704700 |  2.693700 |  3.327500 |  4.363400 |  5.023000 |  6.056900 |  6.875800 |  7.403600 |  7.535600 |  8.684800 |  9.435200 | 13.606900 |
 |             `juice::variant` |  8.359100 |  9.732000 | 10.542600 | 11.916000 | 13.019800 | 15.827900 | 18.159000 | 16.783400 | 19.671300 | 21.399900 | 22.595600 | 25.679100 |
-|      `safe_variant::variant` |  0.528500 |  2.997200 |  4.975100 |  7.948200 |  8.812900 |  9.894800 | 11.830600 | 13.579700 | 14.692000 | 14.726800 | 16.803200 | 24.791100 |
+|      `strict_variant::variant` |  0.528500 |  2.997200 |  4.975100 |  7.948200 |  8.812900 |  9.894800 | 11.830600 | 13.579700 | 14.692000 | 14.726800 | 16.803200 | 24.791100 |
 | `std::experimental::variant` |  6.851700 |  8.374500 |  9.230800 |  9.691900 | 10.173600 | 10.589700 | 11.145200 | 11.605700 | 12.364800 | 19.994500 | 18.656700 | 21.930500 |
 
 clang++ (3.8.0)
@@ -519,7 +519,7 @@ clang++ (3.8.0)
 |  libcxx (dev) `std::variant` |  8.372000 | 11.307300 | 11.786800 | 12.869200 | 13.686700 | 14.720300 | 14.240400 | 14.233100 | 14.372100 | 14.371900 | 14.434000 | 15.388300 |
 |            `mapbox::variant` |  0.828200 |  1.195100 |  2.513900 |  4.224100 |  3.994300 |  6.023600 |  6.724500 |  7.614300 |  8.931000 |  9.974600 | 10.066500 | 13.406500 |
 |             `juice::variant` |  8.348200 |  9.730200 | 10.587900 | 10.857300 | 11.985100 | 15.497900 | 15.142700 | 17.893400 | 19.209700 | 20.189300 | 20.337800 | 27.006100 |
-|      `safe_variant::variant` |  0.799700 |  1.872300 |  2.078000 |  4.340500 |  5.089000 |  5.516400 |  7.603800 |  7.984200 |  8.152600 | 10.277700 | 12.062700 | 15.266700 |
+|      `strict_variant::variant` |  0.799700 |  1.872300 |  2.078000 |  4.340500 |  5.089000 |  5.516400 |  7.603800 |  7.984200 |  8.152600 | 10.277700 | 12.062700 | 15.266700 |
 | `std::experimental::variant` |  7.142900 |  8.687600 |  9.527800 | 10.099500 | 10.451000 | 10.822700 | 11.185500 | 11.464700 | 11.515100 | 11.603700 | 11.668800 | 11.983700 |
 
 
@@ -540,7 +540,7 @@ Test subjects:
 - `mapbox::variant` from [this repository](https://github.com/mapbox/variant) at commit 388376ac9f0102feba2d2122873b08e15a66a879
 - `std::experimental::variant` from [this repository](https://github.com/mpark/variant)
 - libcxx `std::variant` draft at `variant` branch from [this repository](https://github.com/efcs/libcxx/tree/variant) at commit d93edff042e7b9d333eb5b6f16145953e00fd182
-- `safe_variant` from this repository at commit 5e17d9edabe6a35ed2af8bc9c5d0dde3bd42efe4
+- `strict_variant` from this repository at commit 5e17d9edabe6a35ed2af8bc9c5d0dde3bd42efe4
 
 My `/proc/cpuinfo` looks like this:
 

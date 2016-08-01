@@ -5,20 +5,20 @@
 
 #pragma once
 
-#include <safe_variant/mpl/find_with.hpp>
-#include <safe_variant/variant_fwd.hpp>
+#include <strict_variant/mpl/find_with.hpp>
+#include <strict_variant/variant_fwd.hpp>
 
 #include <boost/mpl/bool.hpp>
 #include <boost/spirit/home/support.hpp>
 #include <type_traits>
 
 /***
- * Add a trait within boost spirit so that safe_variant can be parsed using the
+ * Add a trait within boost spirit so that strict_variant can be parsed using the
  * alternative parser operator |, just like boost::variant.
  */
 
 // First a helper metafunction
-namespace safe_variant {
+namespace strict_variant {
 namespace mpl {
 
 // index_at_or_fallback
@@ -39,7 +39,7 @@ struct Index_At_Or_Fallback<n, F> {
 };
 
 } // end namespace mpl
-} // end namespace safe_variant
+} // end namespace strict_variant
 
 // Now the qi parts
 namespace boost {
@@ -52,7 +52,7 @@ struct not_is_variant;
 
 // mpl::false_ here is why we need to include boost mpl
 template <typename First, typename... Types, typename Domain>
-struct not_is_variant<safe_variant::variant<First, Types...>, Domain, void> : mpl::false_ {};
+struct not_is_variant<strict_variant::variant<First, Types...>, Domain, void> : mpl::false_ {};
 
 } // end namespace traits
 
@@ -66,21 +66,21 @@ template <typename Variant, typename Expected>
 struct find_substitute;
 
 template <typename... Types, typename Expected>
-struct find_substitute<safe_variant::variant<Types...>, Expected> {
+struct find_substitute<strict_variant::variant<Types...>, Expected> {
   template <typename T>
   struct same_prop : std::is_same<T, Expected> {};
 
-  static constexpr size_t same_idx = safe_variant::mpl::Find_With<same_prop, Types...>::value;
+  static constexpr size_t same_idx = strict_variant::mpl::Find_With<same_prop, Types...>::value;
 
   template <typename T>
   struct conv_prop : traits::is_substitute<T, Expected> {};
 
   static constexpr size_t same_or_conv_idx =
     (same_idx < sizeof...(Types)) ? same_idx
-                                  : safe_variant::mpl::Find_With<conv_prop, Types...>::value;
+                                  : strict_variant::mpl::Find_With<conv_prop, Types...>::value;
 
   typedef
-    typename safe_variant::mpl::Index_At_Or_Fallback<same_or_conv_idx, Expected, Types...>::type
+    typename strict_variant::mpl::Index_At_Or_Fallback<same_or_conv_idx, Expected, Types...>::type
       type;
 };
 

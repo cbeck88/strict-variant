@@ -7,7 +7,7 @@
 
 #include <type_traits>
 
-namespace safe_variant {
+namespace strict_variant {
 namespace mpl {
 
 // Poor man's boost::mpl::vector.
@@ -129,4 +129,4 @@ struct typelist_fwd<F, TypeList<Ts...>> {
 };
 
 } // end namespace mpl
-} // end namespace safe_variant
+} // end namespace strict_variant

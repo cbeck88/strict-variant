@@ -1,6 +1,6 @@
-#include <safe_variant/variant.hpp>
-#include <safe_variant/variant_hash.hpp>
-#include <safe_variant/variant_stream_ops.hpp>
+#include <strict_variant/variant.hpp>
+#include <strict_variant/variant_hash.hpp>
+#include <strict_variant/variant_stream_ops.hpp>
 
 #include "test_harness/test_harness.hpp"
 
@@ -8,7 +8,7 @@
 #include <unordered_map>
 #include <unordered_set>
 
-namespace safe_variant {
+namespace strict_variant {
 
 UNIT_TEST(hashing) {
   using var_t = variant<std::string, int>;
@@ -65,7 +65,7 @@ UNIT_TEST(copying) {
   }
 }
 
-} // end namespace safe_variant
+} // end namespace strict_variant
 
 int
 main() {

@@ -12,7 +12,7 @@
 #include <type_traits>
 #include <utility>
 
-namespace safe_variant {
+namespace strict_variant {
 namespace mpl {
 
 template <typename T>
@@ -68,4 +68,4 @@ template <typename T>
 struct is_nothrow_copy_constructible : std::is_nothrow_constructible<T, const T &> {};
 
 } // end namespace mpl
-} // end namsepace safe_variant
+} // end namsepace strict_variant

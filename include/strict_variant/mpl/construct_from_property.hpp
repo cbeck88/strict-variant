@@ -12,7 +12,7 @@
 
 #include <type_traits>
 
-namespace safe_variant {
+namespace strict_variant {
 namespace mpl {
 
 template <typename T>
@@ -24,4 +24,4 @@ struct construct_from {
 };
 
 } // end namespace mpl
-} // end namespace safe_variant
+} // end namespace strict_variant

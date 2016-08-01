@@ -5,7 +5,7 @@
 
 #pragma once
 
-namespace safe_variant {
+namespace strict_variant {
 namespace mpl {
 
 template <unsigned... us>
@@ -49,4 +49,4 @@ struct ulist_map<F, ulist<us...>> {
 };
 
 } // end namespace mpl
-} // end namespace safe_variant
+} // end namespace strict_variant

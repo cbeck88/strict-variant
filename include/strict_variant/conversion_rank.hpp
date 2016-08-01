@@ -19,7 +19,7 @@
 
 #include <type_traits>
 
-namespace safe_variant {
+namespace strict_variant {
 namespace mpl {
 
 enum class numeric_class : char { integer, character, wide_char, boolean, floating };
@@ -133,4 +133,4 @@ struct safe_by_rank<unsigned char, signed char> {
 };
 
 } // end namespace mpl
-} // end namespace safe_variant
+} // end namespace strict_variant

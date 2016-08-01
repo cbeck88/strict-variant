@@ -7,7 +7,7 @@
 
 #include <cstddef> // for std::size_t
 
-namespace safe_variant {
+namespace strict_variant {
 namespace mpl {
 
 /***
@@ -59,4 +59,4 @@ struct All_Have {
 };
 
 } // end namespace mpl
-} // end namespace safe_variant
+} // end namespace strict_variant

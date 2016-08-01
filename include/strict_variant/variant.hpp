@@ -20,41 +20,41 @@
  *   https://github.com/jarro2783/thenewcpp
  */
 
-#include <safe_variant/mpl/find_with.hpp>
-#include <safe_variant/mpl/std_traits.hpp>
-#include <safe_variant/mpl/typelist.hpp>
-#include <safe_variant/recursive_wrapper.hpp>
-#include <safe_variant/safely_constructible.hpp>
-#include <safe_variant/variant_detail.hpp>
-#include <safe_variant/variant_dispatch.hpp>
-#include <safe_variant/variant_fwd.hpp>
-#include <safe_variant/variant_storage.hpp>
+#include <strict_variant/mpl/find_with.hpp>
+#include <strict_variant/mpl/std_traits.hpp>
+#include <strict_variant/mpl/typelist.hpp>
+#include <strict_variant/recursive_wrapper.hpp>
+#include <strict_variant/safely_constructible.hpp>
+#include <strict_variant/variant_detail.hpp>
+#include <strict_variant/variant_dispatch.hpp>
+#include <strict_variant/variant_fwd.hpp>
+#include <strict_variant/variant_storage.hpp>
 
 #include <new>
 #include <type_traits>
 #include <utility>
 
-// #define SAFE_VARIANT_ASSUME_MOVE_NOTHROW
-// #define SAFE_VARIANT_ASSUME_COPY_NOTHROW
-// #define SAFE_VARIANT_DEBUG
+// #define STRICT_VARIANT_ASSUME_MOVE_NOTHROW
+// #define STRICT_VARIANT_ASSUME_COPY_NOTHROW
+// #define STRICT_VARIANT_DEBUG
 
-#ifdef SAFE_VARIANT_DEBUG
+#ifdef STRICT_VARIANT_DEBUG
 #include <cassert>
 
-#define SAFE_VARIANT_ASSERT(X, C)                                                                  \
+#define STRICT_VARIANT_ASSERT(X, C)                                                                  \
   do {                                                                                             \
     assert((X) && C);                                                                              \
   } while (0)
 
-#else // SAFE_VARIANT_DEBUG
+#else // STRICT_VARIANT_DEBUG
 
-#define SAFE_VARIANT_ASSERT(X, C)                                                                  \
+#define STRICT_VARIANT_ASSERT(X, C)                                                                  \
   do {                                                                                             \
   } while (0)
 
-#endif // SAFE_VARIANT_DEBUG
+#endif // STRICT_VARIANT_DEBUG
 
-namespace safe_variant {
+namespace strict_variant {
 
 /***
  * Class variant
@@ -75,7 +75,7 @@ private:
   //  noexcept-correct. For instance if you require compatibility with a
   //  gcc-4-series version of libstdc++ and std::string isn't noexcept.)
   static constexpr bool assume_move_nothrow =
-#ifdef SAFE_VARIANT_ASSUME_MOVE_NOTHROW
+#ifdef STRICT_VARIANT_ASSUME_MOVE_NOTHROW
     true;
 #else
     false;
@@ -87,7 +87,7 @@ private:
   //  assume already that dynamic memory allocation will never fail, and want to
   //  go as fast as possible given that assumption.)
   static constexpr bool assume_copy_nothrow =
-#ifdef SAFE_VARIANT_ASSUME_COPY_NOTHROW
+#ifdef STRICT_VARIANT_ASSUME_COPY_NOTHROW
     true;
 #else
     false;
@@ -206,7 +206,7 @@ private:
     variant & m_self;
   };
 
-#define SAFE_VARIANT_ASSERT_NOTHROW_MOVE_CTORS                                                     \
+#define STRICT_VARIANT_ASSERT_NOTHROW_MOVE_CTORS                                                     \
   static_assert(nothrow_move_ctors,                                                                \
                 "All types in this variant must be nothrow move constructible or the variant "     \
                 "cannot be assigned!");                                                            \
@@ -216,7 +216,7 @@ private:
   struct copy_assigner {
     typedef void result_type;
 
-    SAFE_VARIANT_ASSERT_NOTHROW_MOVE_CTORS;
+    STRICT_VARIANT_ASSERT_NOTHROW_MOVE_CTORS;
 
     explicit copy_assigner(variant & self, int rhs_which)
       : m_self(self)
@@ -229,7 +229,7 @@ private:
 
       if (m_self.which() == m_rhs_which) {
         // the types are the same, so just assign into the lhs
-        SAFE_VARIANT_ASSERT(m_rhs_which == index, "Bad access!");
+        STRICT_VARIANT_ASSERT(m_rhs_which == index, "Bad access!");
         m_self.m_storage.template get_value<index>(detail::true_{}) = rhs;
       } else if (assume_copy_nothrow || noexcept(Rhs(rhs))) {
         // If copy ctor is no-throw (think integral types), this is the fastest
@@ -254,7 +254,7 @@ private:
   struct move_assigner {
     typedef void result_type;
 
-    SAFE_VARIANT_ASSERT_NOTHROW_MOVE_CTORS;
+    STRICT_VARIANT_ASSERT_NOTHROW_MOVE_CTORS;
 
     explicit move_assigner(variant & self, int rhs_which)
       : m_self(self)
@@ -267,7 +267,7 @@ private:
 
       if (m_self.which() == m_rhs_which) {
         // the types are the same, so just assign into the lhs
-        SAFE_VARIANT_ASSERT(m_rhs_which == index, "Bad access!");
+        STRICT_VARIANT_ASSERT(m_rhs_which == index, "Bad access!");
         m_self.m_storage.template get_value<index>(detail::true_{}) = std::move(rhs);
       } else {
         m_self.destroy();                         // nothrow
@@ -295,7 +295,7 @@ private:
 
       if (m_self.which() == m_rhs_which) {
         // the types are the same, so use operator eq
-        SAFE_VARIANT_ASSERT(m_rhs_which == index, "Bad access!");
+        STRICT_VARIANT_ASSERT(m_rhs_which == index, "Bad access!");
         return m_self.m_storage.template get_value<index>(detail::false_{}) == rhs;
       } else {
         return false;
@@ -317,8 +317,8 @@ private:
     }
   };
 
-#define SAFE_VARIANT_ASSERT_WHICH_INVARIANT                                                        \
-  SAFE_VARIANT_ASSERT(static_cast<unsigned>(this->which()) < sizeof...(Types) + 1,                 \
+#define STRICT_VARIANT_ASSERT_WHICH_INVARIANT                                                        \
+  STRICT_VARIANT_ASSERT(static_cast<unsigned>(this->which()) < sizeof...(Types) + 1,                 \
                       "Postcondition failed!")
 
 public:
@@ -327,7 +327,7 @@ public:
     static_assert(std::is_same<void, decltype(static_cast<void>(First()))>::value,
                   "First type must be default constructible or variant is not!");
     this->initialize<0>();
-    SAFE_VARIANT_ASSERT_WHICH_INVARIANT;
+    STRICT_VARIANT_ASSERT_WHICH_INVARIANT;
   }
 
   ~variant() noexcept { this->destroy(); }
@@ -336,25 +336,25 @@ public:
   variant(const variant & rhs) noexcept(nothrow_copy_ctors) {
     copy_constructor c(*this);
     rhs.apply_visitor_internal(c);
-    SAFE_VARIANT_ASSERT(rhs.which() == this->which(), "Postcondition failed!");
-    SAFE_VARIANT_ASSERT_WHICH_INVARIANT;
+    STRICT_VARIANT_ASSERT(rhs.which() == this->which(), "Postcondition failed!");
+    STRICT_VARIANT_ASSERT_WHICH_INVARIANT;
   }
 
   // Note: noexcept is enforced by static_assert in move_constructor visitor
   variant(variant && rhs) noexcept(nothrow_move_ctors) {
     move_constructor mc(*this);
     rhs.apply_visitor_internal(mc);
-    SAFE_VARIANT_ASSERT(rhs.which() == this->which(), "Postcondition failed!");
-    SAFE_VARIANT_ASSERT_WHICH_INVARIANT;
+    STRICT_VARIANT_ASSERT(rhs.which() == this->which(), "Postcondition failed!");
+    STRICT_VARIANT_ASSERT_WHICH_INVARIANT;
   }
 
   variant & operator=(const variant & rhs) noexcept(nothrow_copy_assign) {
     if (this != &rhs) {
       copy_assigner a(*this, rhs.which());
       rhs.apply_visitor_internal(a);
-      SAFE_VARIANT_ASSERT(rhs.which() == this->which(), "Postcondition failed!");
+      STRICT_VARIANT_ASSERT(rhs.which() == this->which(), "Postcondition failed!");
     }
-    SAFE_VARIANT_ASSERT_WHICH_INVARIANT;
+    STRICT_VARIANT_ASSERT_WHICH_INVARIANT;
     return *this;
   }
 
@@ -364,9 +364,9 @@ public:
     if (this != &rhs) {
       move_assigner ma(*this, rhs.which());
       rhs.apply_visitor_internal(ma);
-      SAFE_VARIANT_ASSERT(rhs.which() == this->which(), "Postcondition failed!");
+      STRICT_VARIANT_ASSERT(rhs.which() == this->which(), "Postcondition failed!");
     }
-    SAFE_VARIANT_ASSERT_WHICH_INVARIANT;
+    STRICT_VARIANT_ASSERT_WHICH_INVARIANT;
     return *this;
   }
 
@@ -388,7 +388,7 @@ public:
     static_assert(which_idx < (sizeof...(Types) + 1),
                   "Could not construct variant from this type!");
     this->initialize<which_idx>(std::forward<T>(t));
-    SAFE_VARIANT_ASSERT_WHICH_INVARIANT;
+    STRICT_VARIANT_ASSERT_WHICH_INVARIANT;
   }
 
   /// Friend all other instances of variant (needed for next two ctors)
@@ -406,7 +406,7 @@ public:
     variant<OFirst, OTypes...>::nothrow_copy_ctors) {
     copy_constructor c(*this);
     other.apply_visitor_internal(c);
-    SAFE_VARIANT_ASSERT_WHICH_INVARIANT;
+    STRICT_VARIANT_ASSERT_WHICH_INVARIANT;
   }
 
   /// "Generalizing" move ctor, similar as above
@@ -417,7 +417,7 @@ public:
     variant<OFirst, OTypes...>::nothrow_move_ctors) {
     move_constructor c(*this);
     other.apply_visitor_internal(c);
-    SAFE_VARIANT_ASSERT_WHICH_INVARIANT;
+    STRICT_VARIANT_ASSERT_WHICH_INVARIANT;
   }
 
   // Emplace ctor. Used to explicitly specify the type of the variant, and
@@ -542,7 +542,7 @@ apply_visitor(Visitor && visitor, Visitable && visitable)
 }
 
 /***
- * safe_variant::get function (same semantics as boost::get with pointer type)
+ * strict_variant::get function (same semantics as boost::get with pointer type)
  */
 template <typename T, typename... Types>
 T *
@@ -563,11 +563,11 @@ template <typename T, typename... Types>
 T &
 get_or_default(variant<Types...> & v,
                T def = {}) noexcept(std::is_nothrow_move_constructible<T>::value) {
-  T * t = safe_variant::get<T>(&v);
+  T * t = strict_variant::get<T>(&v);
   if (!t) {
     v.template emplace<T>(std::move(def));
-    t = safe_variant::get<T>(&v);
-    SAFE_VARIANT_ASSERT(t, "Move assignment to a variant failed to change its type!");
+    t = strict_variant::get<T>(&v);
+    STRICT_VARIANT_ASSERT(t, "Move assignment to a variant failed to change its type!");
   }
   return *t;
 }
@@ -577,8 +577,8 @@ get_or_default(variant<Types...> & v,
 template <typename... Ts>
 using easy_variant = variant<wrap_if_throwing_move_t<Ts>...>;
 
-} // end namespace safe_variant
+} // end namespace strict_variant
 
-#undef SAFE_VARIANT_ASSERT
-#undef SAFE_VARIANT_ASSERT_WHICH_INVARIANT
-#undef SAFE_VARIANT_ASSERT_NOTHROW_MOVE_CTORS
+#undef STRICT_VARIANT_ASSERT
+#undef STRICT_VARIANT_ASSERT_WHICH_INVARIANT
+#undef STRICT_VARIANT_ASSERT_NOTHROW_MOVE_CTORS

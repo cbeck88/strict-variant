@@ -7,15 +7,15 @@
 
 #include <cstddef>
 #include <functional>
-#include <safe_variant/variant.hpp>
+#include <strict_variant/variant.hpp>
 
 //- hash support:
 namespace std {
 
 template <typename... Ts>
-struct hash<safe_variant::variant<Ts...>> {
+struct hash<strict_variant::variant<Ts...>> {
 
-  using argument_type = safe_variant::variant<Ts...>;
+  using argument_type = strict_variant::variant<Ts...>;
   using result_type = std::size_t;
 
 private:
@@ -29,8 +29,8 @@ private:
 
 public:
   std::size_t operator()(const argument_type & v) const {
-    return safe_variant::apply_visitor(hasher{}, v) + (31 * v.which());
+    return strict_variant::apply_visitor(hasher{}, v) + (31 * v.which());
   }
-}; // hash<safe_variant::variant<Ts...>>
+}; // hash<strict_variant::variant<Ts...>>
 
 } // namespace std

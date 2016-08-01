@@ -6,14 +6,14 @@
 #pragma once
 
 /***
- * For use with safe_variant::variant
+ * For use with strict_variant::variant
  */
-#include <safe_variant/mpl/std_traits.hpp>
-#include <safe_variant/variant_fwd.hpp>
+#include <strict_variant/mpl/std_traits.hpp>
+#include <strict_variant/variant_fwd.hpp>
 #include <type_traits>
 #include <utility>
 
-namespace safe_variant {
+namespace strict_variant {
 
 template <typename T>
 class recursive_wrapper {
@@ -162,4 +162,4 @@ struct wrap_if_throwing_move {
 template <typename T>
 using wrap_if_throwing_move_t = typename wrap_if_throwing_move<T>::type;
 
-} // end namespace safe_variant
+} // end namespace strict_variant

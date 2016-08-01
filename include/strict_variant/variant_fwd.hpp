@@ -5,7 +5,7 @@
 
 #pragma once
 
-namespace safe_variant {
+namespace strict_variant {
 
 template <typename T>
 class recursive_wrapper;
@@ -13,4 +13,4 @@ class recursive_wrapper;
 template <typename First, typename... Types>
 class variant;
 
-} // end namespace safe_variant
+} // end namespace strict_variant

@@ -5,11 +5,11 @@
 
 #pragma once
 
-#include <safe_variant/conversion_rank.hpp>
-#include <safe_variant/mpl/std_traits.hpp>
+#include <strict_variant/conversion_rank.hpp>
+#include <strict_variant/mpl/std_traits.hpp>
 #include <type_traits>
 
-namespace safe_variant {
+namespace strict_variant {
 namespace mpl {
 
 /***
@@ -24,7 +24,7 @@ namespace mpl {
  * regards to
  *   conversions of fundamental types and pointer types.
  *
- *   The main purpose of this trait is to support `safe_variant::variant` in deciding
+ *   The main purpose of this trait is to support `strict_variant::variant` in deciding
  * what conversions
  *   to allow, and how to deduce what internal type to assign to any given type.
  *
@@ -108,4 +108,4 @@ struct safely_constructible<A, B, enable_if_t<(is_numeric<A>::value && is_ptr<B>
 };
 
 } // end namespace mpl
-} // end namespace safe_variant
+} // end namespace strict_variant

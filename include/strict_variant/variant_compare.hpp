@@ -6,7 +6,7 @@
 #pragma once
 
 #include <functional>
-#include <safe_variant/variant.hpp>
+#include <strict_variant/variant.hpp>
 #include <type_traits>
 
 /***
@@ -32,7 +32,7 @@
  * since it exploits the natural partition of possible variant values.
  */
 
-namespace safe_variant {
+namespace strict_variant {
 
 template <typename T, template <typename> class ComparatorTemplate = std::less,
           typename WhichComparator_t = std::less<int>>
@@ -55,7 +55,7 @@ struct variant_comparator<variant<types...>, ComparatorTemplate, WhichComparator
 
     template <typename T>
     bool operator()(const T & t) const {
-      if (const T * o = safe_variant::get<T>(&other)) {
+      if (const T * o = strict_variant::get<T>(&other)) {
         ComparatorTemplate<T> c; // make comparator
         return c(t, *o);
       } else {
@@ -70,8 +70,8 @@ struct variant_comparator<variant<types...>, ComparatorTemplate, WhichComparator
 
   bool operator()(const var_t & v1, const var_t & v2) const {
     helper h{v1, v2};
-    return safe_variant::apply_visitor(h, v1);
+    return strict_variant::apply_visitor(h, v1);
   }
 };
 
-} // end namespace safe_variant
+} // end namespace strict_variant

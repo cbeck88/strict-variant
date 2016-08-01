@@ -25,9 +25,9 @@ if [ GLOB $(BOOST_INCLUDE_DIR)/boost/ : version.hpp ] {
   BOOST_INCLUDE_DIR = ;
 }
 
-### Setup safe_variant target
+### Setup strict_variant target
 
-alias safe_variant : : : : <include>../include/  ;
+alias strict_variant : : : : <include>../include/  ;
 
 ### Setup test harness
 
@@ -39,11 +39,11 @@ alias boost : : : : <include>$(BOOST_INCLUDE_DIR) ;
 
 ### Build tests
 
-STRICT = <cxxflags>"-Wall -Werror -Wextra -pedantic -DSAFE_VARIANT_DEBUG " ;
+STRICT = <cxxflags>"-Wall -Werror -Wextra -pedantic -DSTRICT_VARIANT_DEBUG " ;
 
-exe variant : variant.cpp safe_variant test_harness : $(STRICT) ;
-exe compare : compare.cpp safe_variant test_harness : $(STRICT) ;
-exe hash    : hash.cpp safe_variant test_harness : $(STRICT) ;
+exe variant : variant.cpp strict_variant test_harness : $(STRICT) ;
+exe compare : compare.cpp strict_variant test_harness : $(STRICT) ;
+exe hash    : hash.cpp strict_variant test_harness : $(STRICT) ;
 
 install install-bin : variant compare hash : $(INSTALL_LOC) ;
 
@@ -53,7 +53,7 @@ if $(BOOST_INCLUDE_DIR) {
 
   alias boost_headers : : : : <include>$(BOOST_INCLUDE_DIR) ;
 
-  exe spirit : spirit.cpp safe_variant test_harness boost_headers : $(STRICT) ;
+  exe spirit : spirit.cpp strict_variant test_harness boost_headers : $(STRICT) ;
 
   install install-bin-boost : spirit : $(INSTALL_LOC) ;
 

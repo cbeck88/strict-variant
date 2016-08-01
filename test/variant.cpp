@@ -3,14 +3,14 @@
 //  Distributed under the Boost Software License, Version 1.0. (See accompanying
 //  file LICENSE or copy at http://www.boost.org/LICENSE_1_0.txt)
 
-#include <safe_variant/variant.hpp>
-#include <safe_variant/variant_stream_ops.hpp>
+#include <strict_variant/variant.hpp>
+#include <strict_variant/variant_stream_ops.hpp>
 
 #include "test_harness/test_harness.hpp"
 
 #include <type_traits>
 
-namespace safe_variant {
+namespace strict_variant {
 
 ////////////////////////////////
 // SAFELY_CONSTRUCTIBLE TESTS //
@@ -654,7 +654,7 @@ UNIT_TEST(easy_variant) {
   TEST_EQ(v.which(), 0);
 }
 
-} // end namespace safe_variant
+} // end namespace strict_variant
 
 int
 main() {

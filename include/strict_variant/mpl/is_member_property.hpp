@@ -7,7 +7,7 @@
 
 #include <type_traits>
 
-namespace safe_variant {
+namespace strict_variant {
 namespace mpl {
 
 /***
@@ -43,4 +43,4 @@ struct not_is_member {
 };
 
 } // end namespace mpl
-} // end namespace safe_variant
+} // end namespace strict_variant

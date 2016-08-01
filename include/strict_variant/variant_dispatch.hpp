@@ -5,33 +5,33 @@
 
 #pragma once
 
-#include <safe_variant/mpl/find_with.hpp>
-#include <safe_variant/mpl/std_traits.hpp>
-#include <safe_variant/mpl/typelist.hpp>
-#include <safe_variant/mpl/ulist.hpp>
-#include <safe_variant/variant_fwd.hpp>
+#include <strict_variant/mpl/find_with.hpp>
+#include <strict_variant/mpl/std_traits.hpp>
+#include <strict_variant/mpl/typelist.hpp>
+#include <strict_variant/mpl/ulist.hpp>
+#include <strict_variant/variant_fwd.hpp>
 
 #include <type_traits>
 #include <utility>
 
-#ifdef SAFE_VARIANT_DEBUG
+#ifdef STRICT_VARIANT_DEBUG
 #include <cassert>
 
-#define SAFE_VARIANT_ASSERT(X)                                                                     \
+#define STRICT_VARIANT_ASSERT(X)                                                                     \
   do {                                                                                             \
     assert((X));                                                                                   \
   } while (0)
 
-#else // SAFE_VARIANT_DEBUG
+#else // STRICT_VARIANT_DEBUG
 
-#define SAFE_VARIANT_ASSERT(X)                                                                     \
+#define STRICT_VARIANT_ASSERT(X)                                                                     \
   do {                                                                                             \
     static_cast<void>(X);                                                                          \
   } while (0)
 
-#endif // SAFE_VARIANT_DEBUG
+#endif // STRICT_VARIANT_DEBUG
 
-namespace safe_variant {
+namespace strict_variant {
 
 namespace detail {
 
@@ -102,7 +102,7 @@ struct jumptable_dispatch<return_t, Internal, mpl::ulist<Indices...>> {
     static whichCaller callers[sizeof...(Indices)] = {
       &visitor_caller<Indices, Internal, Storage, Visitor>...};
 
-    SAFE_VARIANT_ASSERT(which < static_cast<unsigned int>(sizeof...(Indices)));
+    STRICT_VARIANT_ASSERT(which < static_cast<unsigned int>(sizeof...(Indices)));
 
     return (*callers[which])(std::forward<Storage>(storage), std::forward<Visitor>(visitor));
   }
@@ -144,7 +144,7 @@ template <typename return_t, typename Internal, unsigned int base>
 struct binary_search_dispatch<return_t, Internal, base, 1u> {
   template <typename Storage, typename Visitor>
   return_t operator()(const unsigned int which, Storage && storage, Visitor && visitor) {
-    SAFE_VARIANT_ASSERT(which == base);
+    STRICT_VARIANT_ASSERT(which == base);
 
     return visitor_caller<base, Internal, Storage, Visitor>(std::forward<Storage>(storage),
                                                             std::forward<Visitor>(visitor));
@@ -189,6 +189,6 @@ struct visitor_dispatch {
 
 } // end namespace detail
 
-} // end namespace safe_variant
+} // end namespace strict_variant
 
-#undef SAFE_VARIANT_ASSERT
+#undef STRICT_VARIANT_ASSERT

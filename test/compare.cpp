@@ -3,9 +3,9 @@
 //  Distributed under the Boost Software License, Version 1.0. (See accompanying
 //  file LICENSE or copy at http://www.boost.org/LICENSE_1_0.txt)
 
-#include <safe_variant/variant.hpp>
-#include <safe_variant/variant_compare.hpp>
-#include <safe_variant/variant_stream_ops.hpp>
+#include <strict_variant/variant.hpp>
+#include <strict_variant/variant_compare.hpp>
+#include <strict_variant/variant_stream_ops.hpp>
 
 #include "test_harness/test_harness.hpp"
 
@@ -15,8 +15,8 @@
 
 // Test that variant_comparator works
 
-using var_t = safe_variant::variant<std::string, int>;
-using set_t = std::set<var_t, safe_variant::variant_comparator<var_t>>;
+using var_t = strict_variant::variant<std::string, int>;
+using set_t = std::set<var_t, strict_variant::variant_comparator<var_t>>;
 
 UNIT_TEST(std_set) {
   set_t s;

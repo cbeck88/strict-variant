@@ -7,7 +7,7 @@
 
 #include <type_traits>
 
-namespace safe_variant {
+namespace strict_variant {
 namespace detail {
 
 /***
@@ -53,4 +53,4 @@ public:
   typedef typename m_helper::type type;
 };
 } // end namespace mpl
-} // end namespace safe_variant
+} // end namespace strict_variant

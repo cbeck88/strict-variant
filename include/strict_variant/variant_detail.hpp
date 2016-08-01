@@ -5,11 +5,11 @@
 
 #pragma once
 
-#include <safe_variant/mpl/find_with.hpp>
-#include <safe_variant/mpl/is_member_property.hpp>
-#include <safe_variant/recursive_wrapper.hpp>
-#include <safe_variant/safely_constructible.hpp>
-#include <safe_variant/variant_fwd.hpp>
+#include <strict_variant/mpl/find_with.hpp>
+#include <strict_variant/mpl/is_member_property.hpp>
+#include <strict_variant/recursive_wrapper.hpp>
+#include <strict_variant/safely_constructible.hpp>
+#include <strict_variant/variant_fwd.hpp>
 
 #include <type_traits>
 
@@ -17,7 +17,7 @@
  * Traits to help with SFINAE in variant class template
  */
 
-namespace safe_variant {
+namespace strict_variant {
 
 namespace detail {
 
@@ -84,40 +84,40 @@ struct allow_variant_construction<A, B> {
 // allowed below,
 // via simple checks that don't require complete types.
 template <typename T, typename U>
-struct allow_variant_construction<safe_variant::recursive_wrapper<T>, U> {
+struct allow_variant_construction<strict_variant::recursive_wrapper<T>, U> {
   static constexpr bool value = false;
 };
 
 template <typename T>
-struct allow_variant_construction<safe_variant::recursive_wrapper<T>, T> {
+struct allow_variant_construction<strict_variant::recursive_wrapper<T>, T> {
   static constexpr bool value = true;
 };
 
 template <typename T>
-struct allow_variant_construction<safe_variant::recursive_wrapper<T>, const T &> {
+struct allow_variant_construction<strict_variant::recursive_wrapper<T>, const T &> {
   static constexpr bool value = true;
 };
 
 template <typename T>
-struct allow_variant_construction<safe_variant::recursive_wrapper<T>, T &&> {
+struct allow_variant_construction<strict_variant::recursive_wrapper<T>, T &&> {
   static constexpr bool value = true;
 };
 
 template <typename T>
-struct allow_variant_construction<safe_variant::recursive_wrapper<T>,
-                                  safe_variant::recursive_wrapper<T>> {
+struct allow_variant_construction<strict_variant::recursive_wrapper<T>,
+                                  strict_variant::recursive_wrapper<T>> {
   static constexpr bool value = true;
 };
 
 template <typename T>
-struct allow_variant_construction<safe_variant::recursive_wrapper<T>,
-                                  const safe_variant::recursive_wrapper<T> &> {
+struct allow_variant_construction<strict_variant::recursive_wrapper<T>,
+                                  const strict_variant::recursive_wrapper<T> &> {
   static constexpr bool value = true;
 };
 
 template <typename T>
-struct allow_variant_construction<safe_variant::recursive_wrapper<T>,
-                                  safe_variant::recursive_wrapper<T> &&> {
+struct allow_variant_construction<strict_variant::recursive_wrapper<T>,
+                                  strict_variant::recursive_wrapper<T> &&> {
   static constexpr bool value = true;
 };
 
@@ -134,4 +134,4 @@ struct allow_variant_construct_from {
 
 } // end namespace detail
 
-} // end namespace safe_variant
+} // end namespace strict_variant

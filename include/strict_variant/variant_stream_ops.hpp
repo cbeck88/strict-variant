@@ -10,9 +10,9 @@
  */
 
 #include <iosfwd>
-#include <safe_variant/variant.hpp>
+#include <strict_variant/variant.hpp>
 
-namespace safe_variant {
+namespace strict_variant {
 
 // printer
 struct printer_visitor {
@@ -36,8 +36,8 @@ template <typename First, typename... Types>
 std::ostream &
 operator<<(std::ostream & s, const variant<First, Types...> & v) {
   printer_visitor vis{s};
-  safe_variant::apply_visitor(vis, v);
+  strict_variant::apply_visitor(vis, v);
   return s;
 }
 
-} // end namespace safe_variant
+} // end namespace strict_variant

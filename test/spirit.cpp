@@ -1,8 +1,8 @@
 
 #include <boost/spirit/include/qi.hpp>
-#include <safe_variant/variant.hpp>
-#include <safe_variant/variant_spirit.hpp>
-#include <safe_variant/variant_stream_ops.hpp>
+#include <strict_variant/variant.hpp>
+#include <strict_variant/variant_spirit.hpp>
+#include <strict_variant/variant_stream_ops.hpp>
 
 #include "test_harness/test_harness.hpp"
 
@@ -12,7 +12,7 @@
 namespace qi = boost::spirit::qi;
 
 using str_it = std::string::const_iterator;
-using var_one_t = safe_variant::variant<std::string, int>;
+using var_one_t = strict_variant::variant<std::string, int>;
 
 template <typename Iterator>
 struct test_grammar : qi::grammar<Iterator, var_one_t()> {
@@ -44,7 +44,7 @@ UNIT_TEST(string_int_grammar) {
   {
     str_it it = t1.begin(), end = t1.end();
     TEST_TRUE(qi::parse(it, end, gram, v));
-    const std::string * s = safe_variant::get<std::string>(&v);
+    const std::string * s = strict_variant::get<std::string>(&v);
     TEST_TRUE(s);
     TEST_EQ(*s, "abc");
   }
@@ -52,7 +52,7 @@ UNIT_TEST(string_int_grammar) {
   {
     str_it it = t2.begin(), end = t2.end();
     TEST_TRUE(qi::parse(it, end, gram, v));
-    const int * i = safe_variant::get<int>(&v);
+    const int * i = strict_variant::get<int>(&v);
     TEST_TRUE(i);
     TEST_EQ(*i, 120);
   }
@@ -60,7 +60,7 @@ UNIT_TEST(string_int_grammar) {
   {
     str_it it = t3.begin(), end = t3.end();
     TEST_TRUE(qi::parse(it, end, gram, v));
-    const std::string * s = safe_variant::get<std::string>(&v);
+    const std::string * s = strict_variant::get<std::string>(&v);
     TEST_TRUE(s);
     TEST_EQ(*s, "i120");
   }
@@ -68,7 +68,7 @@ UNIT_TEST(string_int_grammar) {
   {
     str_it it = t4.begin(), end = t4.end();
     TEST_TRUE(qi::parse(it, end, gram, v));
-    const int * i = safe_variant::get<int>(&v);
+    const int * i = strict_variant::get<int>(&v);
     TEST_TRUE(i);
     TEST_EQ(*i, 0);
   }
@@ -76,7 +76,7 @@ UNIT_TEST(string_int_grammar) {
   {
     str_it it = t5.begin(), end = t5.end();
     TEST_TRUE(qi::parse(it, end, gram, v));
-    const std::string * s = safe_variant::get<std::string>(&v);
+    const std::string * s = strict_variant::get<std::string>(&v);
     TEST_TRUE(s);
     TEST_EQ(*s, "sabci120");
   }
@@ -89,7 +89,7 @@ UNIT_TEST(string_int_grammar) {
   {
     str_it it = t7.begin(), end = t7.end();
     TEST_TRUE(qi::parse(it, end, gram, v));
-    const int * i = safe_variant::get<int>(&v);
+    const int * i = strict_variant::get<int>(&v);
     TEST_TRUE(i);
     TEST_EQ(*i, 70);
   }

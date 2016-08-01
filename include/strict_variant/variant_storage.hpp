@@ -6,12 +6,12 @@
 #pragma once
 
 #include <new>
-#include <safe_variant/mpl/max.hpp>
-#include <safe_variant/mpl/typelist.hpp>
-#include <safe_variant/recursive_wrapper.hpp>
+#include <strict_variant/mpl/max.hpp>
+#include <strict_variant/mpl/typelist.hpp>
+#include <strict_variant/recursive_wrapper.hpp>
 #include <utility>
 
-namespace safe_variant {
+namespace strict_variant {
 namespace detail {
 
 // Implementation note:
@@ -111,4 +111,4 @@ struct storage {
 };
 
 } // end namespace detail
-} // end namespace safe_variant
+} // end namespace strict_variant
