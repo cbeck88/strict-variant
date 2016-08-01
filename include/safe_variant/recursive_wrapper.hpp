@@ -104,7 +104,7 @@ struct false_ {};
 template <typename T, typename Internal>
 T &&
 get_value(T && t, const Internal &) {
-  return t;
+  return std::forward<T>(t);
 }
 
 template <typename T>
@@ -122,7 +122,7 @@ get_value(const recursive_wrapper<T> & t, const false_ &) {
 template <typename T>
 T &&
 get_value(recursive_wrapper<T> && t, const false_ &) {
-  return t.get();
+  return std::move(t).get();
 }
 
 } // end namespace detail

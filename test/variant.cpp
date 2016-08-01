@@ -475,13 +475,26 @@ UNIT_TEST(visitation_value_type) {
   TEST_EQ(vis.flag_, 2);
 
   // TODO:
-  // apply_visitor(vis, std::move(x));
-  // TEST_EQ(vis.flag_, 3);
+  apply_visitor(vis, std::move(x));
+  TEST_EQ(vis.flag_, 3);
 
   apply_visitor(vis, static_cast<const var_t &>(x));
   TEST_EQ(vis.flag_, 1);
 
-  /// Test that it works if the visitor is restricted
+  x = bar{};
+
+  apply_visitor(vis, x);
+  TEST_EQ(vis.flag_, 5);
+
+  apply_visitor(vis, std::move(x));
+  TEST_EQ(vis.flag_, 6);
+
+  apply_visitor(vis, static_cast<const var_t &>(x));
+  TEST_EQ(vis.flag_, 4);
+
+  /// Test that it works if the visitor is restricted in what types it can accept
+
+  x = foo{};
 
   struct test_visitor2 {
     mutable int flag_ = 0;

@@ -580,11 +580,6 @@ Known issues
 ============
 
 - There are still some issues with `noexcept` correctness which I would like to fix. It's mostly in order right now though.
-- Currently, you cannot use `apply_visitor` with an rvalue-reference to the variant.  
-  It must be an lvalue-reference or a const reference.  
-  There is no reason for this restriction, but some of the dispatch code needs to be fixed
-  to support this. I didn't need it in my original application.  
-  It's okay for the visitor to be an rvalue-reference.  
 - Support multi-visitation.
 - No `constexpr` support. This is really extremely difficult to do in a variant at
   C++11 standard, it's only really feasible in C++14. If you want `constexpr` support

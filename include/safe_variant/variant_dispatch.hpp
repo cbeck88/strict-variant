@@ -34,8 +34,7 @@ auto
 visitor_caller(Storage && storage, Visitor && visitor)
   -> decltype(std::forward<Visitor>(std::declval<Visitor>())(
     get_value(std::forward<Storage>(std::declval<Storage>()).template as<T>(), Internal()))) {
-  auto & val = get_value(std::forward<Storage>(storage).template as<T>(), Internal());
-  return std::forward<Visitor>(visitor)(val);
+  return std::forward<Visitor>(visitor)(get_value(std::forward<Storage>(storage).template as<T>(), Internal()));
 }
 
 /// Trait which figures out what the return type of visitor caller is
