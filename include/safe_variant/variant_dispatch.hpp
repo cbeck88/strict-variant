@@ -29,22 +29,20 @@ namespace detail {
 /// Function which evaluates a visitor against a variant's internals
 /// Reinteprets' the "storage" pointer as a value of type T or const T,
 /// then applies the visitor object.
-template <typename T, typename Internal, typename Storage, typename Visitor, typename... Args>
+template <typename T, typename Internal, typename Storage, typename Visitor>
 auto
-visitor_caller(Storage && storage, Visitor && visitor, Args &&... args)
+visitor_caller(Storage && storage, Visitor && visitor)
   -> decltype(std::forward<Visitor>(std::declval<Visitor>())(
-    get_value(std::forward<Storage>(std::declval<Storage>()).template as<T>(), Internal()),
-    std::forward<Args>(std::declval<Args>())...)) {
+    get_value(std::forward<Storage>(std::declval<Storage>()).template as<T>(), Internal()))) {
   auto & val = get_value(std::forward<Storage>(storage).template as<T>(), Internal());
-  return std::forward<Visitor>(visitor)(val, std::forward<Args>(args)...);
+  return std::forward<Visitor>(visitor)(val);
 }
 
 /// Trait which figures out what the return type of visitor caller is
-template <typename T, typename Internal, typename Storage, typename Visitor, typename... Args>
+template <typename T, typename Internal, typename Storage, typename Visitor>
 struct visitor_caller_return_type {
-  using type = decltype(visitor_caller<T, Internal, Storage, Args...>(
-    std::forward<Storage>(std::declval<Storage>()), std::forward<Visitor>(std::declval<Visitor>()),
-    std::forward<Args>(std::declval<Args>())...));
+  using type = decltype(visitor_caller<T, Internal, Storage>(
+    std::forward<Storage>(std::declval<Storage>()), std::forward<Visitor>(std::declval<Visitor>())));
 };
 
 /// Helper which figures out the return type of multiple visitor calls
@@ -52,11 +50,11 @@ struct visitor_caller_return_type {
 /// std::common_type can technically be order dependent. It's confusing if the
 /// return type can change depending on the dispatch strategy used, and it
 /// simplifies the dispatch code to only have to implement this once.
-template <typename Internal, typename Storage, typename Visitor, typename... Args>
+template <typename Internal, typename Storage, typename Visitor>
 struct return_typer {
   template <typename T>
   struct helper {
-    using type = typename visitor_caller_return_type<T, Internal, Storage, Visitor, Args...>::type;
+    using type = typename visitor_caller_return_type<T, Internal, Storage, Visitor>::type;
   };
 };
 
@@ -72,21 +70,19 @@ struct return_typer {
 /// inlined by the compiler even if it is small.
 template <typename return_t, typename Internal, typename... AllTypes>
 struct jumptable_dispatch {
-  template <typename Storage, typename Visitor, typename... Args>
-  return_t operator()(const unsigned int which, Storage && storage, Visitor && visitor,
-                      Args &&... args)
+  template <typename Storage, typename Visitor>
+  return_t operator()(const unsigned int which, Storage && storage, Visitor && visitor)
 
   {
     using whichCaller =
-      typename mpl::remove_reference_t<Visitor>::result_type (*)(Storage, Visitor, Args...);
+      typename mpl::remove_reference_t<Visitor>::result_type (*)(Storage, Visitor);
 
     static whichCaller callers[sizeof...(AllTypes)] = {
-      &visitor_caller<AllTypes, Internal, Storage, Visitor, Args...>...};
+      &visitor_caller<AllTypes, Internal, Storage, Visitor>...};
 
     // ASSERT(which < static_cast<unsigned int>(sizeof...(AllTypes)));
 
-    return (*callers[which])(std::forward<Storage>(storage), std::forward<Visitor>(visitor),
-                             std::forward<Args>(args)...);
+    return (*callers[which])(std::forward<Storage>(storage), std::forward<Visitor>(visitor));
   }
 };
 
@@ -107,14 +103,13 @@ struct binary_search_dispatch;
 
 template <typename return_t, typename Internal, unsigned int base, typename T>
 struct binary_search_dispatch<return_t, Internal, base, TypeList<T>> {
-  template <typename Storage, typename Visitor, typename... Args>
-  return_t operator()(const unsigned int which, Storage && storage, Visitor && visitor,
-                      Args &&... args) {
+  template <typename Storage, typename Visitor>
+  return_t operator()(const unsigned int which, Storage && storage, Visitor && visitor) {
     // ASSERT(which == base);
     static_cast<void>(which);
 
-    return visitor_caller<T, Internal, Storage, Visitor, Args...>(
-      std::forward<Storage>(storage), std::forward<Visitor>(visitor), std::forward<Args>(args)...);
+    return visitor_caller<T, Internal, Storage, Visitor>(
+      std::forward<Storage>(storage), std::forward<Visitor>(visitor));
   }
 };
 
@@ -127,18 +122,15 @@ struct binary_search_dispatch<return_t, Internal, base, TypeList<T1, T2, Types..
   typedef typename Subdiv::R TR;
   static constexpr unsigned int split_point = base + static_cast<unsigned int>(TL::size);
 
-  template <typename Storage, typename Visitor, typename... Args>
-  return_t operator()(const unsigned int which, Storage && storage, Visitor && visitor,
-                      Args &&... args) {
+  template <typename Storage, typename Visitor>
+  return_t operator()(const unsigned int which, Storage && storage, Visitor && visitor) {
 
     if (which < split_point) {
       return binary_search_dispatch<return_t, Internal, base, TL>{}(
-        which, std::forward<Storage>(storage), std::forward<Visitor>(visitor),
-        std::forward<Args>(args)...);
+        which, std::forward<Storage>(storage), std::forward<Visitor>(visitor));
     } else {
       return binary_search_dispatch<return_t, Internal, split_point, TR>{}(
-        which, std::forward<Storage>(storage), std::forward<Visitor>(visitor),
-        std::forward<Args>(args)...);
+        which, std::forward<Storage>(storage), std::forward<Visitor>(visitor));
     }
   }
 };
@@ -166,17 +158,17 @@ struct visitor_dispatch {
   };
   */
 
-  template <typename Storage, typename Visitor, typename... Args>
-  auto operator()(const unsigned int which, Storage && storage, Visitor && visitor, Args &&... args)
+  template <typename Storage, typename Visitor>
+  auto operator()(const unsigned int which, Storage && storage, Visitor && visitor)
     ->
     typename mpl::typelist_fwd<mpl::common_type_t,
-                               typename mpl::typelist_map<return_typer<Internal, Storage, Visitor,
-                                                                       Args...>::template helper,
+                               typename mpl::typelist_map<return_typer<Internal, Storage, Visitor
+                                                                       >::template helper,
                                                           TypeList<AllTypes...>>::type>::type {
     using return_t =
       typename mpl::typelist_fwd<mpl::common_type_t,
-                                 typename mpl::typelist_map<return_typer<Internal, Storage, Visitor,
-                                                                         Args...>::template helper,
+                                 typename mpl::typelist_map<return_typer<Internal, Storage, Visitor
+                                                                         >::template helper,
                                                             TypeList<AllTypes...>>::type>::type;
 
     // using chosen_dispatch_t = jumptable_dispatch<return_t, Internal, AllTypes...>;
@@ -190,13 +182,13 @@ struct visitor_dispatch {
     using chosen_dispatch_t = binary_search_dispatch<return_t, Internal, 0, TypeList<AllTypes...>>;
 
     return chosen_dispatch_t{}(which, std::forward<Storage>(storage),
-                               std::forward<Visitor>(visitor), std::forward<Args>(args)...);
+                               std::forward<Visitor>(visitor));
   }
 
   /*
-    template <typename Storage, typename Visitor, typename... Args>
+    template <typename Storage, typename Visitor>
     auto operator()(const unsigned int which, Storage && storage,
-                    Visitor && visitor, Args &&... args) -> typename
+                    Visitor && visitor) -> typename
     has_return_typedef<Visitor>::type {
       using return_t = typename has_return_typedef<Visitor>::type;
 
@@ -212,8 +204,7 @@ struct visitor_dispatch {
     TypeList<AllTypes...>>;
 
       return chosen_dispatch_t{}(which,
-                                 std::forward<Storage>(storage), std::forward<Visitor>(visitor),
-                                 std::forward<Args>(args)...);
+                                 std::forward<Storage>(storage), std::forward<Visitor>(visitor));
     }
   */
 };

@@ -255,9 +255,8 @@ namespace safe_variant {
 
   // Apply a visitor to the variant. It is called using the current value
   // of the variant with its current type as the argument.
-  // Any additional arguments to `apply_visitor` are forwarded to the visitor. 
-  template <typename V, typename... Types, typename... Args>
-  void apply_visitor(V && visitor, variant<Types...> && var, Args && ... args);
+  template <typename Visitor, typename Variant>
+  void apply_visitor(Visitor && visitor, Variant && var);
 
   // Access the stored value. Returns `nullptr` if `T` is not the currently
   // engaged type.
@@ -586,6 +585,7 @@ Known issues
   There is no reason for this restriction, but some of the dispatch code needs to be fixed
   to support this. I didn't need it in my original application.  
   It's okay for the visitor to be an rvalue-reference.  
+- Support multi-visitation.
 - No `constexpr` support. This is really extremely difficult to do in a variant at
   C++11 standard, it's only really feasible in C++14. If you want `constexpr` support
   then I suggest having a look at [`eggs::variant`](https://github.com/eggs-cpp/variant).

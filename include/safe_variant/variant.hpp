@@ -529,7 +529,15 @@ public:
     }
   }
 
+  // Friend apply visitor
+  template <typename Visitor, typename Visitable>
+  friend auto
+  apply_visitor(Visitor &&, Visitable &&) -> decltype(std::declval<Visitable>().get_visitor_dispatch()(
+    std::declval<Visitable>().which(), std::forward<Visitable>(std::declval<Visitable>()).storage(),
+    std::forward<Visitor>(std::declval<Visitor>())));
+
   // Implementation details for apply_visitor
+private:
   storage_t & storage() & { return m_storage; }
   storage_t && storage() && { return std::move(m_storage); }
   const storage_t & storage() const & { return m_storage; }
@@ -543,15 +551,14 @@ public:
 /***
  * apply visitor function (same semantics as juice_variant::apply_visitor)
  */
-template <typename Visitor, typename Visitable, typename... Args>
+template <typename Visitor, typename Visitable>
 auto
-apply_visitor(Visitor && visitor, Visitable && visitable, Args &&... args)
+apply_visitor(Visitor && visitor, Visitable && visitable)
   -> decltype(std::declval<Visitable>().get_visitor_dispatch()(
     std::declval<Visitable>().which(), std::forward<Visitable>(std::declval<Visitable>()).storage(),
-    std::forward<Visitor>(std::declval<Visitor>()), std::forward<Args>(std::declval<Args>())...)) {
+    std::forward<Visitor>(std::declval<Visitor>()))) {
   return std::forward<Visitable>(visitable).get_visitor_dispatch()(
-    visitable.which(), std::forward<Visitable>(visitable).storage(), std::forward<Visitor>(visitor),
-    std::forward<Args>(args)...);
+    visitable.which(), std::forward<Visitable>(visitable).storage(), std::forward<Visitor>(visitor));
 }
 
 /***
