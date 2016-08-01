@@ -17,14 +17,14 @@
 #ifdef STRICT_VARIANT_DEBUG
 #include <cassert>
 
-#define STRICT_VARIANT_ASSERT(X)                                                                     \
+#define STRICT_VARIANT_ASSERT(X)                                                                   \
   do {                                                                                             \
     assert((X));                                                                                   \
   } while (0)
 
 #else // STRICT_VARIANT_DEBUG
 
-#define STRICT_VARIANT_ASSERT(X)                                                                     \
+#define STRICT_VARIANT_ASSERT(X)                                                                   \
   do {                                                                                             \
     static_cast<void>(X);                                                                          \
   } while (0)

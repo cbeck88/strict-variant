@@ -41,14 +41,14 @@
 #ifdef STRICT_VARIANT_DEBUG
 #include <cassert>
 
-#define STRICT_VARIANT_ASSERT(X, C)                                                                  \
+#define STRICT_VARIANT_ASSERT(X, C)                                                                \
   do {                                                                                             \
     assert((X) && C);                                                                              \
   } while (0)
 
 #else // STRICT_VARIANT_DEBUG
 
-#define STRICT_VARIANT_ASSERT(X, C)                                                                  \
+#define STRICT_VARIANT_ASSERT(X, C)                                                                \
   do {                                                                                             \
   } while (0)
 
@@ -206,7 +206,7 @@ private:
     variant & m_self;
   };
 
-#define STRICT_VARIANT_ASSERT_NOTHROW_MOVE_CTORS                                                     \
+#define STRICT_VARIANT_ASSERT_NOTHROW_MOVE_CTORS                                                   \
   static_assert(nothrow_move_ctors,                                                                \
                 "All types in this variant must be nothrow move constructible or the variant "     \
                 "cannot be assigned!");                                                            \
@@ -317,9 +317,9 @@ private:
     }
   };
 
-#define STRICT_VARIANT_ASSERT_WHICH_INVARIANT                                                        \
-  STRICT_VARIANT_ASSERT(static_cast<unsigned>(this->which()) < sizeof...(Types) + 1,                 \
-                      "Postcondition failed!")
+#define STRICT_VARIANT_ASSERT_WHICH_INVARIANT                                                      \
+  STRICT_VARIANT_ASSERT(static_cast<unsigned>(this->which()) < sizeof...(Types) + 1,               \
+                        "Postcondition failed!")
 
 public:
   template <typename = void> // only allow if First() is ok
