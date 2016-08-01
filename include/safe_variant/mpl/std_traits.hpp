@@ -48,6 +48,7 @@ struct common_type<T1, T2> {
   using type = decay_t<decltype(true ? std::declval<T1>() : std::declval<T2>())>;
 };
 
+// TODO: Is this needed?
 template <typename T>
 struct common_type<T, T> {
   using type = T;
@@ -60,6 +61,11 @@ struct common_type<T1, T2, T3, Ts...> {
 
 template <typename T, typename... Ts>
 using common_type_t = typename common_type<T, Ts...>::type;
+
+// This is not actually standard, oh well
+
+template <typename T> 
+struct is_nothrow_copy_constructible : std::is_nothrow_constructible<T, const T &> {};
 
 } // end namespace mpl
 } // end namsepace safe_variant

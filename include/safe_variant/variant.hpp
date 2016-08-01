@@ -103,28 +103,25 @@ private:
   static_assert(mpl::All_Have<std::is_nothrow_destructible, Types...>::value,
                 "All types in this variant type must be nothrow destructible");
 
+  static constexpr bool nothrow_move_ctors =
+    assume_move_nothrow || mpl::All_Have<std::is_nothrow_move_constructible, First, Types...>::value;
+
+  
+
 #define SAFE_VARIANT_ASSERT_NOTHROW_MOVE_CTORS                                                     \
-  static_assert(assume_move_nothrow                                                                \
-                  || mpl::All_Have<std::is_nothrow_move_constructible, First>::value,              \
-                "All types in this variant must be nothrow move constructible or the variant "     \
-                "cannot be assigned!");                                                            \
-                                                                                                   \
-  static_assert(assume_move_nothrow                                                                \
-                  || mpl::All_Have<std::is_nothrow_move_constructible, Types...>::value,           \
+  static_assert(nothrow_move_ctors,                                                                \
                 "All types in this variant must be nothrow move constructible or the variant "     \
                 "cannot be assigned!");                                                            \
   static_assert(true, "")
 
-  template <typename T>
-  struct nothrow_copy_constructible {
-    static constexpr bool value = noexcept(T(*static_cast<const T *>(nullptr)));
-  };
+  static constexpr bool nothrow_copy_ctors =
+    assume_copy_nothrow || mpl::All_Have<mpl::is_nothrow_copy_constructible, First, Types...>::value;
 
-#define SAFE_VARIANT_NOTHROW_COPY_CTORS                                                            \
-  assume_copy_nothrow || mpl::All_Have<nothrow_copy_constructible, First, Types...>::value
+  static constexpr bool nothrow_move_assign =
+    nothrow_move_ctors && mpl::All_Have<std::is_nothrow_move_assignable, First, Types...>::value;
 
-#define SAFE_VARIANT_NOTHROW_MOVE_ASSIGN                                                           \
-  mpl::All_Have<std::is_nothrow_move_assignable, First, Types...>::value
+  static constexpr bool nothrow_copy_assign =
+    nothrow_copy_ctors && mpl::All_Have<std::is_nothrow_copy_assignable, First, Types...>::value;
 
   /***
    * Prohibit references
@@ -134,6 +131,10 @@ private:
                 "Cannot store references in this variant, use `std::reference_wrapper`");
   static_assert(mpl::None_Have<std::is_reference, Types...>::value,
                 "Cannot store references in this variant, use `std::reference_wrapper`");
+
+  /***
+   * Data members
+   */
 
   using storage_t = detail::storage<First, Types...>;
   storage_t m_storage;
@@ -360,7 +361,7 @@ public:
   ~variant() noexcept { this->destroy(); }
 
   // Special member functions
-  variant(const variant & rhs) noexcept(SAFE_VARIANT_NOTHROW_COPY_CTORS) {
+  variant(const variant & rhs) noexcept(nothrow_copy_ctors) {
     copy_constructor c(*this);
     rhs.apply_visitor_internal(c);
     SAFE_VARIANT_ASSERT(rhs.which() == this->which(), "Postcondition failed!");
@@ -368,14 +369,14 @@ public:
   }
 
   // Note: noexcept is enforced by static_assert in move_constructor visitor
-  variant(variant && rhs) noexcept {
+  variant(variant && rhs) noexcept(nothrow_move_ctors) {
     move_constructor mc(*this);
     rhs.apply_visitor_internal(mc);
     SAFE_VARIANT_ASSERT(rhs.which() == this->which(), "Postcondition failed!");
     SAFE_VARIANT_ASSERT_WHICH_INVARIANT;
   }
 
-  variant & operator=(const variant & rhs) noexcept(SAFE_VARIANT_NOTHROW_COPY_CTORS) {
+  variant & operator=(const variant & rhs) noexcept(nothrow_copy_assign) {
     if (this != &rhs) {
       copy_assigner a(*this, rhs.which());
       rhs.apply_visitor_internal(a);
@@ -387,7 +388,7 @@ public:
 
   // TODO: If all types are nothrow MA then this is also
   // For now we assume it is the case.
-  variant & operator=(variant && rhs) noexcept(SAFE_VARIANT_NOTHROW_MOVE_ASSIGN) {
+  variant & operator=(variant && rhs) noexcept(nothrow_move_assign) {
     if (this != &rhs) {
       move_assigner ma(*this, rhs.which());
       rhs.apply_visitor_internal(ma);
@@ -429,7 +430,7 @@ public:
   template <typename OFirst, typename... OTypes,
             typename Enable = mpl::enable_if_t<detail::proper_subvariant<variant<OFirst, OTypes...>,
                                                                          variant>::value>>
-  variant(const variant<OFirst, OTypes...> & other) noexcept(SAFE_VARIANT_NOTHROW_COPY_CTORS) {
+  variant(const variant<OFirst, OTypes...> & other) noexcept(variant<OFirst,OTypes...>::nothrow_copy_ctors) {
     copy_constructor c(*this);
     other.apply_visitor_internal(c);
     SAFE_VARIANT_ASSERT_WHICH_INVARIANT;
@@ -439,7 +440,7 @@ public:
   template <typename OFirst, typename... OTypes,
             typename Enable = mpl::enable_if_t<detail::proper_subvariant<variant<OFirst, OTypes...>,
                                                                          variant>::value>>
-  variant(variant<OFirst, OTypes...> && other) noexcept {
+  variant(variant<OFirst, OTypes...> && other) noexcept(variant<OFirst,OTypes...>::nothrow_move_ctors) {
     move_constructor c(*this);
     other.apply_visitor_internal(c);
     SAFE_VARIANT_ASSERT_WHICH_INVARIANT;
@@ -477,8 +478,8 @@ public:
   }
 
   template <typename T, typename... Args>
-  mpl::enable_if_t<std::is_nothrow_constructible<T, Args...>::value> emplace(
-    Args &&... args) noexcept {
+  mpl::enable_if_t<std::is_nothrow_constructible<T, Args...>::value> // returns void
+  emplace(Args &&... args) noexcept {
     constexpr size_t idx = find_which<T>::value;
     static_assert(idx < sizeof...(Types) + 1,
                   "Requested type is not a member of this variant type");
@@ -603,6 +604,4 @@ using easy_variant = variant<wrap_if_throwing_move_t<Ts>...>;
 
 #undef SAFE_VARIANT_ASSERT
 #undef SAFE_VARIANT_ASSERT_WHICH_INVARIANT
-#undef SAFE_VARIANT_NOTHROW_COPY_CTORS
-#undef SAFE_VARIANT_NOTHROW_MOVE_ASSIGN
 #undef SAFE_VARIANT_ASSERT_NOTHROW_MOVE_CTORS
