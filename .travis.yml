@@ -37,7 +37,7 @@ install:
   - DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"
   - BOOST_VERSION=1.60.0
 
-  - if [[ ! -d ${DEPS_DIR}/boost ]]; then
+  - if [[ ! -x ${DEPS_DIR}/b2/bin/b2 ]]; then
       mkdir -p ${DEPS_DIR} && cd ${DEPS_DIR};
       if [[ "${BOOST_VERSION}" == "default" ]]; then BOOST_VERSION=1.61.0; fi;
 
