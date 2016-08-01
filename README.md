@@ -33,7 +33,8 @@ overload ambiguity differently from other C++ variant types.
 It may be well-suited for use in scenarios where you need to have a variant holding multiple different integral types,
 and really don't want to have any loss of precision or any "gotcha" conversions happening.
 
-**strict variant** provides a strict never-empty guarantee like `boost::variant`, for ease of visitation. But it does not incur the cost of
+**strict variant** provides a strict *never-empty guarantee* like `boost::variant`, for ease of visitation. And it is *strongly exception-safe*, having
+rollback semantics if an assignment throws an exception. But it does not incur the cost of
 backup copies which `boost::variant` pays, due to a different implementation approach. In some cases this allows
 improved performance.
 
