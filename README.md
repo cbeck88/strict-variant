@@ -182,7 +182,12 @@ namespace strict_variant {
   using wrap_if_throwing_move_t = typename wrap_if_throwing_move<T>::type;
 }
 ```
-
+This relaxes the behavior of `boost::variant` which makes a "best effort" to store all
+objects in situ. However, it means that if none of the objects have throwing moves, we get *ideal* performance in terms of
+storage space, copies, etc. For those that do throw, programmers have already gotten used to the idea that if their objects
+are no-throw move constructible, then they get "fast track" behavior when stored within a `std::vector`, so most they typically try
+hard to avoid a throwing move. If it's unavoidable, then likely the object is big / complex / involves other dynamic allocations
+anyways, and then the marginal cost of another dynamic allocation is low -- it may be quite appropriate to put it on the heap anyways.
 
 Synopsis
 ========
@@ -402,33 +407,35 @@ In the C++17 `std::variant`, the strategy is to relax the never-empty guarantee
 to a "rarely empty" guarantee, by introducing an empty state which occurs when
 construction fails. This greatly simplifies assignment and makes that more efficient,
 but it may complicate visitation, depending on how concerned you are about the
-empty state.
+empty state. In essence we are sacrificing strong exception safety for only
+basic exception safety, in a quest for performance.
 
-In `strict_variant`, the focus is on a less general case. We are mostly concerned
-anyways with cases when you have many types in the variant which are implicitly
-convertible, and for assignment we more or less assume that they are no-throw
-move constructible. Via `recursive_wrapper`, we support all the other types as
-well, with the proviso that they will be heap allocated rather than allocated
-in situ. In comparison with `boost::variant`, this results in no extra calls
-to copy constructors when we make an assignment, although it will result in
-extra dynamic allocations. It also will impact speed of visitation, in the sense
+In `strict_variant`, the focus is on a less general case. We basically "favor"
+the nothrow move constructible members, which enjoy optimal performance like they
+would in `std::variant`. We create a "slow track" which accomodates all members
+with throwing moves, by simply always putting them on the heap.
+In comparison with `boost::variant`, this results in no extra calls
+to copy constructors when we make an assignment.
+It also will impact speed of visitation, in the sense
 that you must dereference an extra pointer to find the object -- boost::variant
-tries to get the object in situ, and only puts it on the heap if an exception
+always tries to get the object in situ, and only puts it on the heap if an exception
 is thrown. However, if exceptions are thrown regularly, then you would already
 have had to tolerate this overhead with `boost::variant`. An advantage, though,
 is that operations on `strict_variant` are relatively easy to reason about, as
 there are no dynamic allocations taking place that you don't explicitly opt in
-to. And besides, for the use cases where `strict_variant` is attractive in the
-first place, the types will all likely be no-throw move constructible anyways.
+to. And besides, for the use cases like those for which `strict_variant` was
+originally designed and for which the "no unsafe conversions" property is
+most relevant, the types will all likely be no-throw move constructible anyways.
 
 Regardless, at least when your types are in fact no-throw move constructible,
-we enjoy essentially the same interface as `boost::variant`, without the extra
-copies or dynamic allocations that were required prior to C++11.
+we enjoy essentially the same interface as `boost::variant` updated to modern
+C++, without the extra copies or dynamic allocations that were required prior to
+C++11.
 
 Visitation
 ----------
 
-The other major point of variation is the speed of visitation.
+The other major point of variation among variant templates is the speed of visitation.
 
 In `boost::variant`, at least the early implementations used `boost::mpl`, and
 were limited to twenty or so types. `boost::variant` works even prior to the
