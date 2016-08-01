@@ -118,10 +118,10 @@ static_assert(!safely_constructible<char *, const char * const>::value, "failed 
 struct _dummy_t_1 {};
 struct _dummy_t_2 {};
 
-static_assert(std::is_same<_dummy_t_1, Car<TypeList<_dummy_t_1, _dummy_t_2>>>::value,
+static_assert(std::is_same<_dummy_t_1, Index_At<TypeList<_dummy_t_1, _dummy_t_2>, 0>>::value,
               "unit test failed");
 
-static_assert(std::is_same<TypeList<_dummy_t_2>, Cdr<TypeList<_dummy_t_1, _dummy_t_2>>>::value,
+static_assert(std::is_same<_dummy_t_2, Index_At<TypeList<_dummy_t_1, _dummy_t_2>, 1>>::value,
               "unit test failed");
 
 /////////////////////////

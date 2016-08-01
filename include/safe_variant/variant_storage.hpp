@@ -7,6 +7,8 @@
 
 #include <safe_variant/mpl/index.hpp>
 #include <safe_variant/mpl/max.hpp>
+#include <safe_variant/recursive_wrapper.hpp>
+#include <new>
 #include <utility>
 
 namespace safe_variant {
@@ -44,34 +46,64 @@ struct storage {
   const void * address() const { return m_storage; }
 
   /***
+   * Index -> Type
+   */
+  template <size_t index>
+  using value_t = mpl::Index_t<index, First, Types...>;
+
+  /***
    * Unchecked typed access to storage
    */
   template <size_t index>
-  mpl::Index_t<index, First, Types...> * unchecked_access() {
-    return reinterpret_cast<mpl::Index_t<index, First, Types...> *>(this->address());
+  value_t<index> * unchecked_access() noexcept {
+    return reinterpret_cast<value_t<index>*>(this->address());
   }
 
   template <size_t index>
-  const mpl::Index_t<index, First, Types...> * unchecked_access() const {
-    return reinterpret_cast<const mpl::Index_t<index, First, Types...> *>(this->address());
+  const value_t<index> * unchecked_access() const noexcept {
+    return reinterpret_cast<const value_t<index>*>(this->address());
   }
 
   /***
-   * Typed access which respects value category of storage
+   * Initialize to the type at a particular value
    */
-  template <typename T>
-  T & as() & {
-    return *reinterpret_cast<T *>(this->address());
+  template <size_t index, typename... Args>
+  void initialize(Args && ... args) noexcept(noexcept(value_t<index>(std::forward<Args>(std::declval<Args>())...))) {
+    new (this->address()) value_t<index>(std::forward<Args>(args)...);
   }
 
-  template <typename T>
-  const T & as() const & {
-    return *reinterpret_cast<const T *>(this->address());
+
+  /***
+   * Typed access which pierces recursive_wrapper if detail::false_ is passed
+   */
+  template <size_t index, typename Internal>
+  value_t<index> & get_value(const Internal &) & {
+    return *reinterpret_cast<value_t<index>*>(this->address());
   }
 
-  template <typename T>
-  T && as() && {
-    return std::move(*reinterpret_cast<T *>(this->address()));
+  template <size_t index, typename Internal>
+  const value_t<index> & get_value(const Internal &) const & {
+    return *reinterpret_cast<const value_t<index>*>(this->address());
+  }
+
+  template <size_t index, typename Internal>
+  value_t<index> && get_value(const Internal &) && {
+    return std::move(*reinterpret_cast<value_t<index>*>(this->address()));
+  }
+
+  template <size_t index>
+  unwrap_type_t<value_t<index>> & get_value(const detail::false_ &) & {
+    return detail::get_value(this->get_value<index>(detail::true_{}), detail::false_{});
+  }
+
+  template <size_t index>
+  const unwrap_type_t<value_t<index>> & get_value(const detail::false_ &) const & {
+    return detail::get_value(this->get_value<index>(detail::true_{}), detail::false_{});
+  }
+
+  template <size_t index>
+  unwrap_type_t<value_t<index>> && get_value(const detail::false_ &) && {
+    return std::move(detail::get_value(this->get_value<index>(detail::true_{}), detail::false_{}));
   }
 };
 

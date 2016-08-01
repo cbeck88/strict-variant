@@ -151,8 +151,7 @@ private:
 
   template <size_t index, typename... Args>
   void initialize(Args &&... args) {
-    using target_type = mpl::Index_t<index, First, Types...>;
-    new (m_storage.address()) target_type(std::forward<Args>(args)...);
+    m_storage.template initialize<index>(std::forward<Args>(args)...);
     this->m_which = static_cast<int>(index);
   }
 
@@ -175,12 +174,12 @@ private:
    */
   template <typename Internal = detail::true_, typename Visitor>
   auto apply_visitor_internal(Visitor & visitor) -> typename Visitor::result_type {
-    return detail::visitor_dispatch<Internal, First, Types...>{}(m_which, m_storage, visitor);
+    return detail::visitor_dispatch<Internal, 1 + sizeof...(Types)>{}(m_which, m_storage, visitor);
   }
 
   template <typename Internal = detail::true_, typename Visitor>
   auto apply_visitor_internal(Visitor & visitor) const -> typename Visitor::result_type {
-    return detail::visitor_dispatch<Internal, First, Types...>{}(m_which, m_storage, visitor);
+    return detail::visitor_dispatch<Internal, 1 + sizeof...(Types)>{}(m_which, m_storage, visitor);
   }
 
   /***
@@ -546,8 +545,8 @@ private:
   storage_t && storage() && { return std::move(m_storage); }
   const storage_t & storage() const & { return m_storage; }
 
-  detail::visitor_dispatch<detail::false_, First, Types...> get_visitor_dispatch() { return {}; }
-  detail::visitor_dispatch<detail::false_, First, Types...> get_visitor_dispatch() const {
+  detail::visitor_dispatch<detail::false_, 1 + sizeof...(Types)> get_visitor_dispatch() { return {}; }
+  detail::visitor_dispatch<detail::false_, 1 + sizeof...(Types)> get_visitor_dispatch() const {
     return {};
   }
 };
@@ -561,7 +560,7 @@ apply_visitor(Visitor && visitor, Visitable && visitable)
   -> decltype(std::declval<Visitable>().get_visitor_dispatch()(
     std::declval<Visitable>().which(), std::forward<Visitable>(std::declval<Visitable>()).storage(),
     std::forward<Visitor>(std::declval<Visitor>()))) {
-  return std::forward<Visitable>(visitable).get_visitor_dispatch()(
+  return visitable.get_visitor_dispatch()(
     visitable.which(), std::forward<Visitable>(visitable).storage(),
     std::forward<Visitor>(visitor));
 }

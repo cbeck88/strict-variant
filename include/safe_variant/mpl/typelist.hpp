@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include <type_traits>
+
 namespace safe_variant {
 
 // Poor man's boost::mpl::vector.
@@ -36,18 +38,6 @@ struct Concat<TypeList<TL...>, TypeList<TR...>> {
 
 template <typename L, typename R>
 using Concat_t = typename Concat<L, R>::type;
-
-// Metafunction First: Get first type from a typelist
-template <typename T>
-struct First;
-
-template <typename T, typename... TL>
-struct First<TypeList<T, TL...>> {
-  typedef T type;
-};
-
-template <typename T>
-using First_t = typename First<T>::type;
 
 // Metafunction Split: Split a typelist at a particular index
 template <int i, typename TL>
@@ -87,43 +77,26 @@ template <typename TL>
 struct Subdivide : Split<TL::size / 2, TL> {};
 
 /***
- * Car metafunction
- */
-template <typename T>
-struct Car_s;
-
-template <typename T, typename... Ts>
-struct Car_s<TypeList<T, Ts...>> {
-  typedef T type;
-};
-
-template <typename T>
-using Car = typename Car_s<T>::type;
-
-/***
- * Cdr metafunction
- */
-template <typename T>
-struct Cdr_s;
-
-template <typename T, typename... Ts>
-struct Cdr_s<TypeList<T, Ts...>> {
-  typedef TypeList<Ts...> type;
-};
-
-template <typename T>
-using Cdr = typename Cdr_s<T>::type;
-
-/***
  * Index_At metafunction
- * TODO: Base this on Subdivide, in order to reduce recursion depth
+ * Based this on Subdivide, in order to reduce recursion depth
  */
-template <typename T, std::size_t i>
-struct Index_At_s : Index_At_s<Cdr<T>, i - 1> {};
+template <typename T, std::size_t i, typename Enable = void>
+struct Index_At_s;
 
-template <typename T, typename... Ts>
-struct Index_At_s<TypeList<T, Ts...>, 0> {
-  typedef T type;
+// Prevent out of bounds
+template <typename T>
+struct Index_At_s<TypeList<T>, 0> {
+  using type = T;
+};
+
+template <typename TL, std::size_t i>
+struct Index_At_s<TL, i, typename std::enable_if<(TL::size >= 2 && i < TL::size / 2)>::type> {
+  using type = typename Index_At_s<typename Subdivide<TL>::L, i>::type;
+};
+
+template <typename TL, std::size_t i>
+struct Index_At_s<TL, i, typename std::enable_if<(TL::size >= 2 && TL::size / 2 <= i && i < TL::size)>::type> {
+  using type = typename Index_At_s<typename Subdivide<TL>::R, i - (TL::size / 2)>::type;
 };
 
 template <typename T, std::size_t i>
@@ -142,17 +115,6 @@ template <typename T>
 using Back_Of = Back_Of_s<T>;
 
 namespace mpl {
-/***
- * typelist_map metafunction
- * Apply a metafunction to each member of a typelist, producing a new typelist
- */
-template <template <class> class F, typename TL>
-struct typelist_map;
-
-template <template <class> class F, typename... Ts>
-struct typelist_map<F, TypeList<Ts...>> {
-  using type = TypeList<typename F<Ts>::type...>;
-};
 
 /***
  * typelist_fwd metafunction
