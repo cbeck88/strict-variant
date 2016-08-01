@@ -5,6 +5,7 @@
 
 #include <strict_variant/variant.hpp>
 #include <strict_variant/variant_stream_ops.hpp>
+#include <strict_variant/multivisit.hpp>
 
 #include "test_harness/test_harness.hpp"
 
@@ -652,6 +653,38 @@ UNIT_TEST(easy_variant) {
   TEST_EQ(v.which(), 1);
   v = test_a{};
   TEST_EQ(v.which(), 0);
+}
+
+struct test_eq {
+  template <typename T, typename U>
+  bool operator ()(const T & t, const U & u) const {
+    return t == u;
+  }
+};
+
+UNIT_TEST(multivisit) {
+  using var1_t = variant<int, double>;
+  using var2_t = variant<bool, double>;
+
+  var1_t v1{10};
+  var2_t v2{true};
+
+  TEST_EQ(false, apply_visitor(test_eq{}, v1, v2));
+  TEST_EQ(true, apply_visitor(test_eq{}, v1, v1));
+  TEST_EQ(true, apply_visitor(test_eq{}, v2, v2));
+
+  v1 = 1;
+
+  TEST_EQ(true, apply_visitor(test_eq{}, v1, v2));
+
+  v2 = 10.0;
+
+  TEST_EQ(false, apply_visitor(test_eq{}, v1, v2));
+
+  v1 = 10;
+
+  TEST_EQ(v1.which(), 0);
+  TEST_EQ(true, apply_visitor(test_eq{}, v1, v2));  
 }
 
 } // end namespace strict_variant

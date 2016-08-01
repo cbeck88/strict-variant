@@ -505,7 +505,7 @@ public:
     }
   }
 
-  // Friend apply visitor
+  // Friend apply_visitor
   template <typename Visitor, typename Visitable>
   friend auto apply_visitor(Visitor &&, Visitable &&)
     -> decltype(std::declval<Visitable>().get_visitor_dispatch()(
@@ -528,7 +528,8 @@ private:
 };
 
 /***
- * apply visitor function (same semantics as juice_variant::apply_visitor)
+ * apply one visitor function. This is the basic version, used in implementation
+ * of multivisitation.
  */
 template <typename Visitor, typename Visitable>
 auto

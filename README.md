@@ -317,6 +317,9 @@ Forward-facing includes:
   By default `strict_variant::variant` is not streamable.  
 - `#include <strict_variant/variant_spirit.hpp>`  
   Defines customization points within `boost::spirit` so that `strict_variant::variant` can be used just like `boost::variant` in your `qi` grammars.
+- `#include <strict_variant/multivisit.hpp>`  
+  Needed to support multi-visitation. Unary visitation is already brought in by `strict_variant/variant.hpp`.  
+  *Multi-visitation* means that a series of variants are passed along with a visitor, and value of each is determined and forwarded to the visitor.  
 
 All the library definitions are made within the namespace `strict_variant`.
 
@@ -587,7 +590,6 @@ with three additional cores identical to that one.
 Known issues
 ============
 
-- Support multi-visitation.
 - No `constexpr` support. This is really extremely difficult to do in a variant at
   C++11 standard, it's only really feasible in C++14. If you want `constexpr` support
   then I suggest having a look at [`eggs::variant`](https://github.com/eggs-cpp/variant).
