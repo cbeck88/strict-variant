@@ -169,7 +169,8 @@ private:
   template <typename Rhs>
   struct find_which {
     static constexpr size_t value =
-      mpl::Find_With<detail::same_modulo_const_ref_wrapper<Rhs>::template prop, First, Types...>::value;
+      mpl::Find_With<detail::same_modulo_const_ref_wrapper<Rhs>::template prop, First,
+                     Types...>::value;
     static_assert(value < (sizeof...(Types) + 1), "No match for value");
   };
 
@@ -518,7 +519,9 @@ private:
   storage_t && storage() && { return std::move(m_storage); }
   const storage_t & storage() const & { return m_storage; }
 
-  detail::visitor_dispatch<detail::false_, 1 + sizeof...(Types)> get_visitor_dispatch() { return {}; }
+  detail::visitor_dispatch<detail::false_, 1 + sizeof...(Types)> get_visitor_dispatch() {
+    return {};
+  }
   detail::visitor_dispatch<detail::false_, 1 + sizeof...(Types)> get_visitor_dispatch() const {
     return {};
   }
@@ -533,9 +536,9 @@ apply_visitor(Visitor && visitor, Visitable && visitable)
   -> decltype(std::declval<Visitable>().get_visitor_dispatch()(
     std::declval<Visitable>().which(), std::forward<Visitable>(std::declval<Visitable>()).storage(),
     std::forward<Visitor>(std::declval<Visitor>()))) {
-  return visitable.get_visitor_dispatch()(
-    visitable.which(), std::forward<Visitable>(visitable).storage(),
-    std::forward<Visitor>(visitor));
+  return visitable.get_visitor_dispatch()(visitable.which(),
+                                          std::forward<Visitable>(visitable).storage(),
+                                          std::forward<Visitor>(visitor));
 }
 
 /***

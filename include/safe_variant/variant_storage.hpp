@@ -5,10 +5,10 @@
 
 #pragma once
 
+#include <new>
 #include <safe_variant/mpl/index.hpp>
 #include <safe_variant/mpl/max.hpp>
 #include <safe_variant/recursive_wrapper.hpp>
-#include <new>
 #include <utility>
 
 namespace safe_variant {
@@ -69,7 +69,8 @@ struct storage {
    * Initialize to the type at a particular value
    */
   template <size_t index, typename... Args>
-  void initialize(Args && ... args) noexcept(noexcept(value_t<index>(std::forward<Args>(std::declval<Args>())...))) {
+  void initialize(Args &&... args) noexcept(
+    noexcept(value_t<index>(std::forward<Args>(std::declval<Args>())...))) {
     new (this->address()) value_t<index>(std::forward<Args>(args)...);
   }
 
@@ -78,17 +79,17 @@ struct storage {
    */
   template <size_t index, typename Internal>
   value_t<index> & get_value(const Internal &) & {
-    return *reinterpret_cast<value_t<index>*>(this->address());
+    return *reinterpret_cast<value_t<index> *>(this->address());
   }
 
   template <size_t index, typename Internal>
   const value_t<index> & get_value(const Internal &) const & {
-    return *reinterpret_cast<const value_t<index>*>(this->address());
+    return *reinterpret_cast<const value_t<index> *>(this->address());
   }
 
   template <size_t index, typename Internal>
   value_t<index> && get_value(const Internal &) && {
-    return std::move(*reinterpret_cast<value_t<index>*>(this->address()));
+    return std::move(*reinterpret_cast<value_t<index> *>(this->address()));
   }
 
   template <size_t index>

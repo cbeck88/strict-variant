@@ -21,18 +21,17 @@ namespace safe_variant {
 
 namespace detail {
 
-  // Search prediate for find_which
-  template <typename T>
-  struct same_modulo_const_ref_wrapper {
-    template <typename U>
-    struct prop {
-      using T2 = unwrap_type_t<mpl::remove_const_t<mpl::remove_reference_t<T>>>;
-      using U2 = unwrap_type_t<mpl::remove_const_t<mpl::remove_reference_t<U>>>;
+// Search prediate for find_which
+template <typename T>
+struct same_modulo_const_ref_wrapper {
+  template <typename U>
+  struct prop {
+    using T2 = unwrap_type_t<mpl::remove_const_t<mpl::remove_reference_t<T>>>;
+    using U2 = unwrap_type_t<mpl::remove_const_t<mpl::remove_reference_t<U>>>;
 
-      static constexpr bool value = std::is_same<T2, U2>::value;
-    };
+    static constexpr bool value = std::is_same<T2, U2>::value;
   };
-
+};
 
 /***
  * Metafunction `subvariant`: Check if the set of types of A is a subset of the

@@ -26,7 +26,7 @@
 
 #define SAFE_VARIANT_ASSERT(X)                                                                     \
   do {                                                                                             \
-     static_cast<void>(X);                                                                         \
+    static_cast<void>(X);                                                                          \
   } while (0)
 
 #endif // SAFE_VARIANT_DEBUG
@@ -59,9 +59,9 @@ visitor_caller(Storage && storage, Visitor && visitor)
 /// Trait which figures out what the return type of visitor caller is
 template <unsigned index, typename Internal, typename Storage, typename Visitor>
 struct visitor_caller_return_type {
-  using type =
-    decltype(visitor_caller<index, Internal, Storage>(std::forward<Storage>(std::declval<Storage>()),
-                                                  std::forward<Visitor>(std::declval<Visitor>())));
+  using type = decltype(
+    visitor_caller<index, Internal, Storage>(std::forward<Storage>(std::declval<Storage>()),
+                                             std::forward<Visitor>(std::declval<Visitor>())));
 };
 
 /// Helper which figures out the return type of multiple visitor calls
@@ -131,7 +131,6 @@ struct binary_search_dispatch {
   template <typename Storage, typename Visitor>
   return_t operator()(const unsigned int which, Storage && storage, Visitor && visitor) {
 
-
     if (which < base + half) {
       return binary_search_dispatch<return_t, Internal, base, half>{}(
         which, std::forward<Storage>(storage), std::forward<Visitor>(visitor));
@@ -149,7 +148,7 @@ struct binary_search_dispatch<return_t, Internal, base, 1u> {
     SAFE_VARIANT_ASSERT(which == base);
 
     return visitor_caller<base, Internal, Storage, Visitor>(std::forward<Storage>(storage),
-                                                         std::forward<Visitor>(visitor));
+                                                            std::forward<Visitor>(visitor));
   }
 };
 
@@ -183,16 +182,16 @@ struct visitor_dispatch {
   */
 
   template <typename Storage, typename Visitor>
-  auto operator()(const unsigned int which, Storage && storage, Visitor && visitor) ->
-    typename mpl::typelist_fwd<mpl::common_type_t,
-                               typename mpl::ulist_map<return_typer<Internal, Storage,
-                                                                       Visitor>::template helper,
-                                                          mpl::count_t<num_types>>::type>::type {
+  auto operator()(const unsigned int which, Storage && storage,
+                  Visitor && visitor) -> typename mpl::
+    typelist_fwd<mpl::common_type_t,
+                 typename mpl::ulist_map<return_typer<Internal, Storage, Visitor>::template helper,
+                                         mpl::count_t<num_types>>::type>::type {
     using return_t =
       typename mpl::typelist_fwd<mpl::common_type_t,
                                  typename mpl::ulist_map<return_typer<Internal, Storage,
-                                                                         Visitor>::template helper,
-                                                            mpl::count_t<num_types>>::type>::type;
+                                                                      Visitor>::template helper,
+                                                         mpl::count_t<num_types>>::type>::type;
 
     // using chosen_dispatch_t = jumptable_dispatch<return_t, Internal, AllTypes...>;
 

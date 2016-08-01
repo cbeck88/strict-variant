@@ -8,7 +8,7 @@
 namespace safe_variant {
 namespace mpl {
 
-template <unsigned ... us>
+template <unsigned... us>
 struct ulist {
   static constexpr size_t size = sizeof...(us);
 };
@@ -17,7 +17,7 @@ struct ulist {
 template <typename UL, unsigned u>
 struct append;
 
-template <unsigned u, unsigned ... us>
+template <unsigned u, unsigned... us>
 struct append<ulist<us...>, u> {
   using type = ulist<us..., u>;
 };
@@ -28,7 +28,7 @@ using append_t = typename append<UL, u>::type;
 // Count function
 template <size_t n>
 struct count {
-  using type = append_t<typename count<n-1>::type, n-1>;
+  using type = append_t<typename count<n - 1>::type, n - 1>;
 };
 
 template <>
@@ -47,7 +47,6 @@ template <template <unsigned> class F, unsigned... us>
 struct ulist_map<F, ulist<us...>> {
   using type = TypeList<typename F<us>::type...>;
 };
-
 
 } // end namespace mpl
 } // end namespace safe_variant

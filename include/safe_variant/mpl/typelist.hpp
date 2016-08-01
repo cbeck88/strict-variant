@@ -95,7 +95,8 @@ struct Index_At_s<TL, i, typename std::enable_if<(TL::size >= 2 && i < TL::size 
 };
 
 template <typename TL, std::size_t i>
-struct Index_At_s<TL, i, typename std::enable_if<(TL::size >= 2 && TL::size / 2 <= i && i < TL::size)>::type> {
+struct Index_At_s<TL, i, typename std::enable_if<(TL::size >= 2 && TL::size / 2 <= i
+                                                  && i < TL::size)>::type> {
   using type = typename Index_At_s<typename Subdivide<TL>::R, i - (TL::size / 2)>::type;
 };
 
