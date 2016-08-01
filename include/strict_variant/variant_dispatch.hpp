@@ -163,11 +163,11 @@ struct visitor_dispatch {
   template <typename Storage, typename Visitor>
   auto operator()(const unsigned int which, Storage && storage,
                   Visitor && visitor) -> typename mpl::
-    typelist_fwd<mpl::common_type_t,
+    typelist_fwd<mpl::common_return_type_t,
                  typename mpl::ulist_map<return_typer<Internal, Storage, Visitor>::template helper,
                                          mpl::count_t<num_types>>::type>::type {
     using return_t =
-      typename mpl::typelist_fwd<mpl::common_type_t,
+      typename mpl::typelist_fwd<mpl::common_return_type_t,
                                  typename mpl::ulist_map<return_typer<Internal, Storage,
                                                                       Visitor>::template helper,
                                                          mpl::count_t<num_types>>::type>::type;
