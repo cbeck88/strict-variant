@@ -64,7 +64,7 @@ using common_type_t = typename common_type<T, Ts...>::type;
 
 // This is not actually standard, oh well
 
-template <typename T> 
+template <typename T>
 struct is_nothrow_copy_constructible : std::is_nothrow_constructible<T, const T &> {};
 
 } // end namespace mpl

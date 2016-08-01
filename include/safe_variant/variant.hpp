@@ -104,9 +104,8 @@ private:
                 "All types in this variant type must be nothrow destructible");
 
   static constexpr bool nothrow_move_ctors =
-    assume_move_nothrow || mpl::All_Have<std::is_nothrow_move_constructible, First, Types...>::value;
-
-  
+    assume_move_nothrow
+    || mpl::All_Have<std::is_nothrow_move_constructible, First, Types...>::value;
 
 #define SAFE_VARIANT_ASSERT_NOTHROW_MOVE_CTORS                                                     \
   static_assert(nothrow_move_ctors,                                                                \
@@ -115,7 +114,8 @@ private:
   static_assert(true, "")
 
   static constexpr bool nothrow_copy_ctors =
-    assume_copy_nothrow || mpl::All_Have<mpl::is_nothrow_copy_constructible, First, Types...>::value;
+    assume_copy_nothrow
+    || mpl::All_Have<mpl::is_nothrow_copy_constructible, First, Types...>::value;
 
   static constexpr bool nothrow_move_assign =
     nothrow_move_ctors && mpl::All_Have<std::is_nothrow_move_assignable, First, Types...>::value;
@@ -430,7 +430,8 @@ public:
   template <typename OFirst, typename... OTypes,
             typename Enable = mpl::enable_if_t<detail::proper_subvariant<variant<OFirst, OTypes...>,
                                                                          variant>::value>>
-  variant(const variant<OFirst, OTypes...> & other) noexcept(variant<OFirst,OTypes...>::nothrow_copy_ctors) {
+  variant(const variant<OFirst, OTypes...> & other) noexcept(
+    variant<OFirst, OTypes...>::nothrow_copy_ctors) {
     copy_constructor c(*this);
     other.apply_visitor_internal(c);
     SAFE_VARIANT_ASSERT_WHICH_INVARIANT;
@@ -440,7 +441,8 @@ public:
   template <typename OFirst, typename... OTypes,
             typename Enable = mpl::enable_if_t<detail::proper_subvariant<variant<OFirst, OTypes...>,
                                                                          variant>::value>>
-  variant(variant<OFirst, OTypes...> && other) noexcept(variant<OFirst,OTypes...>::nothrow_move_ctors) {
+  variant(variant<OFirst, OTypes...> && other) noexcept(
+    variant<OFirst, OTypes...>::nothrow_move_ctors) {
     move_constructor c(*this);
     other.apply_visitor_internal(c);
     SAFE_VARIANT_ASSERT_WHICH_INVARIANT;
@@ -479,7 +481,7 @@ public:
 
   template <typename T, typename... Args>
   mpl::enable_if_t<std::is_nothrow_constructible<T, Args...>::value> // returns void
-  emplace(Args &&... args) noexcept {
+    emplace(Args &&... args) noexcept {
     constexpr size_t idx = find_which<T>::value;
     static_assert(idx < sizeof...(Types) + 1,
                   "Requested type is not a member of this variant type");
