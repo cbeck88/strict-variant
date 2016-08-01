@@ -6,7 +6,7 @@
 #pragma once
 
 #include <new>
-#include <safe_variant/mpl/index.hpp>
+#include <safe_variant/mpl/typelist.hpp>
 #include <safe_variant/mpl/max.hpp>
 #include <safe_variant/recursive_wrapper.hpp>
 #include <utility>
@@ -62,8 +62,10 @@ struct storage {
   /***
    * Index -> Type
    */
+  using my_types = TypeList<First, Types...>;
+
   template <size_t index>
-  using value_t = mpl::Index_t<index, First, Types...>;
+  using value_t = Index_At<my_types, index>;
 
   /***
    * Initialize to the type at a particular value

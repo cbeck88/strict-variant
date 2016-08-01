@@ -21,7 +21,6 @@
  */
 
 #include <safe_variant/mpl/find_with.hpp>
-#include <safe_variant/mpl/index.hpp>
 #include <safe_variant/mpl/std_traits.hpp>
 #include <safe_variant/mpl/typelist.hpp>
 #include <safe_variant/recursive_wrapper.hpp>
