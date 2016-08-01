@@ -65,7 +65,7 @@ struct storage {
   using my_types = TypeList<First, Types...>;
 
   template <size_t index>
-  using value_t = Index_At<my_types, index>;
+  using value_t = mpl::Index_At<my_types, index>;
 
   /***
    * Initialize to the type at a particular value

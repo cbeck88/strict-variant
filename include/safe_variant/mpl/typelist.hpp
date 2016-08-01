@@ -15,6 +15,8 @@ struct TypeList {
   static constexpr int size = sizeof...(Ts);
 };
 
+namespace mpl {
+
 template <class List, class T>
 struct Append;
 
@@ -114,8 +116,6 @@ struct Back_Of_s<TypeList<T, Ts...>> : Index_At<TypeList<T, Ts...>, sizeof...(Ts
 
 template <typename T>
 using Back_Of = Back_Of_s<T>;
-
-namespace mpl {
 
 /***
  * typelist_fwd metafunction
