@@ -107,12 +107,6 @@ private:
     assume_move_nothrow
     || mpl::All_Have<std::is_nothrow_move_constructible, First, Types...>::value;
 
-#define SAFE_VARIANT_ASSERT_NOTHROW_MOVE_CTORS                                                     \
-  static_assert(nothrow_move_ctors,                                                                \
-                "All types in this variant must be nothrow move constructible or the variant "     \
-                "cannot be assigned!");                                                            \
-  static_assert(true, "")
-
   static constexpr bool nothrow_copy_ctors =
     assume_copy_nothrow
     || mpl::All_Have<mpl::is_nothrow_copy_constructible, First, Types...>::value;
@@ -156,20 +150,6 @@ private:
   }
 
   /***
-   * Unchecked typed access
-   */
-
-  template <size_t index>
-  mpl::Index_t<index, First, Types...> & unchecked_access() {
-    return *(m_storage.template unchecked_access<index>());
-  }
-
-  template <size_t index>
-  const mpl::Index_t<index, First, Types...> & unchecked_access() const {
-    return *(m_storage.template unchecked_access<index>());
-  }
-
-  /***
    * Used for internal visitors
    */
   template <typename Internal = detail::true_, typename Visitor>
@@ -186,23 +166,10 @@ private:
    * find_which is used with non-T&& ctors to figure out what "which" should be
    * used for a given type
    */
-
-  // Search prediate for find_which
-  template <typename T>
-  struct same_modulo_const_ref_wrapper {
-    template <typename U>
-    struct prop {
-      using T2 = unwrap_type_t<mpl::remove_const_t<mpl::remove_reference_t<T>>>;
-      using U2 = unwrap_type_t<mpl::remove_const_t<mpl::remove_reference_t<U>>>;
-
-      static constexpr bool value = std::is_same<T2, U2>::value;
-    };
-  };
-
   template <typename Rhs>
   struct find_which {
     static constexpr size_t value =
-      mpl::Find_With<same_modulo_const_ref_wrapper<Rhs>::template prop, First, Types...>::value;
+      mpl::Find_With<detail::same_modulo_const_ref_wrapper<Rhs>::template prop, First, Types...>::value;
     static_assert(value < (sizeof...(Types) + 1), "No match for value");
   };
 
@@ -239,6 +206,12 @@ private:
     variant & m_self;
   };
 
+#define SAFE_VARIANT_ASSERT_NOTHROW_MOVE_CTORS                                                     \
+  static_assert(nothrow_move_ctors,                                                                \
+                "All types in this variant must be nothrow move constructible or the variant "     \
+                "cannot be assigned!");                                                            \
+  static_assert(true, "")
+
   // copy assigner
   struct copy_assigner {
     typedef void result_type;
@@ -257,7 +230,7 @@ private:
       if (m_self.which() == m_rhs_which) {
         // the types are the same, so just assign into the lhs
         SAFE_VARIANT_ASSERT(m_rhs_which == index, "Bad access!");
-        m_self.unchecked_access<index>() = rhs;
+        m_self.m_storage.template get_value<index>(detail::true_{}) = rhs;
       } else if (assume_copy_nothrow || noexcept(Rhs(rhs))) {
         // If copy ctor is no-throw (think integral types), this is the fastest
         // way
@@ -295,7 +268,7 @@ private:
       if (m_self.which() == m_rhs_which) {
         // the types are the same, so just assign into the lhs
         SAFE_VARIANT_ASSERT(m_rhs_which == index, "Bad access!");
-        m_self.unchecked_access<index>() = std::move(rhs);
+        m_self.m_storage.template get_value<index>(detail::true_{}) = std::move(rhs);
       } else {
         m_self.destroy();                         // nothrow
         m_self.initialize<index>(std::move(rhs)); // nothrow (please)
@@ -323,7 +296,7 @@ private:
       if (m_self.which() == m_rhs_which) {
         // the types are the same, so use operator eq
         SAFE_VARIANT_ASSERT(m_rhs_which == index, "Bad access!");
-        return m_self.unchecked_access<index>() == rhs;
+        return m_self.m_storage.template get_value<index>(detail::false_{}) == rhs;
       } else {
         return false;
       }
@@ -512,7 +485,7 @@ public:
                   "Requested type is not a member of this variant type");
 
     if (idx == m_which) {
-      return &pierce_recursive_wrapper<T>(this->unchecked_access<idx>());
+      return &m_storage.template get_value<idx>(detail::false_{});
     } else {
       return nullptr;
     }
@@ -525,7 +498,7 @@ public:
                   "Requested type is not a member of this variant type");
 
     if (idx == m_which) {
-      return &pierce_recursive_wrapper<T>(this->unchecked_access<idx>());
+      return &m_storage.template get_value<idx>(detail::false_{});
     } else {
       return nullptr;
     }

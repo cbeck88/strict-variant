@@ -579,7 +579,6 @@ with three additional cores identical to that one.
 Known issues
 ============
 
-- There are still some issues with `noexcept` correctness which I would like to fix. It's mostly in order right now though.
 - Support multi-visitation.
 - No `constexpr` support. This is really extremely difficult to do in a variant at
   C++11 standard, it's only really feasible in C++14. If you want `constexpr` support

@@ -91,38 +91,43 @@ private:
 
 namespace detail {
 
-// Implementation note:
-// Internal visitors need to be able to access the "true" type, the
-// reference_wrapper<T> when it is within the variant, to implement ctors
-// and special memeber functions.
-// External visitors are supposed to have this elided.
-// The `get_value` function uses tag dispatch to do the right thing.
-
-struct true_ {};
-struct false_ {};
-
-template <typename T, typename Internal>
-T &&
-get_value(T && t, const Internal &) {
-  return std::forward<T>(t);
+/***
+ * Function to pierce the recursive wrapper
+ */
+template <typename T>
+inline T &
+pierce_recursive_wrapper(T & t) {
+  return t;
 }
 
 template <typename T>
-T &
-get_value(recursive_wrapper<T> & t, const false_ &) {
+inline T &
+pierce_recursive_wrapper(recursive_wrapper<T> & t) {
   return t.get();
 }
 
 template <typename T>
-const T &
-get_value(const recursive_wrapper<T> & t, const false_ &) {
-  return t.get();
+inline T &&
+pierce_recursive_wrapper(T && t) {
+  return std::move(t);
 }
 
 template <typename T>
-T &&
-get_value(recursive_wrapper<T> && t, const false_ &) {
-  return std::move(t).get();
+inline T &&
+pierce_recursive_wrapper(recursive_wrapper<T> && t) {
+  return std::move(t.get());
+}
+
+template <typename T>
+inline const T &
+pierce_recursive_wrapper(const T & t) {
+  return t;
+}
+
+template <typename T>
+inline const T &
+pierce_recursive_wrapper(const recursive_wrapper<T> & t) {
+  return t.get();
 }
 
 } // end namespace detail
@@ -142,33 +147,6 @@ struct unwrap_type<recursive_wrapper<T>> {
 
 template <typename T>
 using unwrap_type_t = typename unwrap_type<T>::type;
-
-/***
- * Function to pierce the recursive wrapper
- */
-template <typename T>
-inline T &
-pierce_recursive_wrapper(T & t) {
-  return t;
-}
-
-template <typename T>
-inline T &
-pierce_recursive_wrapper(recursive_wrapper<T> & t) {
-  return t.get();
-}
-
-template <typename T>
-inline const T &
-pierce_recursive_wrapper(const T & t) {
-  return t;
-}
-
-template <typename T>
-inline const T &
-pierce_recursive_wrapper(const recursive_wrapper<T> & t) {
-  return t.get();
-}
 
 /***
  * Trait to add the wrapper if a type is not no-throw move constructible

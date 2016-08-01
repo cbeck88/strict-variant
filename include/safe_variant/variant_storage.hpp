@@ -14,6 +14,20 @@
 namespace safe_variant {
 namespace detail {
 
+// Implementation note:
+// Internal visitors need to be able to access the "true" type, the
+// reference_wrapper<T> when it is within the variant, to implement ctors
+// and special memeber functions.
+// External visitors are supposed to have this elided.
+// The `get_value` function uses tag dispatch to do the right thing.
+
+struct true_ {};
+struct false_ {};
+
+// Storage for the types in a list of types.
+// Provides typed access using the index within the list as a template parameter.
+// And some facilities for piercing recursive_wrapper
+
 template <typename First, typename... Types>
 struct storage {
 
@@ -52,26 +66,12 @@ struct storage {
   using value_t = mpl::Index_t<index, First, Types...>;
 
   /***
-   * Unchecked typed access to storage
-   */
-  template <size_t index>
-  value_t<index> * unchecked_access() noexcept {
-    return reinterpret_cast<value_t<index>*>(this->address());
-  }
-
-  template <size_t index>
-  const value_t<index> * unchecked_access() const noexcept {
-    return reinterpret_cast<const value_t<index>*>(this->address());
-  }
-
-  /***
    * Initialize to the type at a particular value
    */
   template <size_t index, typename... Args>
   void initialize(Args && ... args) noexcept(noexcept(value_t<index>(std::forward<Args>(std::declval<Args>())...))) {
     new (this->address()) value_t<index>(std::forward<Args>(args)...);
   }
-
 
   /***
    * Typed access which pierces recursive_wrapper if detail::false_ is passed
@@ -93,17 +93,17 @@ struct storage {
 
   template <size_t index>
   unwrap_type_t<value_t<index>> & get_value(const detail::false_ &) & {
-    return detail::get_value(this->get_value<index>(detail::true_{}), detail::false_{});
+    return detail::pierce_recursive_wrapper(this->get_value<index>(detail::true_{}));
   }
 
   template <size_t index>
   const unwrap_type_t<value_t<index>> & get_value(const detail::false_ &) const & {
-    return detail::get_value(this->get_value<index>(detail::true_{}), detail::false_{});
+    return detail::pierce_recursive_wrapper(this->get_value<index>(detail::true_{}));
   }
 
   template <size_t index>
   unwrap_type_t<value_t<index>> && get_value(const detail::false_ &) && {
-    return std::move(detail::get_value(this->get_value<index>(detail::true_{}), detail::false_{}));
+    return std::move(detail::pierce_recursive_wrapper(this->get_value<index>(detail::true_{})));
   }
 };
 
