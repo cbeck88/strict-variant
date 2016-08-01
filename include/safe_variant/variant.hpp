@@ -531,10 +531,11 @@ public:
 
   // Friend apply visitor
   template <typename Visitor, typename Visitable>
-  friend auto
-  apply_visitor(Visitor &&, Visitable &&) -> decltype(std::declval<Visitable>().get_visitor_dispatch()(
-    std::declval<Visitable>().which(), std::forward<Visitable>(std::declval<Visitable>()).storage(),
-    std::forward<Visitor>(std::declval<Visitor>())));
+  friend auto apply_visitor(Visitor &&, Visitable &&)
+    -> decltype(std::declval<Visitable>().get_visitor_dispatch()(
+      std::declval<Visitable>().which(),
+      std::forward<Visitable>(std::declval<Visitable>()).storage(),
+      std::forward<Visitor>(std::declval<Visitor>())));
 
   // Implementation details for apply_visitor
 private:
@@ -558,7 +559,8 @@ apply_visitor(Visitor && visitor, Visitable && visitable)
     std::declval<Visitable>().which(), std::forward<Visitable>(std::declval<Visitable>()).storage(),
     std::forward<Visitor>(std::declval<Visitor>()))) {
   return std::forward<Visitable>(visitable).get_visitor_dispatch()(
-    visitable.which(), std::forward<Visitable>(visitable).storage(), std::forward<Visitor>(visitor));
+    visitable.which(), std::forward<Visitable>(visitable).storage(),
+    std::forward<Visitor>(visitor));
 }
 
 /***

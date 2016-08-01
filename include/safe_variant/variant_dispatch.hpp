@@ -34,14 +34,16 @@ auto
 visitor_caller(Storage && storage, Visitor && visitor)
   -> decltype(std::forward<Visitor>(std::declval<Visitor>())(
     get_value(std::forward<Storage>(std::declval<Storage>()).template as<T>(), Internal()))) {
-  return std::forward<Visitor>(visitor)(get_value(std::forward<Storage>(storage).template as<T>(), Internal()));
+  return std::forward<Visitor>(visitor)(
+    get_value(std::forward<Storage>(storage).template as<T>(), Internal()));
 }
 
 /// Trait which figures out what the return type of visitor caller is
 template <typename T, typename Internal, typename Storage, typename Visitor>
 struct visitor_caller_return_type {
-  using type = decltype(visitor_caller<T, Internal, Storage>(
-    std::forward<Storage>(std::declval<Storage>()), std::forward<Visitor>(std::declval<Visitor>())));
+  using type =
+    decltype(visitor_caller<T, Internal, Storage>(std::forward<Storage>(std::declval<Storage>()),
+                                                  std::forward<Visitor>(std::declval<Visitor>())));
 };
 
 /// Helper which figures out the return type of multiple visitor calls
@@ -107,8 +109,8 @@ struct binary_search_dispatch<return_t, Internal, base, TypeList<T>> {
     // ASSERT(which == base);
     static_cast<void>(which);
 
-    return visitor_caller<T, Internal, Storage, Visitor>(
-      std::forward<Storage>(storage), std::forward<Visitor>(visitor));
+    return visitor_caller<T, Internal, Storage, Visitor>(std::forward<Storage>(storage),
+                                                         std::forward<Visitor>(visitor));
   }
 };
 
@@ -158,16 +160,15 @@ struct visitor_dispatch {
   */
 
   template <typename Storage, typename Visitor>
-  auto operator()(const unsigned int which, Storage && storage, Visitor && visitor)
-    ->
+  auto operator()(const unsigned int which, Storage && storage, Visitor && visitor) ->
     typename mpl::typelist_fwd<mpl::common_type_t,
-                               typename mpl::typelist_map<return_typer<Internal, Storage, Visitor
-                                                                       >::template helper,
+                               typename mpl::typelist_map<return_typer<Internal, Storage,
+                                                                       Visitor>::template helper,
                                                           TypeList<AllTypes...>>::type>::type {
     using return_t =
       typename mpl::typelist_fwd<mpl::common_type_t,
-                                 typename mpl::typelist_map<return_typer<Internal, Storage, Visitor
-                                                                         >::template helper,
+                                 typename mpl::typelist_map<return_typer<Internal, Storage,
+                                                                         Visitor>::template helper,
                                                             TypeList<AllTypes...>>::type>::type;
 
     // using chosen_dispatch_t = jumptable_dispatch<return_t, Internal, AllTypes...>;
