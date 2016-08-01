@@ -444,7 +444,8 @@ public:
   //     and reinitialize in-place.
   //   when the invoked constructor is not noexcept, we use a move for safety.
   template <typename T, typename... Args>
-  mpl::enable_if_t<!std::is_nothrow_constructible<T, Args...>::value> emplace(Args &&... args) {
+  mpl::enable_if_t<!std::is_nothrow_constructible<T, Args...>::value> // returns void
+    emplace(Args &&... args) noexcept(false) {
     static_assert(std::is_nothrow_move_constructible<T>::value,
                   "To use emplace, either the invoked ctor or the move ctor must be noexcept.");
     T temp(std::forward<Args>(args)...);

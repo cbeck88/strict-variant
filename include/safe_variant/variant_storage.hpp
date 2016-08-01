@@ -6,8 +6,8 @@
 #pragma once
 
 #include <new>
-#include <safe_variant/mpl/typelist.hpp>
 #include <safe_variant/mpl/max.hpp>
+#include <safe_variant/mpl/typelist.hpp>
 #include <safe_variant/recursive_wrapper.hpp>
 #include <utility>
 
