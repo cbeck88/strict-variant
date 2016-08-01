@@ -45,6 +45,10 @@ alias mapbox_variant_lib : : : : <include>mapbox-variant/include/ ;
 
 alias exp_variant_lib : : : : <include>mpark_variant/include/ ;
 
+### Setup versatile::variant target
+
+alias tomilov_variant_lib : : : : <include>tomilov-variant/include/ ;
+
 ### Setup libcxx target
 
 alias libcxx_lib : : : : <cxxflags>"-nostdinc++ " <include>libcxx-variant/include/ ;
@@ -116,6 +120,37 @@ exe eggs_variant20 : ev20 ;
 exe eggs_variant50 : ev50 ;
 
 install install-eggs-bin : eggs_variant02 eggs_variant03 eggs_variant04 eggs_variant05 eggs_variant06 eggs_variant08 eggs_variant10 eggs_variant12 eggs_variant15  eggs_variant18 eggs_variant20  eggs_variant50 : $(INSTALL_LOC) ;
+
+alias tv_config : tomilov_variant_lib bench_harness : : : $(CONFIG) $(STRICT) <cxxflags>"-std=c++1z" ;
+obj tv02 : versatile_variant.cpp tv_config : <cxxflags>"-DNUM_VARIANTS=2 " ;
+obj tv03 : versatile_variant.cpp tv_config : <cxxflags>"-DNUM_VARIANTS=3 " ;
+obj tv04 : versatile_variant.cpp tv_config : <cxxflags>"-DNUM_VARIANTS=4 " ;
+obj tv05 : versatile_variant.cpp tv_config : <cxxflags>"-DNUM_VARIANTS=5 " ;
+obj tv06 : versatile_variant.cpp tv_config : <cxxflags>"-DNUM_VARIANTS=6 " ;
+obj tv08 : versatile_variant.cpp tv_config : <cxxflags>"-DNUM_VARIANTS=8 " ;
+obj tv10 : versatile_variant.cpp tv_config : <cxxflags>"-DNUM_VARIANTS=10 " ;
+obj tv12 : versatile_variant.cpp tv_config : <cxxflags>"-DNUM_VARIANTS=12 " ;
+obj tv15 : versatile_variant.cpp tv_config : <cxxflags>"-DNUM_VARIANTS=15 " ;
+obj tv18 : versatile_variant.cpp tv_config : <cxxflags>"-DNUM_VARIANTS=18 " ;
+obj tv20 : versatile_variant.cpp tv_config : <cxxflags>"-DNUM_VARIANTS=20 " ;
+obj tv50 : versatile_variant.cpp tv_config : <cxxflags>"-DNUM_VARIANTS=50 " ;
+
+exe versatile_variant02 : tv02 ;
+exe versatile_variant03 : tv03 ;
+exe versatile_variant04 : tv04 ;
+exe versatile_variant05 : tv05 ;
+exe versatile_variant06 : tv06 ;
+exe versatile_variant08 : tv08 ;
+exe versatile_variant10 : tv10 ;
+exe versatile_variant12 : tv12 ;
+exe versatile_variant15 : tv15 ;
+exe versatile_variant18 : tv18 ;
+exe versatile_variant20 : tv20 ;
+exe versatile_variant50 : tv50 ;
+
+install install-tomilov-bin : versatile_variant02 versatile_variant03 versatile_variant04 versatile_variant05 versatile_variant06 versatile_variant08 versatile_variant10 versatile_variant12 versatile_variant15  versatile_variant18 versatile_variant20  versatile_variant50 : $(INSTALL_LOC) ;
+
+
 
 alias xv_config : exp_variant_lib bench_harness : : : $(CONFIG) $(STRICT) <cxxflags>"-std=c++14" ;
 

@@ -6,6 +6,7 @@ if [[ -z ${CXX} ]]; then echo "Must set CXX"; exit 1; fi
 
 echo "CXX = " ${CXX}
 
+${CXX} -Iinclude/ -Itomilov-variant/include/              -std=c++1z ${FLAGS} versatile_variant.cpp
 ${CXX} -Iinclude/ -Imapbox-variant/include/               -std=c++11 ${FLAGS} mapbox_variant.cpp
 ${CXX} -Iinclude/ -Ieggs-variant/include/                 -std=c++11 ${FLAGS} eggs_variant.cpp
 ${CXX} -Iinclude/ -nostdinc++ -Ilibcxx-variant/include/   -std=c++1z ${FLAGS} std_variant.cpp
