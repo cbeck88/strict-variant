@@ -94,10 +94,11 @@ namespace detail {
 /***
  * Function to pierce the recursive wrapper
  */
+
 template <typename T>
-inline T &
-pierce_recursive_wrapper(T & t) {
-  return t;
+inline auto
+pierce_recursive_wrapper(T && t) -> T {
+  return std::forward<T>(t);
 }
 
 template <typename T>
@@ -108,20 +109,8 @@ pierce_recursive_wrapper(recursive_wrapper<T> & t) {
 
 template <typename T>
 inline T &&
-pierce_recursive_wrapper(T && t) {
-  return std::move(t);
-}
-
-template <typename T>
-inline T &&
 pierce_recursive_wrapper(recursive_wrapper<T> && t) {
   return std::move(t.get());
-}
-
-template <typename T>
-inline const T &
-pierce_recursive_wrapper(const T & t) {
-  return t;
 }
 
 template <typename T>

@@ -288,10 +288,7 @@ Compiler Compatibility
 
 `strict_variant` targets the C++11 standard.
 
-It is known to work with `gcc >= 4.9` and `clang >= 3.5`.  
-
-(It used to work with `gcc-4.8`, but at some point that was lost, I'm not
- sure exactly why. `gcc-4.8` seems to have some `constexpr` troubles now.)
+It is known to work with `gcc >= 4.8` and `clang >= 3.5`.  
 
 Usage
 =====
