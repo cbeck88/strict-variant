@@ -6,7 +6,6 @@
 #pragma once
 
 #include <strict_variant/mpl/find_with.hpp>
-#include <strict_variant/mpl/is_member_property.hpp>
 #include <strict_variant/recursive_wrapper.hpp>
 #include <strict_variant/safely_constructible.hpp>
 #include <strict_variant/variant_fwd.hpp>
@@ -22,6 +21,7 @@ namespace strict_variant {
 namespace detail {
 
 // Search prediate for find_which
+// Checks if type T and type U are the same, modulo const and recursive wrapper
 template <typename T>
 struct same_modulo_const_ref_wrapper {
   template <typename U>
@@ -33,27 +33,42 @@ struct same_modulo_const_ref_wrapper {
   };
 };
 
+
+/***
+ * Property `is_member_modulo_const_ref_wrappr` checks if an element is in a
+ * list, modulo const and recursive wrapper.
+ */
+template <typename... Ts>
+struct is_member_modulo_const_ref_wrapper {
+  template <typename U>
+  struct prop {
+    static constexpr bool value = mpl::Find_Any<same_modulo_const_ref_wrapper<U>::template prop, Ts...>::value;
+  };
+};
+
+
 /***
  * Metafunction `subvariant`: Check if the set of types of A is a subset of the
- * set of types of B
+ * set of types of B, modulo const and reference_wrapper
  */
 template <typename A, typename B>
 struct subvariant;
 
 template <typename... As, typename... Bs>
 struct subvariant<variant<As...>, variant<Bs...>> {
-  static constexpr bool value = mpl::All_Have<mpl::is_member<Bs...>::template prop, As...>::value;
+  static constexpr bool value = mpl::All_Have<is_member_modulo_const_ref_wrapper<Bs...>::template prop, As...>::value;
 };
 
 /***
  * Metafunction `proper_subvariant`:
- *   Check if both `sublist<A, B>::value` and `!std::is_same<A, B>::value` hold.
- * This is used to
- *   select when we should use "generalizing" ctor of variant, rather than one
- * of the usual special
- *   member functions. Note that it's possible that sizeof...(As) ==
- * sizeof...(Bs) but this doesn't
- *   cause any bugs so it's ok.
+ *   Check both `subvariant<A, B>::value` and `!std::is_same<A, B>::value`.
+ *   This is used to select when we should use "generalizing" ctor of variant,
+ *   rather than one of the usual special member functions.
+ *
+ *   Note that it's possible that sizeof...(As) == sizeof...(Bs) but this
+ *   doesn't cause any bugs so it's ok -- it just means that
+ *   `variant<int, double>` is constructible from `variant<double, int>`, which
+ *   is fine.
  */
 template <typename A, typename B>
 struct proper_subvariant {
@@ -64,13 +79,11 @@ struct proper_subvariant {
  * Metafunction `allow_variant_construction`:
  *   Check if a type should be allowed to initalize our variant with the value
  *   of a second type. Basically, we always answer with
- * "mpl::safe_constructible<...>::value",
+ *   "mpl::safe_constructible<...>::value",
  *   unless one of them is recursively wrapped. If it is, then we only allow
- * copy ctor essentially,
- *   so that it can be an incomplete type.
+ *   copy ctor essentially, so that it can be an incomplete type.
  *   Note that we do some tricky stuff here to ensure that things can be
- * incomplete types,
- *   when using recursive wrapper.
+ *   incomplete types, when using recursive wrapper.
  */
 template <typename A, typename B, typename ENABLE = void>
 struct allow_variant_construction;

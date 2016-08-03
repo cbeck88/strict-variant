@@ -5,12 +5,15 @@
 
 #pragma once
 
+#include <cstddef>
+#include <strict_variant/mpl/typelist.hpp>
+
 namespace strict_variant {
 namespace mpl {
 
 template <unsigned... us>
 struct ulist {
-  static constexpr size_t size = sizeof...(us);
+  static constexpr std::size_t size = sizeof...(us);
 };
 
 // Append
@@ -26,7 +29,7 @@ template <typename UL, unsigned u>
 using append_t = typename append<UL, u>::type;
 
 // Count function
-template <size_t n>
+template <std::size_t n>
 struct count {
   using type = append_t<typename count<n - 1>::type, n - 1>;
 };
@@ -36,7 +39,7 @@ struct count<0> {
   using type = ulist<>;
 };
 
-template <size_t n>
+template <std::size_t n>
 using count_t = typename count<n>::type;
 
 // map function
@@ -45,7 +48,7 @@ struct ulist_map;
 
 template <template <unsigned> class F, unsigned... us>
 struct ulist_map<F, ulist<us...>> {
-  using type = TypeList<typename F<us>::type...>;
+  using type = mpl::TypeList<typename F<us>::type...>;
 };
 
 } // end namespace mpl

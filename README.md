@@ -587,8 +587,8 @@ with three additional cores identical to that one.
 Known issues
 ============
 
-- Need to fix some traits related to subvariant constructors
 - Need to fixup operator declarations / inclusions
+- Fixup noexcept in recursive_wrapper
 - No `constexpr` support. This is really extremely difficult to do in a variant at
   C++11 standard, it's only really feasible in C++14. If you want `constexpr` support
   then I suggest having a look at [`eggs::variant`](https://github.com/eggs-cpp/variant).

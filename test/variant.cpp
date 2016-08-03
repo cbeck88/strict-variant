@@ -687,6 +687,29 @@ UNIT_TEST(multivisit) {
   TEST_EQ(true, apply_visitor(test_eq{}, v1, v2));
 }
 
+UNIT_TEST(generalizing_ctor) {
+  using var_1_t = variant<int, bool>;
+  using var_2_t = variant<bool, int>;
+  using var_3_t = variant<bool, std::string, recursive_wrapper<int>>;
+  using var_4_t = variant<bool, int, recursive_wrapper<double>, recursive_wrapper<std::string>>;
+
+  var_1_t x;
+  var_2_t y{x};
+  var_1_t z{y};
+  var_3_t w{x};
+  var_3_t v{w};
+  var_3_t u{y};
+  var_4_t q{u};
+  var_4_t r{x};
+  var_4_t s{y};
+  s = x;
+  s = y;
+  s = z;
+  v = z;
+  y = x;
+  x = y;
+}
+
 } // end namespace strict_variant
 
 int

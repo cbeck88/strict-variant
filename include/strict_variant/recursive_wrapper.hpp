@@ -56,7 +56,7 @@ public:
   }
 
   recursive_wrapper & operator=(const T & t) // noexcept checks assign(const T &)
-  // TODO: Fix emscripten here:
+  // TODO: Emscripten broke here:
   // noexcept(std::declval<recursive_wrapper>().assign(static_cast<const T
   // &>(std::declval<T>())))
   {
@@ -65,7 +65,7 @@ public:
   }
 
   recursive_wrapper & operator=(T && t) // noexcept checks assign(T &&)
-  // TODO: Fix emscripten here:
+  // TODO: Emscripten broke here:
   // noexcept(std::declval<recursive_wrapper>().assign(std::declval<T>()))
   {
     this->assign(std::move(t));
@@ -75,6 +75,13 @@ public:
   T & get() & { return *m_t; }
   const T & get() const & { return *m_t; }
   T && get() && { return std::move(*m_t); }
+
+  // TODO: This is a work-around for when we generalize the variant type and
+  // need to construct `int` from `const recursive_wrapper<int>`. But we should
+  // probably just insert some template code into storage obj for this case...
+  operator T&() & { return this->get(); }
+  operator T const &() const & { return this->get(); }
+  operator T&&() && { return std::move(this->get()); }
 
 private:
   T * m_t;
