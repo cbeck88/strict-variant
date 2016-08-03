@@ -18,34 +18,29 @@ namespace mpl {
 // http://stackoverflow.com/questions/14852593/removing-the-first-type-of-a-stdtuple
 // Changed a few things though :)
 
-template<typename T, typename Seq>
-    struct tuple_cdr_impl;
+template <typename T, typename Seq>
+struct tuple_cdr_impl;
 
-template<typename T, unsigned I0, unsigned... I>
-    struct tuple_cdr_impl<T, ulist<I0, I...>>
-    {
-        using type = std::tuple<typename std::tuple_element<I, T>::type...>;
-    };
+template <typename T, unsigned I0, unsigned... I>
+struct tuple_cdr_impl<T, ulist<I0, I...>> {
+  using type = std::tuple<typename std::tuple_element<I, T>::type...>;
+};
 
-template<typename T>
-    struct tuple_cdr
-    : tuple_cdr_impl<T, count_t<std::tuple_size<T>::value>>
-    { };
+template <typename T>
+struct tuple_cdr : tuple_cdr_impl<T, count_t<std::tuple_size<T>::value>> {};
 
 // Actual impl
-template<typename T, unsigned I0, unsigned... I>
+template <typename T, unsigned I0, unsigned... I>
 typename tuple_cdr<typename std::remove_reference<T>::type>::type
-cdr_impl(T&& t, ulist<I0, I...>)
-{
-    return typename tuple_cdr<typename std::remove_reference<T>::type>::type{std::get<I>(t)...};
+cdr_impl(T && t, ulist<I0, I...>) {
+  return typename tuple_cdr<typename std::remove_reference<T>::type>::type{std::get<I>(t)...};
 }
 
-template<typename T>
+template <typename T>
 typename tuple_cdr<typename std::remove_reference<T>::type>::type
-cdr_tuple(T&& t)
-{
-    return cdr_impl(std::forward<T>(t),
-                    count_t<std::tuple_size<typename std::remove_reference<T>::type>::value>{});
+cdr_tuple(T && t) {
+  return cdr_impl(std::forward<T>(t),
+                  count_t<std::tuple_size<typename std::remove_reference<T>::type>::value>{});
 }
 
 } // end namespace mpl

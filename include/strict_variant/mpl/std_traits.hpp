@@ -37,11 +37,8 @@ using enable_if_t = typename std::enable_if<b, U>::type;
 
 // Support: Need a std::decay which allows l-value references to pass through
 template <class T>
-using mini_decay_t = typename std::conditional<
-    std::is_lvalue_reference<T>::value,
-    T,
-    decay_t<T>>::type;
-
+using mini_decay_t =
+  typename std::conditional<std::is_lvalue_reference<T>::value, T, decay_t<T>>::type;
 
 // Our version of common_type uses mini_decay instead of decay
 template <typename T, typename... Ts>
@@ -59,7 +56,8 @@ struct common_return_type<T1, T2> {
 
 template <typename T1, typename T2, typename T3, typename... Ts>
 struct common_return_type<T1, T2, T3, Ts...> {
-  using type = typename common_return_type<typename common_return_type<T1, T2>::type, T3, Ts...>::type;
+  using type =
+    typename common_return_type<typename common_return_type<T1, T2>::type, T3, Ts...>::type;
 };
 
 template <typename T, typename... Ts>

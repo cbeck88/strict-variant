@@ -3,9 +3,9 @@
 //  Distributed under the Boost Software License, Version 1.0. (See accompanying
 //  file LICENSE or copy at http://www.boost.org/LICENSE_1_0.txt)
 
+#include <strict_variant/multivisit.hpp>
 #include <strict_variant/variant.hpp>
 #include <strict_variant/variant_stream_ops.hpp>
-#include <strict_variant/multivisit.hpp>
 
 #include "test_harness/test_harness.hpp"
 
@@ -657,7 +657,7 @@ UNIT_TEST(easy_variant) {
 
 struct test_eq {
   template <typename T, typename U>
-  bool operator ()(const T & t, const U & u) const {
+  bool operator()(const T & t, const U & u) const {
     return t == u;
   }
 };
@@ -684,7 +684,7 @@ UNIT_TEST(multivisit) {
   v1 = 10;
 
   TEST_EQ(v1.which(), 0);
-  TEST_EQ(true, apply_visitor(test_eq{}, v1, v2));  
+  TEST_EQ(true, apply_visitor(test_eq{}, v1, v2));
 }
 
 } // end namespace strict_variant

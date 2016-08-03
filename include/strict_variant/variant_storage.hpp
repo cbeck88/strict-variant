@@ -54,11 +54,11 @@ struct storage {
    * Storage
    */
 
-  //alignas(m_align) char m_storage[m_size];
+  // alignas(m_align) char m_storage[m_size];
   using aligned_storage_t = typename std::aligned_storage<m_size, m_align>::type;
   aligned_storage_t m_storage;
 
-  void * address() { return reinterpret_cast<void*>(&m_storage); }
+  void * address() { return reinterpret_cast<void *>(&m_storage); }
   const void * address() const { return reinterpret_cast<const void *>(&m_storage); }
 
   /***
