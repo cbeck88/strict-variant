@@ -33,7 +33,6 @@ struct same_modulo_const_ref_wrapper {
   };
 };
 
-
 /***
  * Property `is_member_modulo_const_ref_wrappr` checks if an element is in a
  * list, modulo const and recursive wrapper.
@@ -42,10 +41,10 @@ template <typename... Ts>
 struct is_member_modulo_const_ref_wrapper {
   template <typename U>
   struct prop {
-    static constexpr bool value = mpl::Find_Any<same_modulo_const_ref_wrapper<U>::template prop, Ts...>::value;
+    static constexpr bool value =
+      mpl::Find_Any<same_modulo_const_ref_wrapper<U>::template prop, Ts...>::value;
   };
 };
-
 
 /***
  * Metafunction `subvariant`: Check if the set of types of A is a subset of the
@@ -56,7 +55,8 @@ struct subvariant;
 
 template <typename... As, typename... Bs>
 struct subvariant<variant<As...>, variant<Bs...>> {
-  static constexpr bool value = mpl::All_Have<is_member_modulo_const_ref_wrapper<Bs...>::template prop, As...>::value;
+  static constexpr bool value =
+    mpl::All_Have<is_member_modulo_const_ref_wrapper<Bs...>::template prop, As...>::value;
 };
 
 /***
