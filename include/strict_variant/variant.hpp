@@ -427,53 +427,22 @@ private:
                         "Postcondition failed!")
 
 public:
-  template <typename = void> // only allow if First() is ok
-  variant() noexcept(noexcept(First())) {
-    static_assert(std::is_same<void, decltype(static_cast<void>(First()))>::value,
-                  "First type must be default constructible or variant is not!");
-    this->initialize<0>();
-    STRICT_VARIANT_ASSERT_WHICH_INVARIANT;
-  }
+  template <typename ENABLE = void> // only allow if First() is ok
+  variant() noexcept(noexcept(First()));
 
   ~variant() noexcept { this->destroy(); }
 
   // Special member functions
-  variant(const variant & rhs) noexcept(nothrow_copy_ctors) {
-    copy_constructor c(*this);
-    rhs.apply_visitor_internal(c);
-    STRICT_VARIANT_ASSERT(rhs.which() == this->which(), "Postcondition failed!");
-    STRICT_VARIANT_ASSERT_WHICH_INVARIANT;
-  }
+  variant(const variant & rhs) noexcept(nothrow_copy_ctors);
 
   // Note: noexcept is enforced by static_assert in move_constructor visitor
-  variant(variant && rhs) noexcept(nothrow_move_ctors) {
-    move_constructor mc(*this);
-    rhs.apply_visitor_internal(mc);
-    STRICT_VARIANT_ASSERT(rhs.which() == this->which(), "Postcondition failed!");
-    STRICT_VARIANT_ASSERT_WHICH_INVARIANT;
-  }
+  variant(variant && rhs) noexcept(nothrow_move_ctors);
 
-  variant & operator=(const variant & rhs) noexcept(nothrow_copy_assign) {
-    if (this != &rhs) {
-      copy_assigner a(*this, rhs.which());
-      rhs.apply_visitor_internal(a);
-      STRICT_VARIANT_ASSERT(rhs.which() == this->which(), "Postcondition failed!");
-    }
-    STRICT_VARIANT_ASSERT_WHICH_INVARIANT;
-    return *this;
-  }
+  variant & operator=(const variant & rhs) noexcept(nothrow_copy_assign);
 
   // TODO: If all types are nothrow MA then this is also
   // For now we assume it is the case.
-  variant & operator=(variant && rhs) noexcept(nothrow_move_assign) {
-    if (this != &rhs) {
-      move_assigner ma(*this, rhs.which());
-      rhs.apply_visitor_internal(ma);
-      STRICT_VARIANT_ASSERT(rhs.which() == this->which(), "Postcondition failed!");
-    }
-    STRICT_VARIANT_ASSERT_WHICH_INVARIANT;
-    return *this;
-  }
+  variant & operator=(variant && rhs) noexcept(nothrow_move_assign);
 
   /// Forwarding-reference ctor, construct a variant from one of its value
   /// types.
@@ -486,14 +455,7 @@ public:
                                                         std::forward<T>(std::declval<T>())),
               void())>
   variant(T && t) noexcept(noexcept((*static_cast<initializer<T> *>(nullptr))(
-    *static_cast<variant *>(nullptr), std::forward<T>(std::declval<T>())))) {
-    static_assert(!std::is_same<variant &, mpl::remove_const_t<T>>::value,
-                  "why is variant(T&&) instantiated with a variant? why was a special "
-                  "member function not selected?");
-    initializer<T> initer;
-    initer(*this, std::forward<T>(t));
-    STRICT_VARIANT_ASSERT_WHICH_INVARIANT;
-  }
+    *static_cast<variant *>(nullptr), std::forward<T>(std::declval<T>()))));
 
   /// Friend all other instances of variant (needed for next two ctors)
   template <typename F, typename... Ts>
@@ -507,22 +469,14 @@ public:
             typename Enable = mpl::enable_if_t<detail::proper_subvariant<variant<OFirst, OTypes...>,
                                                                          variant>::value>>
   variant(const variant<OFirst, OTypes...> & other) noexcept(
-    variant<OFirst, OTypes...>::nothrow_copy_ctors) {
-    copy_constructor c(*this);
-    other.apply_visitor_internal(c);
-    STRICT_VARIANT_ASSERT_WHICH_INVARIANT;
-  }
+    variant<OFirst, OTypes...>::nothrow_copy_ctors);
 
   /// "Generalizing" move ctor, similar as above
   template <typename OFirst, typename... OTypes,
             typename Enable = mpl::enable_if_t<detail::proper_subvariant<variant<OFirst, OTypes...>,
                                                                          variant>::value>>
   variant(variant<OFirst, OTypes...> && other) noexcept(
-    variant<OFirst, OTypes...>::nothrow_move_ctors) {
-    move_constructor c(*this);
-    other.apply_visitor_internal(c);
-    STRICT_VARIANT_ASSERT_WHICH_INVARIANT;
-  }
+    variant<OFirst, OTypes...>::nothrow_move_ctors);
 
   // Emplace ctor. Used to explicitly specify the type of the variant, and
   // invoke an arbitrary ctor of that type.
@@ -531,13 +485,7 @@ public:
 
   template <typename T, typename... Args>
   explicit variant(emplace_tag<T>,
-                   Args &&... args) noexcept(std::is_nothrow_constructible<T, Args...>::value) {
-    constexpr size_t idx = find_which<T>::value;
-    static_assert(idx < sizeof...(Types) + 1,
-                  "Requested type is not a member of this variant type");
-
-    this->initialize<idx>(std::forward<Args>(args)...);
-  }
+                   Args &&... args) noexcept(std::is_nothrow_constructible<T, Args...>::value);
 
   // Emplace operation
   // In this operation the user explicitly specifies the desired type as
@@ -681,6 +629,114 @@ get_or_default(variant<Types...> & v,
 // has a throwing move in `recursive_wrapper`.
 template <typename... Ts>
 using easy_variant = variant<wrap_if_throwing_move_t<Ts>...>;
+
+/***
+ * Implementation details of ctors
+ */
+
+template <typename First, typename... Types>
+template <typename enable>
+variant<First, Types...>::variant() noexcept(noexcept(First())) {
+  static_assert(std::is_same<void, decltype(static_cast<void>(First()))>::value,
+                "First type must be default constructible or variant is not!");
+  this->initialize<0>();
+  STRICT_VARIANT_ASSERT_WHICH_INVARIANT;
+}
+
+// Special member functions
+template <typename First, typename... Types>
+variant<First, Types...>::variant(const variant & rhs) noexcept(nothrow_copy_ctors) {
+  copy_constructor c(*this);
+  rhs.apply_visitor_internal(c);
+  STRICT_VARIANT_ASSERT(rhs.which() == this->which(), "Postcondition failed!");
+  STRICT_VARIANT_ASSERT_WHICH_INVARIANT;
+}
+
+// Note: noexcept is enforced by static_assert in move_constructor visitor
+template <typename First, typename... Types>
+variant<First, Types...>::variant(variant && rhs) noexcept(nothrow_move_ctors) {
+  move_constructor mc(*this);
+  rhs.apply_visitor_internal(mc);
+  STRICT_VARIANT_ASSERT(rhs.which() == this->which(), "Postcondition failed!");
+  STRICT_VARIANT_ASSERT_WHICH_INVARIANT;
+}
+
+template <typename First, typename... Types>
+variant<First, Types...> &
+variant<First, Types...>::operator=(const variant & rhs) noexcept(nothrow_copy_assign) {
+  if (this != &rhs) {
+    copy_assigner a(*this, rhs.which());
+    rhs.apply_visitor_internal(a);
+    STRICT_VARIANT_ASSERT(rhs.which() == this->which(), "Postcondition failed!");
+  }
+  STRICT_VARIANT_ASSERT_WHICH_INVARIANT;
+  return *this;
+}
+
+// TODO: If all types are nothrow MA then this is also
+// For now we assume it is the case.
+template <typename First, typename... Types>
+variant<First, Types...> &
+variant<First, Types...>::operator=(variant && rhs) noexcept(nothrow_move_assign) {
+  if (this != &rhs) {
+    move_assigner ma(*this, rhs.which());
+    rhs.apply_visitor_internal(ma);
+    STRICT_VARIANT_ASSERT(rhs.which() == this->which(), "Postcondition failed!");
+  }
+  STRICT_VARIANT_ASSERT_WHICH_INVARIANT;
+  return *this;
+}
+
+/// Forwarding-reference ctor, construct a variant from one of its value
+/// types.
+/// The details are in `detail::allow_variant_construction`.
+/// See documentation
+template <typename First, typename... Types>
+template <typename T, typename, typename>
+variant<First, Types...>::variant(T && t) noexcept(noexcept((*static_cast<initializer<T> *>(
+  nullptr))(*static_cast<variant *>(nullptr), std::forward<T>(std::declval<T>())))) {
+  static_assert(!std::is_same<variant &, mpl::remove_const_t<T>>::value,
+                "why is variant(T&&) instantiated with a variant? why was a special "
+                "member function not selected?");
+  initializer<T> initer;
+  initer(*this, std::forward<T>(t));
+  STRICT_VARIANT_ASSERT_WHICH_INVARIANT;
+}
+
+/// "Generalizing Ctor"
+/// Allow constructing from a variant over a subset of our types
+/// (Boost variant does this, and we need it to comfortably interact with
+/// spirit)
+template <typename First, typename... Types>
+template <typename OFirst, typename... OTypes, typename Enable>
+variant<First, Types...>::variant(const variant<OFirst, OTypes...> & other) noexcept(
+  variant<OFirst, OTypes...>::nothrow_copy_ctors) {
+  copy_constructor c(*this);
+  other.apply_visitor_internal(c);
+  STRICT_VARIANT_ASSERT_WHICH_INVARIANT;
+}
+
+/// "Generalizing" move ctor, similar as above
+template <typename First, typename... Types>
+template <typename OFirst, typename... OTypes, typename Enable>
+variant<First, Types...>::variant(variant<OFirst, OTypes...> && other) noexcept(
+  variant<OFirst, OTypes...>::nothrow_move_ctors) {
+  move_constructor c(*this);
+  other.apply_visitor_internal(c);
+  STRICT_VARIANT_ASSERT_WHICH_INVARIANT;
+}
+
+// Emplace ctor. Used to explicitly specify the type of the variant, and
+// invoke an arbitrary ctor of that type.
+template <typename First, typename... Types>
+template <typename T, typename... Args>
+variant<First, Types...>::variant(emplace_tag<T>, Args &&... args) noexcept(
+  std::is_nothrow_constructible<T, Args...>::value) {
+  constexpr size_t idx = find_which<T>::value;
+  static_assert(idx < sizeof...(Types) + 1, "Requested type is not a member of this variant type");
+
+  this->initialize<idx>(std::forward<Args>(args)...);
+}
 
 } // end namespace strict_variant
 
