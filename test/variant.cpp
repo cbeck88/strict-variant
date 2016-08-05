@@ -790,19 +790,20 @@ UNIT_TEST(generalizing_ctor) {
 
 namespace {
 
-  template <int i>
-  struct test_struct;
+template <int i>
+struct test_struct;
 
-  using test_var_t = variant<recursive_wrapper<test_struct<0>>, recursive_wrapper<test_struct<1>>>;
+using test_var_t = variant<recursive_wrapper<test_struct<0>>, recursive_wrapper<test_struct<1>>>;
 
-  test_var_t test_func() {
-    return {};
-  }
+test_var_t
+test_func() {
+  return {};
+}
 
-  template <int i>
-  struct test_struct {
-    int baz;
-  };
+template <int i>
+struct test_struct {
+  int baz;
+};
 
 } // end anonymous namespace
 

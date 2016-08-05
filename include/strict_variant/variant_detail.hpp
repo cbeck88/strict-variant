@@ -145,7 +145,7 @@ template <typename T>
 struct is_nothrow_default_constructible : std::is_nothrow_constructible<T> {};
 
 template <typename T>
-struct is_nothrow_default_constructible<recursive_wrapper<T>> : std::false_type{};
+struct is_nothrow_default_constructible<recursive_wrapper<T>> : std::false_type {};
 
 template <typename T>
 struct is_nothrow_moveable : std::is_nothrow_move_constructible<T> {};

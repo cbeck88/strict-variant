@@ -191,7 +191,7 @@ private:
     // Force delayed instantiation
     template <typename U>
     constexpr report_problem(U &&) {
-      // TODO: Clang seems to always instantiate these even when I think it shouldn't... not sure why
+      // TODO: Clang seems to always instantiate these even when I think it shouldn't... why?
       // static_assert(std::is_constructible<typename init_helper<T, idx>::type, T>::value, "No
       // construction is possible!");
       // static_assert(!std::is_constructible<typename init_helper<T, idx>::type, T>::value ||
@@ -619,7 +619,8 @@ struct variant<First, Types...>::destroyer {
 
 template <typename First, typename... Types>
 template <typename enable>
-variant<First, Types...>::variant() noexcept(detail::is_nothrow_default_constructible<First>::value) {
+variant<First, Types...>::variant() noexcept(
+  detail::is_nothrow_default_constructible<First>::value) {
   static_assert(std::is_same<void, decltype(static_cast<void>(First()))>::value,
                 "First type must be default constructible or variant is not!");
   this->initialize<0>();
