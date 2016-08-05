@@ -57,6 +57,12 @@
 
 namespace strict_variant {
 
+template <typename T>
+struct is_variant : std::false_type{};
+
+template <typename First, typename... Types>
+struct is_variant<variant<First, Types...>> : std::true_type{};
+
 /***
  * Class variant
  */
@@ -272,13 +278,13 @@ public:
   /// The details are in `detail::allow_variant_construction`.
   /// See documentation
   template <typename T,
-            typename = mpl::enable_if_t<!std::is_same<variant &, mpl::remove_const_t<T>>::value>,
-            typename = decltype(
+            typename = mpl::enable_if_t<!is_variant<mpl::remove_const_t<mpl::remove_reference_t<T>>>::value>,
+            typename = void /*decltype(
               (*static_cast<initializer<T> *>(nullptr))(*static_cast<variant *>(nullptr),
                                                         std::forward<T>(std::declval<T>())),
-              void())>
-  variant(T && t) noexcept(noexcept((*static_cast<initializer<T> *>(nullptr))(
-    *static_cast<variant *>(nullptr), std::forward<T>(std::declval<T>()))));
+              void())*/>
+  variant(T && t) /*noexcept(noexcept((*static_cast<initializer<T> *>(nullptr)) (
+    *static_cast<variant *>(nullptr), std::forward<T>(std::declval<T>())))) */;
 
   /// Friend all other instances of variant (needed for next two ctors)
   template <typename F, typename... Ts>
@@ -672,8 +678,8 @@ variant<First, Types...>::operator=(variant && rhs) noexcept(detail::variant_noe
 /// See documentation
 template <typename First, typename... Types>
 template <typename T, typename, typename>
-variant<First, Types...>::variant(T && t) noexcept(noexcept((*static_cast<initializer<T> *>(
-  nullptr))(*static_cast<variant *>(nullptr), std::forward<T>(std::declval<T>())))) {
+variant<First, Types...>::variant(T && t) /*noexcept(noexcept((*static_cast<initializer<T> *>(
+  nullptr))(*static_cast<variant *>(nullptr), std::forward<T>(std::declval<T>()))))*/ {
   static_assert(!std::is_same<variant &, mpl::remove_const_t<T>>::value,
                 "why is variant(T&&) instantiated with a variant? why was a special "
                 "member function not selected?");
