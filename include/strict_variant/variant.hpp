@@ -104,12 +104,10 @@ private:
                 "All types in this variant type must be nothrow destructible");
 
   static constexpr bool nothrow_move_ctors =
-    assume_move_nothrow
-    || mpl::All_Have<detail::is_nothrow_moveable, First, Types...>::value;
+    assume_move_nothrow || mpl::All_Have<detail::is_nothrow_moveable, First, Types...>::value;
 
   static constexpr bool nothrow_copy_ctors =
-    assume_copy_nothrow
-    || mpl::All_Have<detail::is_nothrow_copyable, First, Types...>::value;
+    assume_copy_nothrow || mpl::All_Have<detail::is_nothrow_copyable, First, Types...>::value;
 
   static constexpr bool nothrow_move_assign =
     nothrow_move_ctors && mpl::All_Have<detail::is_nothrow_move_assignable, First, Types...>::value;
@@ -332,9 +330,7 @@ private:
     static constexpr bool value = trait::value;
     static constexpr int priority = trait::priority;
 
-    static constexpr bool valid_at_priority(int p) {
-      return value && p < priority;
-    }
+    static constexpr bool valid_at_priority(int p) { return value && p < priority; }
   };
 
   // Initializer base is (possibly) a function object
@@ -343,19 +339,21 @@ private:
   struct initializer_base;
 
   template <typename T, unsigned idx, int priority>
-  struct initializer_base<T, idx, priority, mpl::enable_if_t<init_helper<T, idx>::valid_at_priority(priority)>> {
+  struct initializer_base<T, idx, priority,
+                          mpl::enable_if_t<init_helper<T, idx>::valid_at_priority(priority)>> {
     using target_type = typename init_helper<T, idx>::type;
 
     template <typename V>
-    void operator()(V && v, target_type val) noexcept(noexcept(std::forward<V>(std::declval<V>()).template initialize<idx>(std::declval<target_type>()))) {
+    void operator()(V && v, target_type val) noexcept(noexcept(
+      std::forward<V>(std::declval<V>()).template initialize<idx>(std::declval<target_type>()))) {
       std::forward<V>(v).template initialize<idx>(std::move(val));
     }
   };
 
   // If not valid then don't generate a call operator
   template <typename T, unsigned idx, int priority>
-  struct initializer_base<T, idx, priority, mpl::enable_if_t<!init_helper<T, idx>::valid_at_priority(priority)>> {};
-
+  struct initializer_base<T, idx, priority,
+                          mpl::enable_if_t<!init_helper<T, idx>::valid_at_priority(priority)>> {};
 
   // Report problem
   template <typename T, unsigned idx>
@@ -364,9 +362,12 @@ private:
     template <typename U>
     constexpr report_problem(U &&) {
       // TODO: Clang seems to always instantiate these even when it shouldn't... not sure why
-      // static_assert(std::is_constructible<typename init_helper<T, idx>::type, T>::value, "No construction is possible!");
-      // static_assert(!std::is_constructible<typename init_helper<T, idx>::type, T>::value || init_helper<T, idx>::value, "Conversion wasn't permitted!");
-      // static_assert(!std::is_constructible<typename init_helper<T, idx>::type, T>::value || !init_helper<T, idx>::value, "Not clear whats wrong!");
+      // static_assert(std::is_constructible<typename init_helper<T, idx>::type, T>::value, "No
+      // construction is possible!");
+      // static_assert(!std::is_constructible<typename init_helper<T, idx>::type, T>::value ||
+      // init_helper<T, idx>::value, "Conversion wasn't permitted!");
+      // static_assert(!std::is_constructible<typename init_helper<T, idx>::type, T>::value ||
+      // !init_helper<T, idx>::value, "Not clear whats wrong!");
     }
   };
 
@@ -380,28 +381,35 @@ private:
   };
 
   // Any_At_Priority
-  template <typename T, int priority, unsigned ... us>
+  template <typename T, int priority, unsigned... us>
   struct Any_At_Priority {
-    static constexpr bool value = mpl::Find_Any<valid_at<priority>::template prop, init_helper<T, us>...>::value;
+    static constexpr bool value =
+      mpl::Find_Any<valid_at<priority>::template prop, init_helper<T, us>...>::value;
   };
 
   // Test_Priority
   // Find the highest level at which we are able to construct the type.
-  template <typename T, int priority, typename UL = mpl::count_t<sizeof...(Types) + 1>, typename Enable = void>
+  template <typename T, int priority, typename UL = mpl::count_t<sizeof...(Types) + 1>,
+            typename Enable = void>
   struct Test_Priority;
 
-  template <typename T, int priority, unsigned ... us>
-  struct Test_Priority<T, priority, mpl::ulist<us...>, mpl::enable_if_t<priority >= 0 && Any_At_Priority<T, priority, us...>::value>> {
+  template <typename T, int priority, unsigned... us>
+  struct Test_Priority<T, priority, mpl::ulist<us...>,
+                       mpl::enable_if_t<priority >= 0
+                                        && Any_At_Priority<T, priority, us...>::value>> {
     static constexpr int value = priority;
   };
 
-  template <typename T, int priority, unsigned ... us>
-  struct Test_Priority<T, priority, mpl::ulist<us...>, mpl::enable_if_t<priority >= 0 && !Any_At_Priority<T, priority, us...>::value>> : Test_Priority<T, priority - 1, mpl::ulist<us...>> {};
+  template <typename T, int priority, unsigned... us>
+  struct Test_Priority<T, priority, mpl::ulist<us...>,
+                       mpl::enable_if_t<priority >= 0
+                                        && !Any_At_Priority<T, priority, us...>::value>>
+    : Test_Priority<T, priority - 1, mpl::ulist<us...>> {};
 
   // Fire a bunch of static asserts explaining that we cannot construct the variant
-  template <typename T, unsigned ... us>
+  template <typename T, unsigned... us>
   struct Test_Priority<T, -1, mpl::ulist<us...>> {
-    static constexpr int dummy[] = { (report_problem<T, us>{0}, 0)..., 0 };
+    static constexpr int dummy[] = {(report_problem<T, us>{0}, 0)..., 0};
     static constexpr int value = -1;
   };
 
@@ -410,14 +418,13 @@ private:
   template <typename T, typename UL = mpl::count_t<sizeof...(Types) + 1>>
   struct initializer;
 
-  template <typename T, unsigned ... us>
-  struct initializer<T, mpl::ulist<us...>> : initializer_base<T, us, Test_Priority<T, mpl::priority_max>::value>... {};
-
+  template <typename T, unsigned... us>
+  struct initializer<T, mpl::ulist<us...>>
+    : initializer_base<T, us, Test_Priority<T, mpl::priority_max>::value>... {};
 
 #define STRICT_VARIANT_ASSERT_WHICH_INVARIANT                                                      \
   STRICT_VARIANT_ASSERT(static_cast<unsigned>(this->which()) < sizeof...(Types) + 1,               \
                         "Postcondition failed!")
-
 
 public:
   template <typename = void> // only allow if First() is ok
@@ -472,8 +479,14 @@ public:
   /// types.
   /// The details are in `detail::allow_variant_construction`.
   /// See documentation
-  template <typename T, typename = mpl::enable_if_t<!std::is_same<variant &, mpl::remove_const_t<T>>::value>, typename = decltype((*static_cast<initializer<T>*>(nullptr))(*static_cast<variant*>(nullptr), std::forward<T>(std::declval<T>())), void())>
-  variant(T && t) noexcept(noexcept((*static_cast<initializer<T>*>(nullptr))(*static_cast<variant*>(nullptr), std::forward<T>(std::declval<T>())))){
+  template <typename T,
+            typename = mpl::enable_if_t<!std::is_same<variant &, mpl::remove_const_t<T>>::value>,
+            typename = decltype(
+              (*static_cast<initializer<T> *>(nullptr))(*static_cast<variant *>(nullptr),
+                                                        std::forward<T>(std::declval<T>())),
+              void())>
+  variant(T && t) noexcept(noexcept((*static_cast<initializer<T> *>(nullptr))(
+    *static_cast<variant *>(nullptr), std::forward<T>(std::declval<T>())))) {
     static_assert(!std::is_same<variant &, mpl::remove_const_t<T>>::value,
                   "why is variant(T&&) instantiated with a variant? why was a special "
                   "member function not selected?");

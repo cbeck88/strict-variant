@@ -182,9 +182,14 @@ static_assert(detail::allow_variant_construction<float, float &&>::value, "faile
 static_assert(!detail::allow_variant_construction<float, double &&>::value, "failed a unit test");
 static_assert(detail::allow_variant_construction<double, float &&>::value, "failed a unit test");
 
-static_assert(detail::allow_variant_construction<std::string, std::string>::value, "failed a unit test");
-static_assert(detail::allow_variant_construction<recursive_wrapper<std::string>, const std::string &>::value, "failed a unit test");
-static_assert(detail::allow_variant_construction<recursive_wrapper<std::string>, const std::string>::value, "failed a unit test");
+static_assert(detail::allow_variant_construction<std::string, std::string>::value,
+              "failed a unit test");
+static_assert(
+  detail::allow_variant_construction<recursive_wrapper<std::string>, const std::string &>::value,
+  "failed a unit test");
+static_assert(
+  detail::allow_variant_construction<recursive_wrapper<std::string>, const std::string>::value,
+  "failed a unit test");
 
 // Testing typlist
 
@@ -215,7 +220,6 @@ UNIT_TEST(ambiguous_string) {
     TEST_FALSE(a.get<std::string>());
     TEST_TRUE(a.get<const char *>());
   }
-
 }
 
 // Test that variants using integral types are working as expected

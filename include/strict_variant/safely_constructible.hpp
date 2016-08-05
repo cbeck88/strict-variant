@@ -75,7 +75,6 @@ template <typename T>
 struct is_ptr {
   using T2 = remove_cv_t<remove_reference_t<decay_t<T>>>;
   static constexpr bool value = std::is_pointer<T2>::value;
-
 };
 
 // Primary template, falls back to std::is_constructible

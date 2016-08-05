@@ -95,34 +95,40 @@ struct allow_variant_construction : mpl::safely_constructible<A, B> {};
 // Usually we want to unwrap recursive_wrapper when we perform the check.
 // If we are being assigned *from* a recursive wrapper, it means we are
 template <typename T, typename U>
-struct allow_variant_construction<strict_variant::recursive_wrapper<T>, U> : 
-  mpl::safely_constructible<T, U> {};
+struct allow_variant_construction<strict_variant::recursive_wrapper<T>, U>
+  : mpl::safely_constructible<T, U> {};
 
 /*
 template <typename T, typename U>
-struct allow_variant_construction<strict_variant::recursive_wrapper<T>, strict_variant::recursive_wrapper<U>> : 
+struct allow_variant_construction<strict_variant::recursive_wrapper<T>,
+strict_variant::recursive_wrapper<U>> :
   mpl::safely_constructible<T, U> {};
 
 template <typename T, typename U>
-struct allow_variant_construction<strict_variant::recursive_wrapper<T>, strict_variant::recursive_wrapper<U> &> : 
+struct allow_variant_construction<strict_variant::recursive_wrapper<T>,
+strict_variant::recursive_wrapper<U> &> :
   mpl::safely_constructible<T, U &> {};
 
 template <typename T, typename U>
-struct allow_variant_construction<strict_variant::recursive_wrapper<T>, strict_variant::recursive_wrapper<U> &&> : 
+struct allow_variant_construction<strict_variant::recursive_wrapper<T>,
+strict_variant::recursive_wrapper<U> &&> :
   mpl::safely_constructible<T, U &&> {};
 
 template <typename T, typename U>
-struct allow_variant_construction<strict_variant::recursive_wrapper<T>, strict_variant::recursive_wrapper<U> const &> : 
+struct allow_variant_construction<strict_variant::recursive_wrapper<T>,
+strict_variant::recursive_wrapper<U> const &> :
   mpl::safely_constructible<T, U const &> {};
 
 template <typename T, typename U>
-struct allow_variant_construction<strict_variant::recursive_wrapper<T>, strict_variant::recursive_wrapper<T>> : {
+struct allow_variant_construction<strict_variant::recursive_wrapper<T>,
+strict_variant::recursive_wrapper<T>> : {
   static constexpr value = true;
   static constexpr priority = mpl::priority<5>;
 };
 
 template <typename T, typename U>
-struct allow_variant_construction<strict_variant::recursive_wrapper<T>, strict_variant::recursive_wrapper<T> &&> : {
+struct allow_variant_construction<strict_variant::recursive_wrapper<T>,
+strict_variant::recursive_wrapper<T> &&> : {
   static constexpr value = true;
   static constexpr priority = mpl::priority<5>;
 };
@@ -137,25 +143,25 @@ template <typename T>
 struct is_nothrow_moveable : std::is_nothrow_move_constructible<T> {};
 
 template <typename T>
-struct is_nothrow_moveable<recursive_wrapper<T>> : std::true_type{};
+struct is_nothrow_moveable<recursive_wrapper<T>> : std::true_type {};
 
 template <typename T>
 struct is_nothrow_copyable : std::is_nothrow_constructible<T, const T &> {};
 
 template <typename T> // Just assume it isn't, since it may be incomplete
-struct is_nothrow_copyable<recursive_wrapper<T>> : std::false_type{};
+struct is_nothrow_copyable<recursive_wrapper<T>> : std::false_type {};
 
 template <typename T>
 struct is_nothrow_move_assignable : std::is_nothrow_move_assignable<T> {};
 
 template <typename T>
-struct is_nothrow_move_assignable<recursive_wrapper<T>> : std::true_type{};
+struct is_nothrow_move_assignable<recursive_wrapper<T>> : std::true_type {};
 
 template <typename T>
 struct is_nothrow_copy_assignable : std::is_nothrow_copy_assignable<T> {};
 
 template <typename T> // Just assume it isn't, since it may be incomplete
-struct is_nothrow_copy_assignable<recursive_wrapper<T>> : std::false_type{};
+struct is_nothrow_copy_assignable<recursive_wrapper<T>> : std::false_type {};
 
 } // end namespace detail
 
