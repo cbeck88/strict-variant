@@ -788,6 +788,29 @@ UNIT_TEST(generalizing_ctor) {
   x = y;
 }
 
+namespace {
+
+  template <int i>
+  struct test_struct;
+
+  using test_var_t = variant<recursive_wrapper<test_struct<0>>, recursive_wrapper<test_struct<1>>>;
+
+  test_var_t test_func() {
+    return {};
+  }
+
+  template <int i>
+  struct test_struct {
+    int baz;
+  };
+
+} // end anonymous namespace
+
+UNIT_TEST(incomplete_default_ctor) {
+  auto v = test_func();
+  auto w = test_func();
+}
+
 } // end namespace strict_variant
 
 int

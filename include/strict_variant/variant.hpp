@@ -253,9 +253,10 @@ private:
     : initializer_base<T, us, Test_Priority<T, mpl::priority_max>::value>... {};
 
 public:
-  // TODO: Make this work also when First is incomplete
-  template <typename ENABLE = void> // only allow if First() is ok
-  variant() noexcept(noexcept(First()));
+  // TODO: How should this work when First is incomplete? I guess we can't disable it?
+  // Probably this is the best we can do?
+  template <typename ENABLE = void>
+  variant() noexcept(detail::is_nothrow_default_constructible<First>::value);
 
   ~variant() noexcept { this->destroy(); }
 
@@ -618,7 +619,7 @@ struct variant<First, Types...>::destroyer {
 
 template <typename First, typename... Types>
 template <typename enable>
-variant<First, Types...>::variant() noexcept(noexcept(First())) {
+variant<First, Types...>::variant() noexcept(detail::is_nothrow_default_constructible<First>::value) {
   static_assert(std::is_same<void, decltype(static_cast<void>(First()))>::value,
                 "First type must be default constructible or variant is not!");
   this->initialize<0>();
@@ -658,8 +659,6 @@ variant<First, Types...>::operator=(const variant & rhs) noexcept(
   return *this;
 }
 
-// TODO: If all types are nothrow MA then this is also
-// For now we assume it is the case.
 template <typename First, typename... Types>
 variant<First, Types...> &
 variant<First, Types...>::operator=(variant && rhs) noexcept(
@@ -673,10 +672,7 @@ variant<First, Types...>::operator=(variant && rhs) noexcept(
   return *this;
 }
 
-/// Forwarding-reference ctor, construct a variant from one of its value
-/// types.
-/// The details are in `detail::allow_variant_construction`.
-/// See documentation
+/// Forwarding-reference ctor
 template <typename First, typename... Types>
 template <typename T, typename, typename>
 variant<First, Types...>::variant(T && t) /*noexcept(noexcept((*static_cast<initializer<T> *>(
