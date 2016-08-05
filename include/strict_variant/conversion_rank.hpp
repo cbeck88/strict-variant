@@ -66,10 +66,10 @@ struct rank_numeric;
 
 RANK(bool, 0);
 
-RANK(signed char, -1);
-URANK(char, 0);
-RANK(char16_t, 1);
-RANK(char32_t, 2);
+RANK(signed char, 0);
+URANK(char, 1);
+RANK(char16_t, 2);
+RANK(char32_t, 3);
 
 URANK(short, 1);
 URANK(int, 2);
@@ -114,6 +114,8 @@ struct safe_by_rank {
 
   static constexpr bool value =
     same_class && (same_sign ? (ra >= rb) : (sign_to_unsign && ra == rb));
+
+  static constexpr int priority = 2 * (5 - ra) + sa;
 };
 
 // Technically, the standard specifies that `char, signed char, unsigned char`
@@ -130,7 +132,10 @@ struct safe_by_rank {
 template <>
 struct safe_by_rank<unsigned char, signed char> {
   static constexpr bool value = true;
+  static constexpr int priority = 9;
 };
+
+static constexpr int priority_max = 10;
 
 } // end namespace mpl
 } // end namespace strict_variant

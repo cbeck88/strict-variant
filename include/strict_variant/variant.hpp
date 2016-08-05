@@ -23,6 +23,7 @@
 #include <strict_variant/mpl/find_with.hpp>
 #include <strict_variant/mpl/std_traits.hpp>
 #include <strict_variant/mpl/typelist.hpp>
+#include <strict_variant/mpl/ulist.hpp>
 #include <strict_variant/recursive_wrapper.hpp>
 #include <strict_variant/safely_constructible.hpp>
 #include <strict_variant/variant_detail.hpp>
@@ -104,17 +105,17 @@ private:
 
   static constexpr bool nothrow_move_ctors =
     assume_move_nothrow
-    || mpl::All_Have<std::is_nothrow_move_constructible, First, Types...>::value;
+    || mpl::All_Have<detail::is_nothrow_moveable, First, Types...>::value;
 
   static constexpr bool nothrow_copy_ctors =
     assume_copy_nothrow
-    || mpl::All_Have<mpl::is_nothrow_copy_constructible, First, Types...>::value;
+    || mpl::All_Have<detail::is_nothrow_copyable, First, Types...>::value;
 
   static constexpr bool nothrow_move_assign =
-    nothrow_move_ctors && mpl::All_Have<std::is_nothrow_move_assignable, First, Types...>::value;
+    nothrow_move_ctors && mpl::All_Have<detail::is_nothrow_move_assignable, First, Types...>::value;
 
   static constexpr bool nothrow_copy_assign =
-    nothrow_copy_ctors && mpl::All_Have<std::is_nothrow_copy_assignable, First, Types...>::value;
+    nothrow_copy_ctors && mpl::All_Have<detail::is_nothrow_copy_assignable, First, Types...>::value;
 
   /***
    * Prohibit references
@@ -317,9 +318,106 @@ private:
     }
   };
 
+  // initializer. This is the overloaded function object used in T && ctor.
+  // Here T should be the forwarding reference
+
+  // Init helper finds the target type, the priority of the conversion, and
+  // whether it was allowed.
+  template <typename T, unsigned idx>
+  struct init_helper {
+    using type = unwrap_type_t<typename storage_t::template value_t<idx>>;
+
+    using trait = typename detail::allow_variant_construction<type, T>;
+
+    static constexpr bool value = trait::value;
+    static constexpr int priority = trait::priority;
+
+    static constexpr bool valid_at_priority(int p) {
+      return value && p < priority;
+    }
+  };
+
+  // Initializer base is (possibly) a function object
+  // If construction is prohibited, then don't generate operator()
+  template <typename T, unsigned idx, int priority, typename ENABLE = void>
+  struct initializer_base;
+
+  template <typename T, unsigned idx, int priority>
+  struct initializer_base<T, idx, priority, mpl::enable_if_t<init_helper<T, idx>::valid_at_priority(priority)>> {
+    using target_type = typename init_helper<T, idx>::type;
+
+    template <typename V>
+    void operator()(V && v, target_type val) noexcept(noexcept(std::forward<V>(std::declval<V>()).template initialize<idx>(std::declval<target_type>()))) {
+      std::forward<V>(v).template initialize<idx>(std::move(val));
+    }
+  };
+
+  // If not valid then don't generate a call operator
+  template <typename T, unsigned idx, int priority>
+  struct initializer_base<T, idx, priority, mpl::enable_if_t<!init_helper<T, idx>::valid_at_priority(priority)>> {};
+
+
+  // Report problem
+  template <typename T, unsigned idx>
+  struct report_problem {
+    // Force delayed instantiation
+    template <typename U>
+    constexpr report_problem(U &&) {
+      // TODO: Clang seems to always instantiate these even when it shouldn't... not sure why
+      // static_assert(std::is_constructible<typename init_helper<T, idx>::type, T>::value, "No construction is possible!");
+      // static_assert(!std::is_constructible<typename init_helper<T, idx>::type, T>::value || init_helper<T, idx>::value, "Conversion wasn't permitted!");
+      // static_assert(!std::is_constructible<typename init_helper<T, idx>::type, T>::value || !init_helper<T, idx>::value, "Not clear whats wrong!");
+    }
+  };
+
+  // valid_property
+  template <int p>
+  struct valid_at {
+    template <typename T>
+    struct prop {
+      static constexpr bool value = T::valid_at_priority(p);
+    };
+  };
+
+  // Any_At_Priority
+  template <typename T, int priority, unsigned ... us>
+  struct Any_At_Priority {
+    static constexpr bool value = mpl::Find_Any<valid_at<priority>::template prop, init_helper<T, us>...>::value;
+  };
+
+  // Test_Priority
+  // Find the highest level at which we are able to construct the type.
+  template <typename T, int priority, typename UL = mpl::count_t<sizeof...(Types) + 1>, typename Enable = void>
+  struct Test_Priority;
+
+  template <typename T, int priority, unsigned ... us>
+  struct Test_Priority<T, priority, mpl::ulist<us...>, mpl::enable_if_t<priority >= 0 && Any_At_Priority<T, priority, us...>::value>> {
+    static constexpr int value = priority;
+  };
+
+  template <typename T, int priority, unsigned ... us>
+  struct Test_Priority<T, priority, mpl::ulist<us...>, mpl::enable_if_t<priority >= 0 && !Any_At_Priority<T, priority, us...>::value>> : Test_Priority<T, priority - 1, mpl::ulist<us...>> {};
+
+  // Fire a bunch of static asserts explaining that we cannot construct the variant
+  template <typename T, unsigned ... us>
+  struct Test_Priority<T, -1, mpl::ulist<us...>> {
+    static constexpr int dummy[] = { (report_problem<T, us>{0}, 0)..., 0 };
+    static constexpr int value = -1;
+  };
+
+  // Main object, created using inheritance
+  // T should be a forwarding reference
+  template <typename T, typename UL = mpl::count_t<sizeof...(Types) + 1>>
+  struct initializer;
+
+  template <typename T, unsigned ... us>
+  struct initializer<T, mpl::ulist<us...>> : initializer_base<T, us, Test_Priority<T, mpl::priority_max>::value>... {};
+
+
 #define STRICT_VARIANT_ASSERT_WHICH_INVARIANT                                                      \
   STRICT_VARIANT_ASSERT(static_cast<unsigned>(this->which()) < sizeof...(Types) + 1,               \
                         "Postcondition failed!")
+
 
 public:
   template <typename = void> // only allow if First() is ok
@@ -374,20 +472,13 @@ public:
   /// types.
   /// The details are in `detail::allow_variant_construction`.
   /// See documentation
-  template <typename T,
-            typename Enable =
-              mpl::enable_if_t<mpl::Find_Any<detail::allow_variant_construct_from<T>::template prop,
-                                             First, Types...>::value>>
-  variant(T && t) {
+  template <typename T, typename = mpl::enable_if_t<!std::is_same<variant &, mpl::remove_const_t<T>>::value>, typename = decltype((*static_cast<initializer<T>*>(nullptr))(*static_cast<variant*>(nullptr), std::forward<T>(std::declval<T>())), void())>
+  variant(T && t) noexcept(noexcept((*static_cast<initializer<T>*>(nullptr))(*static_cast<variant*>(nullptr), std::forward<T>(std::declval<T>())))){
     static_assert(!std::is_same<variant &, mpl::remove_const_t<T>>::value,
                   "why is variant(T&&) instantiated with a variant? why was a special "
                   "member function not selected?");
-    constexpr size_t which_idx =
-      mpl::Find_With<detail::allow_variant_construct_from<T>::template prop, First,
-                     Types...>::value;
-    static_assert(which_idx < (sizeof...(Types) + 1),
-                  "Could not construct variant from this type!");
-    this->initialize<which_idx>(std::forward<T>(t));
+    initializer<T> initer;
+    initer(*this, std::forward<T>(t));
     STRICT_VARIANT_ASSERT_WHICH_INVARIANT;
   }
 
@@ -472,7 +563,7 @@ public:
   // operator ==
   bool operator==(const variant & rhs) const {
     eq_checker eq(*this, rhs.which());
-    // Pass detail::false because it needs to pierce the reference wrapper
+    // Pass detail::false because it needs to pierce the recursive wrapper
     return rhs.apply_visitor_internal<detail::false_>(eq);
   }
 

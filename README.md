@@ -64,13 +64,15 @@ scripting language will permit a variety of primitive values, so when binding to
     boost::variant<bool, int, float, std::string, ...>
 ```
 
-**strict variant** therefore does not use overload resolution in its implementation.  
+**strict variant** therefore uses SFINAE to modify the overload resolution process.
 
-Instead, it uses a simple iterative strategy.
+- When the variant is constructed from a value, each type is checked to see if a *safe* conversion to that type is possible.
+  If not, then it is eliminated from overload resolution.
 
-- When the variant is constructed from a value, each type is checked one by one, to see if a *safe* conversion to that type is possible.
-  If so, it is selected. If not, we check the next type. If no safe conversion is possible, then a compile-time error results.  
-  This means that usually, when you declare your variants you simply list your integral types in "increasing" order, and it does the right thing.
+- To prevent ambiguity of assignments with e.g. integral types, any integral types will be added in stages increasing order
+  of rank -- when a safe conversion becomes available, overload resolution is performed then without considering any larger
+  matches. For example, if you assign an `int` to a variant containing `long` and `long long`, it will select `long` rather
+  than reporting an ambiguous overload. This is true more generally for character types and floating point types.
 
 - What conversions are "safe"?  
   I wrote a type trait that implements a strict notion of safety which was appropriate for the project in which

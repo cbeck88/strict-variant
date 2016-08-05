@@ -75,11 +75,15 @@ template <typename T>
 struct is_ptr {
   using T2 = remove_cv_t<remove_reference_t<decay_t<T>>>;
   static constexpr bool value = std::is_pointer<T2>::value;
+
 };
 
 // Primary template, falls back to std::is_constructible
 template <typename A, typename B, typename ENABLE = void>
-struct safely_constructible : public std::is_constructible<A, B> {};
+struct safely_constructible {
+  static constexpr bool value = std::is_constructible<A, B>::value;
+  static constexpr int priority = 0;
+};
 
 // If both are numeric, then remove references and cv and pass to safe_by_rank
 template <typename A, typename B>
@@ -96,6 +100,7 @@ struct safely_constructible<A, B, enable_if_t<is_ptr<A>::value && is_ptr<B>::val
     (std::is_same<A2, B2>::value
      || std::is_same<remove_const_t<remove_pointer_t<A2>>, remove_pointer_t<B2>>::value)
     && std::is_constructible<A, B>::value;
+  static constexpr int priority = 1;
 };
 
 // If one is numeric or reference to numeric, and the other is pointer or
@@ -105,6 +110,7 @@ template <typename A, typename B>
 struct safely_constructible<A, B, enable_if_t<(is_numeric<A>::value && is_ptr<B>::value)
                                               || (is_ptr<A>::value && is_numeric<B>::value)>> {
   static constexpr bool value = false;
+  static constexpr int priority = 0;
 };
 
 } // end namespace mpl

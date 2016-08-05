@@ -182,6 +182,10 @@ static_assert(detail::allow_variant_construction<float, float &&>::value, "faile
 static_assert(!detail::allow_variant_construction<float, double &&>::value, "failed a unit test");
 static_assert(detail::allow_variant_construction<double, float &&>::value, "failed a unit test");
 
+static_assert(detail::allow_variant_construction<std::string, std::string>::value, "failed a unit test");
+static_assert(detail::allow_variant_construction<recursive_wrapper<std::string>, const std::string &>::value, "failed a unit test");
+static_assert(detail::allow_variant_construction<recursive_wrapper<std::string>, const std::string>::value, "failed a unit test");
+
 // Testing typlist
 
 // Check that variant is resolving "ambiguous" constructions as expected
@@ -189,22 +193,59 @@ UNIT_TEST(ambiguous_string) {
   const char * test_string = "asdf";
   {
     typedef variant<std::string, const char *> Var_t;
-    Var_t a{test_string};
+    Var_t a{std::string{test_string}};
     TEST_EQ(a.which(), 0);
     TEST_TRUE(a.get<std::string>());
     TEST_FALSE(a.get<const char *>());
+
+    a = test_string;
+    TEST_EQ(a.which(), 1);
+    TEST_FALSE(a.get<std::string>());
+    TEST_TRUE(a.get<const char *>());
   }
   {
     typedef variant<const char *, std::string> Var_t;
-    Var_t a{test_string};
+    Var_t a{std::string{test_string}};
+    TEST_EQ(a.which(), 1);
+    TEST_TRUE(a.get<std::string>());
+    TEST_FALSE(a.get<const char *>());
+
+    a = test_string;
     TEST_EQ(a.which(), 0);
     TEST_FALSE(a.get<std::string>());
     TEST_TRUE(a.get<const char *>());
   }
+
 }
 
 // Test that variants using integral types are working as expected
 UNIT_TEST(ambiguous_number) {
+  {
+    typedef variant<int, long> Var_t;
+    Var_t a{5};
+    TEST_EQ(a.which(), 0);
+    a = 5l;
+    TEST_EQ(a.which(), 1);
+  }
+
+  {
+    typedef variant<long, long long> Var_t;
+    Var_t a{5};
+    TEST_EQ(a.which(), 0);
+    a = 5l;
+    TEST_EQ(a.which(), 0);
+    a = 5ll;
+    TEST_EQ(a.which(), 1);
+  }
+
+  {
+    typedef variant<float, double> Var_t;
+    Var_t a{5.0f};
+    TEST_EQ(a.which(), 0);
+    a = 5.0;
+    TEST_EQ(a.which(), 1);
+  }
+
   {
     typedef variant<double, float, int> Var_t;
     Var_t a{5};
@@ -212,10 +253,10 @@ UNIT_TEST(ambiguous_number) {
     TEST_FALSE(a.get<double>());
     TEST_TRUE(a.get<int>());
     Var_t b{10.0f};
-    TEST_EQ(b.which(), 0);
-    TEST_TRUE(b.get<double>());
+    TEST_EQ(b.which(), 1);
+    TEST_TRUE(b.get<float>());
     TEST_FALSE(b.get<int>());
-    TEST_FALSE(b.get<float>());
+    TEST_FALSE(b.get<double>());
     Var_t c{10.0};
     TEST_EQ(c.which(), 0);
     TEST_TRUE(c.get<double>());
@@ -281,12 +322,45 @@ UNIT_TEST(assignment) {
   TEST_TRUE(a.get<double>());
 
   a = 1234;
+  TEST_EQ(a.which(), 0);
   TEST_TRUE(a.get<int>());
 
   a = 1234.0f;
+  TEST_EQ(a.which(), 1);
   TEST_TRUE(a.get<float>());
 
   a = 1234.0;
+  TEST_EQ(a.which(), 2);
+  TEST_TRUE(a.get<double>());
+}
+
+// Test assignment with recursive_wrapper
+
+UNIT_TEST(assign_wrapper) {
+  typedef variant<int, float, double, recursive_wrapper<std::string>> Var_t;
+
+  Var_t a{5};
+  TEST_TRUE(a.get<int>());
+  TEST_FALSE(a.get<double>());
+
+  a = "1234";
+  TEST_FALSE(a.get<int>());
+  TEST_FALSE(a.get<double>());
+  TEST_TRUE(a.get<std::string>());
+
+  a = 1234.0;
+  TEST_TRUE(a.get<double>());
+
+  a = 1234;
+  TEST_EQ(a.which(), 0);
+  TEST_TRUE(a.get<int>());
+
+  a = 1234.0f;
+  TEST_EQ(a.which(), 1);
+  TEST_TRUE(a.get<float>());
+
+  a = 1234.0;
+  TEST_EQ(a.which(), 2);
   TEST_TRUE(a.get<double>());
 }
 

@@ -85,65 +85,77 @@ struct proper_subvariant {
  *   Note that we do some tricky stuff here to ensure that things can be
  *   incomplete types, when using recursive wrapper.
  */
-template <typename A, typename B, typename ENABLE = void>
-struct allow_variant_construction;
-
 template <typename A, typename B>
-struct allow_variant_construction<A, B> {
-  static constexpr bool value = mpl::safely_constructible<A, B>::value;
-};
+struct allow_variant_construction : mpl::safely_constructible<A, B> {};
 
 // By default, recursive wrapper construction is NOT allowed, unless expressly
 // allowed below,
 // via simple checks that don't require complete types.
+
+// Usually we want to unwrap recursive_wrapper when we perform the check.
+// If we are being assigned *from* a recursive wrapper, it means we are
 template <typename T, typename U>
-struct allow_variant_construction<strict_variant::recursive_wrapper<T>, U> {
-  static constexpr bool value = false;
+struct allow_variant_construction<strict_variant::recursive_wrapper<T>, U> : 
+  mpl::safely_constructible<T, U> {};
+
+/*
+template <typename T, typename U>
+struct allow_variant_construction<strict_variant::recursive_wrapper<T>, strict_variant::recursive_wrapper<U>> : 
+  mpl::safely_constructible<T, U> {};
+
+template <typename T, typename U>
+struct allow_variant_construction<strict_variant::recursive_wrapper<T>, strict_variant::recursive_wrapper<U> &> : 
+  mpl::safely_constructible<T, U &> {};
+
+template <typename T, typename U>
+struct allow_variant_construction<strict_variant::recursive_wrapper<T>, strict_variant::recursive_wrapper<U> &&> : 
+  mpl::safely_constructible<T, U &&> {};
+
+template <typename T, typename U>
+struct allow_variant_construction<strict_variant::recursive_wrapper<T>, strict_variant::recursive_wrapper<U> const &> : 
+  mpl::safely_constructible<T, U const &> {};
+
+template <typename T, typename U>
+struct allow_variant_construction<strict_variant::recursive_wrapper<T>, strict_variant::recursive_wrapper<T>> : {
+  static constexpr value = true;
+  static constexpr priority = mpl::priority<5>;
 };
 
-template <typename T>
-struct allow_variant_construction<strict_variant::recursive_wrapper<T>, T> {
-  static constexpr bool value = true;
+template <typename T, typename U>
+struct allow_variant_construction<strict_variant::recursive_wrapper<T>, strict_variant::recursive_wrapper<T> &&> : {
+  static constexpr value = true;
+  static constexpr priority = mpl::priority<5>;
 };
-
-template <typename T>
-struct allow_variant_construction<strict_variant::recursive_wrapper<T>, const T &> {
-  static constexpr bool value = true;
-};
-
-template <typename T>
-struct allow_variant_construction<strict_variant::recursive_wrapper<T>, T &&> {
-  static constexpr bool value = true;
-};
-
-template <typename T>
-struct allow_variant_construction<strict_variant::recursive_wrapper<T>,
-                                  strict_variant::recursive_wrapper<T>> {
-  static constexpr bool value = true;
-};
-
-template <typename T>
-struct allow_variant_construction<strict_variant::recursive_wrapper<T>,
-                                  const strict_variant::recursive_wrapper<T> &> {
-  static constexpr bool value = true;
-};
-
-template <typename T>
-struct allow_variant_construction<strict_variant::recursive_wrapper<T>,
-                                  strict_variant::recursive_wrapper<T> &&> {
-  static constexpr bool value = true;
-};
+*/
 
 /***
- * A template 'property' which uses the above
+ * Traits to help with moveability / copyability in variant.
+ * The trick is that we need to support the case when recursive_wrapper is incomplete.
  */
+
 template <typename T>
-struct allow_variant_construct_from {
-  template <typename U>
-  struct prop {
-    static constexpr bool value = allow_variant_construction<U, T>::value;
-  };
-};
+struct is_nothrow_moveable : std::is_nothrow_move_constructible<T> {};
+
+template <typename T>
+struct is_nothrow_moveable<recursive_wrapper<T>> : std::true_type{};
+
+template <typename T>
+struct is_nothrow_copyable : std::is_nothrow_constructible<T, const T &> {};
+
+template <typename T> // Just assume it isn't, since it may be incomplete
+struct is_nothrow_copyable<recursive_wrapper<T>> : std::false_type{};
+
+template <typename T>
+struct is_nothrow_move_assignable : std::is_nothrow_move_assignable<T> {};
+
+template <typename T>
+struct is_nothrow_move_assignable<recursive_wrapper<T>> : std::true_type{};
+
+template <typename T>
+struct is_nothrow_copy_assignable : std::is_nothrow_copy_assignable<T> {};
+
+template <typename T> // Just assume it isn't, since it may be incomplete
+struct is_nothrow_copy_assignable<recursive_wrapper<T>> : std::false_type{};
 
 } // end namespace detail
 
