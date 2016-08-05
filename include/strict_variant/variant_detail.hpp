@@ -134,7 +134,9 @@ strict_variant::recursive_wrapper<T> &&> : {
 };
 */
 
-/***
+/****
+ * NOEXCEPT TRAITS
+ *
  * Traits to help with moveability / copyability in variant.
  * The trick is that we need to support the case when recursive_wrapper is incomplete.
  */
@@ -162,6 +164,51 @@ struct is_nothrow_copy_assignable : std::is_nothrow_copy_assignable<T> {};
 
 template <typename T> // Just assume it isn't, since it may be incomplete
 struct is_nothrow_copy_assignable<recursive_wrapper<T>> : std::false_type {};
+
+template <typename First, typename... Types>
+struct variant_noexcept_helper {
+  /***
+   * Configuration
+   */
+
+  // Treat all input types as if they were nothrow moveable,
+  // regardless of their noexcept declarations.
+  // (Note: It is a core assumption of the variant that these operations don't
+  //  throw, you will get UB and likely an immediate crash if they do throw.
+  //  Only use this as a workaround for e.g. old code which is not
+  //  noexcept-correct. For instance if you require compatibility with a
+  //  gcc-4-series version of libstdc++ and std::string isn't noexcept.)
+  static constexpr bool assume_move_nothrow =
+#ifdef STRICT_VARIANT_ASSUME_MOVE_NOTHROW
+    true;
+#else
+    false;
+#endif
+
+  // Treat all input types as if they were nothrow copyable,
+  // regardless of thier noexcept declarations.
+  // (Note: This is usually quite risky, only appropriate in projects which
+  //  assume already that dynamic memory allocation will never fail, and want to
+  //  go as fast as possible given that assumption.)
+  static constexpr bool assume_copy_nothrow =
+#ifdef STRICT_VARIANT_ASSUME_COPY_NOTHROW
+    true;
+#else
+    false;
+#endif
+
+  static constexpr bool nothrow_move_ctors =
+    assume_move_nothrow || mpl::All_Have<detail::is_nothrow_moveable, First, Types...>::value;
+
+  static constexpr bool nothrow_copy_ctors =
+    assume_copy_nothrow || mpl::All_Have<detail::is_nothrow_copyable, First, Types...>::value;
+
+  static constexpr bool nothrow_move_assign =
+    nothrow_move_ctors && mpl::All_Have<detail::is_nothrow_move_assignable, First, Types...>::value;
+
+  static constexpr bool nothrow_copy_assign =
+    nothrow_copy_ctors && mpl::All_Have<detail::is_nothrow_copy_assignable, First, Types...>::value;
+};
 
 } // end namespace detail
 

@@ -64,35 +64,6 @@ template <typename First, typename... Types>
 class variant {
 
 private:
-  /***
-   * Configuration
-   */
-
-  // Treat all input types as if they were nothrow moveable,
-  // regardless of their noexcept declarations.
-  // (Note: It is a core assumption of the variant that these operations don't
-  //  throw, you will get UB and likely an immediate crash if they do throw.
-  //  Only use this as a workaround for e.g. old code which is not
-  //  noexcept-correct. For instance if you require compatibility with a
-  //  gcc-4-series version of libstdc++ and std::string isn't noexcept.)
-  static constexpr bool assume_move_nothrow =
-#ifdef STRICT_VARIANT_ASSUME_MOVE_NOTHROW
-    true;
-#else
-    false;
-#endif
-
-  // Treat all input types as if they were nothrow copyable,
-  // regardless of thier noexcept declarations.
-  // (Note: This is usually quite risky, only appropriate in projects which
-  //  assume already that dynamic memory allocation will never fail, and want to
-  //  go as fast as possible given that assumption.)
-  static constexpr bool assume_copy_nothrow =
-#ifdef STRICT_VARIANT_ASSUME_COPY_NOTHROW
-    true;
-#else
-    false;
-#endif
 
   /***
    * Check noexcept status of special member functions of our types
@@ -102,18 +73,6 @@ private:
                 "All types in this variant type must be nothrow destructible");
   static_assert(mpl::All_Have<std::is_nothrow_destructible, Types...>::value,
                 "All types in this variant type must be nothrow destructible");
-
-  static constexpr bool nothrow_move_ctors =
-    assume_move_nothrow || mpl::All_Have<detail::is_nothrow_moveable, First, Types...>::value;
-
-  static constexpr bool nothrow_copy_ctors =
-    assume_copy_nothrow || mpl::All_Have<detail::is_nothrow_copyable, First, Types...>::value;
-
-  static constexpr bool nothrow_move_assign =
-    nothrow_move_ctors && mpl::All_Have<detail::is_nothrow_move_assignable, First, Types...>::value;
-
-  static constexpr bool nothrow_copy_assign =
-    nothrow_copy_ctors && mpl::All_Have<detail::is_nothrow_copy_assignable, First, Types...>::value;
 
   /***
    * Prohibit references
@@ -206,7 +165,7 @@ private:
   };
 
 #define STRICT_VARIANT_ASSERT_NOTHROW_MOVE_CTORS                                                   \
-  static_assert(nothrow_move_ctors,                                                                \
+  static_assert(detail::variant_noexcept_helper<First, Types...>::nothrow_move_ctors,              \
                 "All types in this variant must be nothrow move constructible or the variant "     \
                 "cannot be assigned!");                                                            \
   static_assert(true, "")
@@ -230,7 +189,7 @@ private:
         // the types are the same, so just assign into the lhs
         STRICT_VARIANT_ASSERT(m_rhs_which == index, "Bad access!");
         m_self.m_storage.template get_value<index>(detail::true_{}) = rhs;
-      } else if (assume_copy_nothrow || noexcept(Rhs(rhs))) {
+      } else if (detail::variant_noexcept_helper<First, Types...>::assume_copy_nothrow || noexcept(Rhs(rhs))) {
         // If copy ctor is no-throw (think integral types), this is the fastest
         // way
         m_self.destroy();
@@ -433,16 +392,16 @@ public:
   ~variant() noexcept { this->destroy(); }
 
   // Special member functions
-  variant(const variant & rhs) noexcept(nothrow_copy_ctors);
+  variant(const variant & rhs) noexcept(detail::variant_noexcept_helper<First, Types...>::nothrow_copy_ctors);
 
   // Note: noexcept is enforced by static_assert in move_constructor visitor
-  variant(variant && rhs) noexcept(nothrow_move_ctors);
+  variant(variant && rhs) noexcept(detail::variant_noexcept_helper<First, Types...>::nothrow_move_ctors);
 
-  variant & operator=(const variant & rhs) noexcept(nothrow_copy_assign);
+  variant & operator=(const variant & rhs) noexcept(detail::variant_noexcept_helper<First, Types...>::nothrow_copy_assign);
 
   // TODO: If all types are nothrow MA then this is also
   // For now we assume it is the case.
-  variant & operator=(variant && rhs) noexcept(nothrow_move_assign);
+  variant & operator=(variant && rhs) noexcept(detail::variant_noexcept_helper<First, Types...>::nothrow_move_assign);
 
   /// Forwarding-reference ctor, construct a variant from one of its value
   /// types.
@@ -469,14 +428,14 @@ public:
             typename Enable = mpl::enable_if_t<detail::proper_subvariant<variant<OFirst, OTypes...>,
                                                                          variant>::value>>
   variant(const variant<OFirst, OTypes...> & other) noexcept(
-    variant<OFirst, OTypes...>::nothrow_copy_ctors);
+    detail::variant_noexcept_helper<OFirst, OTypes...>::nothrow_copy_ctors);
 
   /// "Generalizing" move ctor, similar as above
   template <typename OFirst, typename... OTypes,
             typename Enable = mpl::enable_if_t<detail::proper_subvariant<variant<OFirst, OTypes...>,
                                                                          variant>::value>>
   variant(variant<OFirst, OTypes...> && other) noexcept(
-    variant<OFirst, OTypes...>::nothrow_move_ctors);
+    detail::variant_noexcept_helper<OFirst, OTypes...>::nothrow_move_ctors);
 
   // Emplace ctor. Used to explicitly specify the type of the variant, and
   // invoke an arbitrary ctor of that type.
@@ -645,7 +604,7 @@ variant<First, Types...>::variant() noexcept(noexcept(First())) {
 
 // Special member functions
 template <typename First, typename... Types>
-variant<First, Types...>::variant(const variant & rhs) noexcept(nothrow_copy_ctors) {
+variant<First, Types...>::variant(const variant & rhs) noexcept(detail::variant_noexcept_helper<First, Types...>::nothrow_copy_ctors) {
   copy_constructor c(*this);
   rhs.apply_visitor_internal(c);
   STRICT_VARIANT_ASSERT(rhs.which() == this->which(), "Postcondition failed!");
@@ -654,7 +613,7 @@ variant<First, Types...>::variant(const variant & rhs) noexcept(nothrow_copy_cto
 
 // Note: noexcept is enforced by static_assert in move_constructor visitor
 template <typename First, typename... Types>
-variant<First, Types...>::variant(variant && rhs) noexcept(nothrow_move_ctors) {
+variant<First, Types...>::variant(variant && rhs) noexcept(detail::variant_noexcept_helper<First, Types...>::nothrow_move_ctors) {
   move_constructor mc(*this);
   rhs.apply_visitor_internal(mc);
   STRICT_VARIANT_ASSERT(rhs.which() == this->which(), "Postcondition failed!");
@@ -663,7 +622,7 @@ variant<First, Types...>::variant(variant && rhs) noexcept(nothrow_move_ctors) {
 
 template <typename First, typename... Types>
 variant<First, Types...> &
-variant<First, Types...>::operator=(const variant & rhs) noexcept(nothrow_copy_assign) {
+variant<First, Types...>::operator=(const variant & rhs) noexcept(detail::variant_noexcept_helper<First, Types...>::nothrow_copy_assign) {
   if (this != &rhs) {
     copy_assigner a(*this, rhs.which());
     rhs.apply_visitor_internal(a);
@@ -677,7 +636,7 @@ variant<First, Types...>::operator=(const variant & rhs) noexcept(nothrow_copy_a
 // For now we assume it is the case.
 template <typename First, typename... Types>
 variant<First, Types...> &
-variant<First, Types...>::operator=(variant && rhs) noexcept(nothrow_move_assign) {
+variant<First, Types...>::operator=(variant && rhs) noexcept(detail::variant_noexcept_helper<First, Types...>::nothrow_move_assign) {
   if (this != &rhs) {
     move_assigner ma(*this, rhs.which());
     rhs.apply_visitor_internal(ma);
@@ -710,7 +669,7 @@ variant<First, Types...>::variant(T && t) noexcept(noexcept((*static_cast<initia
 template <typename First, typename... Types>
 template <typename OFirst, typename... OTypes, typename Enable>
 variant<First, Types...>::variant(const variant<OFirst, OTypes...> & other) noexcept(
-  variant<OFirst, OTypes...>::nothrow_copy_ctors) {
+  detail::variant_noexcept_helper<OFirst, OTypes...>::nothrow_copy_ctors) {
   copy_constructor c(*this);
   other.apply_visitor_internal(c);
   STRICT_VARIANT_ASSERT_WHICH_INVARIANT;
@@ -720,7 +679,7 @@ variant<First, Types...>::variant(const variant<OFirst, OTypes...> & other) noex
 template <typename First, typename... Types>
 template <typename OFirst, typename... OTypes, typename Enable>
 variant<First, Types...>::variant(variant<OFirst, OTypes...> && other) noexcept(
-  variant<OFirst, OTypes...>::nothrow_move_ctors) {
+  detail::variant_noexcept_helper<OFirst, OTypes...>::nothrow_move_ctors) {
   move_constructor c(*this);
   other.apply_visitor_internal(c);
   STRICT_VARIANT_ASSERT_WHICH_INVARIANT;
