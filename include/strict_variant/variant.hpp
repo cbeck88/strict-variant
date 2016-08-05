@@ -134,146 +134,14 @@ private:
   /***
    * Visitors used to implement special member functions and such
    */
-  struct copy_constructor {
-    typedef void result_type;
+  struct copy_constructor;
+  struct move_constructor;
 
-    explicit copy_constructor(variant & self)
-      : m_self(self) {}
+  struct copy_assigner;
+  struct move_assigner;
+  struct destroyer;
 
-    template <typename T>
-    void operator()(const T & rhs) const {
-      m_self.initialize<find_which<T>::value>(rhs);
-    }
-
-  private:
-    variant & m_self;
-  };
-
-  struct move_constructor {
-    typedef void result_type;
-
-    explicit move_constructor(variant & self)
-      : m_self(self) {}
-
-    template <typename T>
-    void operator()(T & rhs) const noexcept {
-      m_self.initialize<find_which<T>::value>(std::move(rhs));
-    }
-
-  private:
-    variant & m_self;
-  };
-
-#define STRICT_VARIANT_ASSERT_NOTHROW_MOVE_CTORS                                                   \
-  static_assert(detail::variant_noexcept_helper<First, Types...>::nothrow_move_ctors,              \
-                "All types in this variant must be nothrow move constructible or the variant "     \
-                "cannot be assigned!");                                                            \
-  static_assert(true, "")
-
-  // copy assigner
-  struct copy_assigner {
-    typedef void result_type;
-
-    STRICT_VARIANT_ASSERT_NOTHROW_MOVE_CTORS;
-
-    explicit copy_assigner(variant & self, int rhs_which)
-      : m_self(self)
-      , m_rhs_which(rhs_which) {}
-
-    template <typename Rhs>
-    void operator()(const Rhs & rhs) const {
-
-      constexpr size_t index = find_which<Rhs>::value;
-
-      if (m_self.which() == m_rhs_which) {
-        // the types are the same, so just assign into the lhs
-        STRICT_VARIANT_ASSERT(m_rhs_which == index, "Bad access!");
-        m_self.m_storage.template get_value<index>(detail::true_{}) = rhs;
-      } else if (detail::variant_noexcept_helper<First, Types...>::assume_copy_nothrow || noexcept(Rhs(rhs))) {
-        // If copy ctor is no-throw (think integral types), this is the fastest
-        // way
-        m_self.destroy();
-        m_self.initialize<index>(rhs);
-      } else {
-        // Copy ctor could throw, so do trial copy on the stack for safety and
-        // move it...
-        Rhs tmp(rhs);
-        m_self.destroy();                         // nothrow
-        m_self.initialize<index>(std::move(tmp)); // nothrow (please)
-      }
-    }
-
-  private:
-    variant & m_self;
-    int m_rhs_which;
-  };
-
-  // move assigner
-  struct move_assigner {
-    typedef void result_type;
-
-    STRICT_VARIANT_ASSERT_NOTHROW_MOVE_CTORS;
-
-    explicit move_assigner(variant & self, int rhs_which)
-      : m_self(self)
-      , m_rhs_which(rhs_which) {}
-
-    template <typename Rhs>
-    void operator()(Rhs & rhs) const {
-
-      constexpr size_t index = find_which<Rhs>::value;
-
-      if (m_self.which() == m_rhs_which) {
-        // the types are the same, so just assign into the lhs
-        STRICT_VARIANT_ASSERT(m_rhs_which == index, "Bad access!");
-        m_self.m_storage.template get_value<index>(detail::true_{}) = std::move(rhs);
-      } else {
-        m_self.destroy();                         // nothrow
-        m_self.initialize<index>(std::move(rhs)); // nothrow (please)
-      }
-    }
-
-  private:
-    variant & m_self;
-    int m_rhs_which;
-  };
-
-  // equality check
-  struct eq_checker {
-    typedef bool result_type;
-
-    eq_checker(const variant & self, int rhs_which)
-      : m_self(self)
-      , m_rhs_which(rhs_which) {}
-
-    template <typename Rhs>
-    bool operator()(const Rhs & rhs) const {
-
-      constexpr size_t index = find_which<Rhs>::value;
-
-      if (m_self.which() == m_rhs_which) {
-        // the types are the same, so use operator eq
-        STRICT_VARIANT_ASSERT(m_rhs_which == index, "Bad access!");
-        return m_self.m_storage.template get_value<index>(detail::false_{}) == rhs;
-      } else {
-        return false;
-      }
-    }
-
-  private:
-    const variant & m_self;
-    int m_rhs_which;
-  };
-
-  // destroyer
-  struct destroyer {
-    typedef void result_type;
-
-    template <typename T>
-    void operator()(T & t) const noexcept {
-      t.~T();
-    }
-  };
+  struct eq_checker;
 
   // initializer. This is the overloaded function object used in T && ctor.
   // Here T should be the forwarding reference
@@ -380,10 +248,6 @@ private:
   template <typename T, unsigned... us>
   struct initializer<T, mpl::ulist<us...>>
     : initializer_base<T, us, Test_Priority<T, mpl::priority_max>::value>... {};
-
-#define STRICT_VARIANT_ASSERT_WHICH_INVARIANT                                                      \
-  STRICT_VARIANT_ASSERT(static_cast<unsigned>(this->which()) < sizeof...(Types) + 1,               \
-                        "Postcondition failed!")
 
 public:
   template <typename ENABLE = void> // only allow if First() is ok
@@ -590,8 +454,164 @@ template <typename... Ts>
 using easy_variant = variant<wrap_if_throwing_move_t<Ts>...>;
 
 /***
+ * Implementation details of internal visitors
+ */
+template <typename First, typename... Types>
+struct variant<First, Types...>::copy_constructor {
+    typedef void result_type;
+
+    explicit copy_constructor(variant & self)
+      : m_self(self) {}
+
+    template <typename T>
+    void operator()(const T & rhs) const {
+      m_self.initialize<find_which<T>::value>(rhs);
+    }
+
+  private:
+    variant & m_self;
+  };
+
+template <typename First, typename... Types>
+struct variant<First, Types...>::move_constructor {
+    typedef void result_type;
+
+    explicit move_constructor(variant & self)
+      : m_self(self) {}
+
+    template <typename T>
+    void operator()(T & rhs) const noexcept {
+      m_self.initialize<find_which<T>::value>(std::move(rhs));
+    }
+
+  private:
+    variant & m_self;
+  };
+
+#define STRICT_VARIANT_ASSERT_NOTHROW_MOVE_CTORS                                                   \
+  static_assert(detail::variant_noexcept_helper<First, Types...>::nothrow_move_ctors,              \
+                "All types in this variant must be nothrow move constructible or the variant "     \
+                "cannot be assigned!");                                                            \
+  static_assert(true, "")
+
+  // copy assigner
+template <typename First, typename... Types>
+  struct variant<First, Types...>::copy_assigner {
+    typedef void result_type;
+
+    STRICT_VARIANT_ASSERT_NOTHROW_MOVE_CTORS;
+
+    explicit copy_assigner(variant & self, int rhs_which)
+      : m_self(self)
+      , m_rhs_which(rhs_which) {}
+
+    template <typename Rhs>
+    void operator()(const Rhs & rhs) const {
+
+      constexpr size_t index = find_which<Rhs>::value;
+
+      if (m_self.which() == m_rhs_which) {
+        // the types are the same, so just assign into the lhs
+        STRICT_VARIANT_ASSERT(m_rhs_which == index, "Bad access!");
+        m_self.m_storage.template get_value<index>(detail::true_{}) = rhs;
+      } else if (detail::variant_noexcept_helper<First, Types...>::assume_copy_nothrow || noexcept(Rhs(rhs))) {
+        // If copy ctor is no-throw (think integral types), this is the fastest
+        // way
+        m_self.destroy();
+        m_self.initialize<index>(rhs);
+      } else {
+        // Copy ctor could throw, so do trial copy on the stack for safety and
+        // move it...
+        Rhs tmp(rhs);
+        m_self.destroy();                         // nothrow
+        m_self.initialize<index>(std::move(tmp)); // nothrow (please)
+      }
+    }
+
+  private:
+    variant & m_self;
+    int m_rhs_which;
+  };
+
+  // move assigner
+template <typename First, typename... Types>
+  struct variant<First, Types...>::move_assigner {
+    typedef void result_type;
+
+    STRICT_VARIANT_ASSERT_NOTHROW_MOVE_CTORS;
+
+    explicit move_assigner(variant & self, int rhs_which)
+      : m_self(self)
+      , m_rhs_which(rhs_which) {}
+
+    template <typename Rhs>
+    void operator()(Rhs & rhs) const {
+
+      constexpr size_t index = find_which<Rhs>::value;
+
+      if (m_self.which() == m_rhs_which) {
+        // the types are the same, so just assign into the lhs
+        STRICT_VARIANT_ASSERT(m_rhs_which == index, "Bad access!");
+        m_self.m_storage.template get_value<index>(detail::true_{}) = std::move(rhs);
+      } else {
+        m_self.destroy();                         // nothrow
+        m_self.initialize<index>(std::move(rhs)); // nothrow (please)
+      }
+    }
+
+  private:
+    variant & m_self;
+    int m_rhs_which;
+  };
+
+  // equality check
+template <typename First, typename... Types>
+  struct variant<First, Types...>::eq_checker {
+    typedef bool result_type;
+
+    eq_checker(const variant & self, int rhs_which)
+      : m_self(self)
+      , m_rhs_which(rhs_which) {}
+
+    template <typename Rhs>
+    bool operator()(const Rhs & rhs) const {
+
+      constexpr size_t index = find_which<Rhs>::value;
+
+      if (m_self.which() == m_rhs_which) {
+        // the types are the same, so use operator eq
+        STRICT_VARIANT_ASSERT(m_rhs_which == index, "Bad access!");
+        return m_self.m_storage.template get_value<index>(detail::false_{}) == rhs;
+      } else {
+        return false;
+      }
+    }
+
+  private:
+    const variant & m_self;
+    int m_rhs_which;
+  };
+
+  // destroyer
+template <typename First, typename... Types>
+  struct variant<First, Types...>::destroyer {
+    typedef void result_type;
+
+    template <typename T>
+    void operator()(T & t) const noexcept {
+      t.~T();
+    }
+  };
+
+
+
+/***
  * Implementation details of ctors
  */
+
+#define STRICT_VARIANT_ASSERT_WHICH_INVARIANT                                                      \
+  STRICT_VARIANT_ASSERT(static_cast<unsigned>(this->which()) < sizeof...(Types) + 1,               \
+                        "Postcondition failed!")
 
 template <typename First, typename... Types>
 template <typename enable>
