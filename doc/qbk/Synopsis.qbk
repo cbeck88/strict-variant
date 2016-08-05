@@ -1,0 +1,187 @@
+[section Synopsis]
+
+The actual interface to `strict_variant` is in most ways the same as `boost::variant`, which strongly inspired this.  
+
+(However, my interface is exception-free. If you want to have
+analogues of the throwing functions in `boost::variant` you'll have to write them, which is pretty easy to do on top of the exception-free interface.)
+
+Each of these definitions is brought in by including `<strict_variant/variant.hpp>`.
+
+[h3 `variant`]
+
+```
+namespace strict_variant {
+
+  template <typename First, typename... Types>
+  class variant {
+
+    // Attempts to default construct the First type.
+    // If First is not default-constructible then this is not available.
+    variant();
+
+    // Special member functions: Nothing special here
+    variant(const variant &);
+    variant(variant &&);
+    ~variant() noexcept;
+
+    // Only available if all input types are no-throw move constructible
+    variant & operator=(variant &&);
+    variant & operator=(const variant &);
+
+    // Constructs the variant from a type outside the variant,
+    // using iterative strategy described in docs.
+    // (SFINAE expression omitted here)
+    template <typename T>
+    variant(T &&);
+
+    // Constructs the variant from a "subvariant", that is, another variant
+    // over a strictly smaller set of types, modulo recursive_wrapper.
+    // (SFINAE expression omitted here)
+    template <typename... OTypes>
+    variant(const variant<Otypes...> &);
+
+    template <typename... OTypes>
+    variant(variant<Otypes...> &&);
+
+    // Emplace ctor. Used to explicitly specify the type of the variant, and
+    // invoke an arbitrary ctor of that type.
+    template <typename T>
+    struct emplace_tag {};
+
+    template <typename T, typename... Args>
+    explicit variant(emplace_tag<T>, Args && ... args);
+
+    // Emplace operation
+    // Force the variant to a particular value.
+    // The user explicitly specifies the desired type as template parameter,
+    // which must be one of the variant types, modulo const, recursive wrapper.
+    // (There are actually two implementations of emplace, depending on whether
+    // the invoked ctor is noexcept. If it is not, then a move is used for
+    // strong exception-safety.)
+    template <typename T, typename... Args>
+    void emplace(Args &&... args);
+
+    // Reports the runtime type. The returned value is an index into the list
+    // <First, Types...>.
+    int which() const;
+
+    // Test for equality. The which values must match, and operator == for the
+    // underlying values must return true.
+    bool operator == (const variant &) const;
+    bool operator != (const variant &) const;
+  };
+
+} // end namespace strict_variant
+```
+
+[h3 `get`]
+```
+namespace strict_variant {
+
+  // Access the stored value. Returns `nullptr` if `T` is not the currently
+  // engaged type.
+  template <typename T, typename ... Types>
+  T * get(variant<Types...> * v);
+
+  template <typename T, typename ... Types>
+  const T * get(const variant<Types...> * v);
+
+  // Returns a reference to the stored value. If it does not currently have the
+  // indicated type, then the argument def is emplaced into the variant, and a
+  // reference to that value, within the variant, is returned.
+  // This is noexcept if T is no_throw_move_constructible.
+  template <typename T, typename ... Types>
+  T & get_or_default(variant<Types...> & v, T def = {});
+
+} // end namespace strict_variant
+```
+
+[h3 `apply_visitor`]
+
+```
+namespace strict_variant {
+
+  // Apply a visitor to the variant. It is called using the current value
+  // of the variant with its current type as the argument.
+  template <typename Visitor, typename Variant>
+  void apply_visitor(Visitor && visitor, Variant && var);
+
+}
+```
+
+The multi-visitation header brings in an extended definition of `apply_visitor`,
+which supports visiting two or more variants simultaneously.
+
+[h3 `easy_variant`]
+
+The `easy_variant` template alias provides seamless support for types that
+have throwing moves.
+
+```
+namespace strict_variant {
+
+  // Template alias `easy_variant` defined in terms of strict_variant.
+  template <typename... Types>
+  using easy_variant = variant<wrap_if_thowing_move_t<Ts>...>;
+
+} // end namespace strict_variant
+```
+
+where `wrap_if_throwing_move_t` is
+
+```
+namespace strict_variant {
+  struct <typename T, typename = mpl::enable_if_t<std::is_nothrow_destructible<T>::value && !std::is_reference<T>::value>>
+  struct wrap_if_throwing_move {
+    using type = typename std::conditional<std::is_nothrow_move_constructible<T>::value,
+                                           T,
+                                           recursive_wrapper<T>>::type;
+  };
+
+  template <typename T>
+  using wrap_if_throwing_move_t = typename wrap_if_throwing_move<T>::type;
+}
+```
+
+[h3 `recursive_wrapper`]
+
+Recursive wrapper is very useful, but you shouldn't normally need to know about it than its declaration.
+
+We'll give the following spec for the class body:
+
+```
+namespace strict_variant {
+
+  template <typename T>
+  class recursive_wrapper {
+    T * m_t;
+
+  public:
+    // Default-constructs `T` on the heap.
+    // Not available if `T` is not default constructible.
+    recursive_wrapper();
+
+    // Post-condition: `m_t = nullptr`.
+    recursive_wrapper(recursive_wrapper && rhs) noexcept;
+
+    // Copies `*m_t` and makes a new dynamic allocation
+    recursive_wrapper(const recursive_wrapper & rhs);
+
+    recursive_wrapper & operator=(recursive_wrapper && rhs) noexcept;
+    recursive_wrapper & operator=(const recursive_wrapper & rhs);
+
+    ~recursive_wrapper() noexcept;
+
+    T & get() & { return *m_t; }
+    const T & get() const & { return *m_t; }
+    T && get() && { return std::move(*m_t); }
+  };
+
+} // end namespace strict_variant
+```
+
+[caution After a recursive_wrapper is moved from, UB occurs on attempt to dereference it, just like with `std::unique_ptr`.
+Generally, when a `variant` is moved into another `variant`, if the underlying value is a `recursive_wrapper`,
+then the old variant should be destroyed, reassigned from another variant, or reinitialized using `emplace`. ]
+
+[endsect]

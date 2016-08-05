@@ -1,0 +1,7 @@
+[section Restrictions]
+
+# Any type in a `strict_variant` must be no-throw destructible.
+# References are not allowed, use `std::reference_wrapper`.
+# Types must be complete at point of instantiation of `variant`. (See `recursive_wrapper<T>` for a remedy to this.)
+
+[endsect]

@@ -5,3 +5,5 @@
 /bench/stage
 /bench/*.s
 /bench/bench.log
+/doc/bin/
+/doc/html/
