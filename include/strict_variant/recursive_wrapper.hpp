@@ -17,6 +17,21 @@ namespace strict_variant {
 
 template <typename T>
 class recursive_wrapper {
+  T * m_t;
+
+  template <typename U>
+  void assign(U && u) {
+    if (m_t) {
+      *m_t = std::forward<U>(u);
+    } else {
+      m_t = new T(std::forward<U>(u));
+    }
+  }
+
+  void destroy() {
+    if (m_t) { delete m_t; }
+  }
+
 public:
   ~recursive_wrapper() noexcept { this->destroy(); }
 
@@ -82,18 +97,6 @@ public:
   operator T &() & { return this->get(); }
   operator T const &() const & { return this->get(); }
   operator T &&() && { return std::move(this->get()); }
-
-private:
-  T * m_t;
-
-  template <typename U>
-  void assign(U && u) {
-    *m_t = std::forward<U>(u);
-  }
-
-  void destroy() {
-    if (m_t) { delete m_t; }
-  }
 };
 
 namespace detail {
