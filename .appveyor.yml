@@ -7,8 +7,8 @@ os: Visual Studio 2015
 # - x64
 
 # scripts that are called at very beginning, before repo cloning
-init:
-  - git config --global core.autocrlf input
+# init:
+#  - git config --global core.autocrlf input
 
 # clone directory
 clone_folder: C:\projects\strict_variant
