@@ -63,7 +63,7 @@ One case when this might cause problems for you is when using variant types to i
 scripting language will permit a variety of primitive values, so when binding to it, you may naturally end up with something like
 
 ```c++
-    boost::variant<bool, int, float, std::string, ...>
+  boost::variant<bool, int, float, std::string, ...>
 ```
 
 **strict variant** therefore uses SFINAE to modify the overload resolution process.
@@ -97,17 +97,10 @@ scripting language will permit a variety of primitive values, so when binding to
 So, keep in mind, this is not a drop-in replacement for `boost::variant` or one of the other versions, its semantics are fundamentally different.
 But in scenarios like those it was designed for, it may be easier to reason about and less error-prone.
 
-Assumptions
-===========
-
-- Any type in the variant must be no-throw destructible.
-- References are not allowed, use `std::reference_wrapper`.
-
-Never Empty Guarantee
+Never-Empty Guarantee
 =====================
 
-See documentation for how we handle the never-empty guarantee.
-
+See documentation for how we handle this.
 
 Compiler Compatibility
 ======================
