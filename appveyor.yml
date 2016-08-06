@@ -44,7 +44,7 @@ test_script:
   - ps: >-
       If($true) {
         Write-Host "Running test executables.."
-        Set-Location "C:\projecst\strict_variant\test\stage"
+        Set-Location "C:\projects\strict_variant\test\stage"
         & .\variant
         & .\compare
         & .\hash
