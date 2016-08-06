@@ -75,7 +75,7 @@ public:
   X (X &&) = delete;
 };
 
-// A variant contianing X
+// A variant containing X
 int main() {
   strict_variant::variant<int, X> v;
   v = 5;
@@ -88,34 +88,30 @@ This code will fail to compile, because `v` cannot be assigned if `X` has a thro
 We have a few possible remedies:
 
 # Use `recursive_wrapper` with types that have throwing moves.
-
-```
-int main() {
-  strict_variant::variant<int, strict_variant::recursive_wrapper<X>> v;
-  v = 5;
-  v = X();
-}
-```
-
+  ```
+  int main() {
+    strict_variant::variant<int, strict_variant::recursive_wrapper<X>> v;
+    v = 5;
+    v = X();
+  }
+  ```
 
 # Use `easy_variant` instead of `strict_variant`. It's the same, but it implicitly applies wrappers to its arguments with throwing moves.
-
-```
-int main() {
-  strict_variant::easy_variant<int, X> v;
-  v = 5;
-  v = X();
-}
-```
+  ```
+  int main() {
+    strict_variant::easy_variant<int, X> v;
+    v = 5;
+    v = X();
+  }
+  ```
 
 # Don't use assignment, and use the `emplace` method instead.
-
-```
-int main() {
-  strict_variant::variant<int, X> v;
-  v.emplace<int>(5);
-  v.emplace<X>();
-}
-```
+  ```
+  int main() {
+    strict_variant::variant<int, X> v;
+    v.emplace<int>(5);
+    v.emplace<X>();
+  }
+  ```
 
 [endsect]
