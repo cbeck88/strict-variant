@@ -36,11 +36,9 @@ install:
         $env:BOOST_ROOT = "C:\projects\boost_1_60_0"
         $env:Path += ";C:\projects\boost_1_60_0;"
         Set-Location "C:\projects\strict_variant\test"
+        Write-Host "Building test executables"
         & b2 --toolset=msvc
       }
-  
-#  - cmd: echo "Building test executables..."
-#  - cmd: cd C:\projects\strict_variant\test && b2.exe --toolset=msvc-15.0
 
 test_script:
   - ps: >-
