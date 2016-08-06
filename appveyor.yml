@@ -24,8 +24,7 @@ build: off
 
 install:
   - ps: >-
-  If($true)
-  {
+  If($true) {
     Add-Type -assembly "system.io.compression.filesystem"
     Write-Host "Downloading boost..."
     (new-object net.webclient).DownloadFile("http://sourceforge.net/projects/boost/files/boost/1.60.0/boost_1_60_0.tar.gz", "C:\projects\boost_1_60_0.tar.gz")
@@ -44,8 +43,7 @@ install:
 
 test_script:
   - ps: >-
-  If($true)
-  {
+  If($true) {
     Write-Host "Running test executables.."
     Set-Location "C:\projecst\strict_variant\test\stage"
     & .\variant
