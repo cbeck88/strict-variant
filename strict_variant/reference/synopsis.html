@@ -102,6 +102,11 @@
 <a name="strict_variant.reference.synopsis.h1"></a>
         <span><a name="strict_variant.reference.synopsis.get"></a></span><a class="link" href="synopsis.html#strict_variant.reference.synopsis.get"><code class="computeroutput"><span class="identifier">get</span></code></a>
       </h4>
+<p>
+        The <code class="computeroutput"><span class="identifier">get</span></code> function can be used
+        to access a <code class="computeroutput"><span class="identifier">variant</span></code> without
+        using a visitor.
+      </p>
 <pre class="programlisting"><span class="keyword">namespace</span> <span class="identifier">strict_variant</span> <span class="special">{</span>
 
   <span class="comment">// Access the stored value. Returns `nullptr` if `T` is not the currently</span>
@@ -121,10 +126,21 @@
 
 <span class="special">}</span> <span class="comment">// end namespace strict_variant</span>
 </pre>
+<p>
+        Note that we only support the "pointer" versions of <code class="computeroutput"><span class="identifier">get</span></code>. <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code>
+        also supports a value version, which returns a reference to the requested
+        type or throws an exception. We don't currently have an implementation of
+        that, you would have to roll your own.
+      </p>
 <h4>
 <a name="strict_variant.reference.synopsis.h2"></a>
         <span><a name="strict_variant.reference.synopsis.apply_visitor"></a></span><a class="link" href="synopsis.html#strict_variant.reference.synopsis.apply_visitor"><code class="computeroutput"><span class="identifier">apply_visitor</span></code></a>
       </h4>
+<p>
+        <code class="computeroutput"><span class="identifier">apply_visitor</span></code> takes an arbitrary
+        function object as its first parameter (the visitor), and a variant as its
+        second.
+      </p>
 <pre class="programlisting"><span class="keyword">namespace</span> <span class="identifier">strict_variant</span> <span class="special">{</span>
 
   <span class="comment">// Apply a visitor to the variant. It is called using the current value</span>
