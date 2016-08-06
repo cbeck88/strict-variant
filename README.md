@@ -4,8 +4,6 @@
 [![Appveyor status](https://ci.appveyor.com/api/projects/status/github/cbeck88/strict-variant?branch=master&svg=true)](https://ci.appveyor.com/project/cbeck88/strict-variant)
 [![Boost licensed](https://img.shields.io/badge/license-Boost-blue.svg)](./LICENSE)
 
-
-
 Do you use `boost::variant` or one of the many open-source C++11 implementations of a "tagged union" or variant type
 in your C++ projects?
 
@@ -109,7 +107,7 @@ Compiler Compatibility
 
 `strict_variant` targets the C++11 standard.
 
-It is known to work with `gcc >= 4.8` and `clang >= 3.5`.  
+It is known to work with `gcc >= 4.8` and `clang >= 3.5`, and is tested against `MSVC 2015`.
 
 Licensing and Distribution
 ==========================
@@ -145,13 +143,15 @@ empty state. In essence we are sacrificing strong exception safety for only
 basic exception safety, in a quest for performance.
 
 In `strict_variant`, the focus is on a less general case. We basically "favor"
-the nothrow move constructible members, which enjoy optimal performance like they
-would in `std::variant`. We create a "slow track" which accomodates all members
-with throwing moves, by simply always putting them on the heap.
+the nothrow move-constructible members, which enjoy optimal performance like they
+would in `std::variant`. We accomodates all members with throwing move by
+putting them on the heap -- then the pointer can be moved into storage without
+failure.
+
 In comparison with `boost::variant`, this results in no extra calls
 to copy constructors when we make an assignment.
 It also will impact speed of visitation, in the sense
-that you must dereference an extra pointer to find the object -- boost::variant
+that you must dereference an extra pointer to find the object -- `boost::variant`
 always tries to get the object in situ, and only puts it on the heap if an exception
 is thrown. However, if exceptions are thrown regularly, then you would already
 have had to tolerate this overhead with `boost::variant`. An advantage, though,
@@ -164,7 +164,8 @@ most relevant, the types will all likely be no-throw move constructible anyways.
 Regardless, at least when your types are in fact no-throw move constructible,
 we enjoy essentially the same interface as `boost::variant` updated to modern
 C++, without the extra copies or dynamic allocations that were required prior to
-C++11.
+C++11. And also in that case, we enjoy the same performance as `std::variant`
+without the added complexity of an empty state.
 
 Visitation
 ----------
