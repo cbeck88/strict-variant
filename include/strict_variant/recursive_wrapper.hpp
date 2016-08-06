@@ -19,13 +19,11 @@ template <typename T>
 class recursive_wrapper {
   T * m_t;
 
+  // TODO: Improve this, so we don't make an extra dynamic allocation?
   template <typename U>
   void assign(U && u) {
-    if (m_t) {
-      *m_t = std::forward<U>(u);
-    } else {
-      m_t = new T(std::forward<U>(u));
-    }
+    this->destroy();
+    m_t = new T(std::forward<U>(u));
   }
 
   void destroy() {
@@ -39,7 +37,7 @@ public:
   recursive_wrapper()
     : m_t(new T()) {}
 
-  template <typename U, typename Dummy = mpl::enable_if_t<std::is_convertible<U, T>::value>>
+  template <typename U, typename Dummy = mpl::enable_if_t<std::is_constructible<T, U>::value>>
   recursive_wrapper(U && u)
     : m_t(new T(std::forward<U>(u))) {}
 

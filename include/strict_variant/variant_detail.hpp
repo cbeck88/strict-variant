@@ -142,6 +142,18 @@ strict_variant::recursive_wrapper<T> &&> : {
  */
 
 template <typename T>
+struct is_nothrow_moveable_or_wrapper : std::is_nothrow_move_constructible<T> {};
+
+template <typename T>
+struct is_nothrow_moveable_or_wrapper<recursive_wrapper<T>> : std::true_type {};
+
+// Subtle point:
+// Generally, moving T && into recursive_wrapper<T> is not no-throw, since
+// we have to make a dynamic allocation. So traits below are appropriate for
+// determining the *variant*'s noexcept status.
+// Trait above is useful for figuring out if assingment can work.
+
+template <typename T>
 struct is_nothrow_default_constructible : std::is_nothrow_constructible<T> {};
 
 template <typename T>
@@ -151,7 +163,7 @@ template <typename T>
 struct is_nothrow_moveable : std::is_nothrow_move_constructible<T> {};
 
 template <typename T>
-struct is_nothrow_moveable<recursive_wrapper<T>> : std::true_type {};
+struct is_nothrow_moveable<recursive_wrapper<T>> : std::false_type {};
 
 template <typename T>
 struct is_nothrow_copyable : std::is_nothrow_constructible<T, const T &> {};
@@ -163,7 +175,7 @@ template <typename T>
 struct is_nothrow_move_assignable : std::is_nothrow_move_assignable<T> {};
 
 template <typename T>
-struct is_nothrow_move_assignable<recursive_wrapper<T>> : std::true_type {};
+struct is_nothrow_move_assignable<recursive_wrapper<T>> : std::false_type {};
 
 template <typename T>
 struct is_nothrow_copy_assignable : std::is_nothrow_copy_assignable<T> {};
@@ -202,6 +214,10 @@ struct variant_noexcept_helper {
 #else
     false;
 #endif
+
+  static constexpr bool assignable =
+    assume_move_nothrow
+    || mpl::All_Have<detail::is_nothrow_moveable_or_wrapper, First, Types...>::value;
 
   static constexpr bool nothrow_move_ctors =
     assume_move_nothrow || mpl::All_Have<detail::is_nothrow_moveable, First, Types...>::value;
