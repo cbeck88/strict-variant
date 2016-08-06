@@ -98,13 +98,13 @@ private:
   /***
    * Initialize and destroy
    */
-  void destroy() {
+  void destroy() noexcept {
     destroyer d;
     this->apply_visitor_internal(d);
   }
 
   template <size_t index, typename... Args>
-  void initialize(Args &&... args) {
+  void initialize(Args &&... args) noexcept(noexcept(static_cast<storage_t*>(nullptr)->template initialize<index>(std::forward<Args>(std::declval<Args>())...))) {
     m_storage.template initialize<index>(std::forward<Args>(args)...);
     this->m_which = static_cast<int>(index);
   }
@@ -513,24 +513,29 @@ struct variant<First, Types...>::copy_assigner {
   template <typename Rhs>
   void operator()(const Rhs & rhs) const {
 
+    static_assert(noexcept(static_cast<variant*>(nullptr)->destroy()), "Noexcept assumption failed!");
+
     constexpr size_t index = find_which<Rhs>::value;
 
     if (m_self.which() == m_rhs_which) {
       // the types are the same, so just assign into the lhs
       STRICT_VARIANT_ASSERT(m_rhs_which == index, "Bad access!");
+      // Implementation Note: This assignment is safe even if recursive_wrapper is vacant
+      // Because `detail::true_` here means that we are getting the recursive wrapper, not implicitly *'ing it.
       m_self.m_storage.template get_value<index>(detail::true_{}) = rhs;
     } else if (detail::variant_noexcept_helper<First, Types...>::assume_copy_nothrow
-               || noexcept(Rhs(rhs))) {
-      // If copy ctor is no-throw (think integral types), this is the fastest
-      // way
+               || noexcept(static_cast<variant*>(nullptr)->initialize<index>(*static_cast<const Rhs *>(nullptr)))) {
+      // If copy ctor is no-throw (think integral types), this is the fastest way
       m_self.destroy();
-      m_self.initialize<index>(rhs);
+      m_self.initialize<index>(rhs); // nothrow
     } else {
       // Copy ctor could throw, so do trial copy on the stack for safety and
-      // move it...
+      // move it
+      static_assert(detail::variant_noexcept_helper<First, Types...>::assume_move_nothrow || noexcept(static_cast<variant*>(nullptr)->initialize<index>(std::declval<Rhs>())), "Noexcept assumption failed!");
+
       Rhs tmp(rhs);
       m_self.destroy();                         // nothrow
-      m_self.initialize<index>(std::move(tmp)); // nothrow (please)
+      m_self.initialize<index>(std::move(tmp)); // nothrow
     }
   }
 
@@ -558,10 +563,15 @@ struct variant<First, Types...>::move_assigner {
     if (m_self.which() == m_rhs_which) {
       // the types are the same, so just assign into the lhs
       STRICT_VARIANT_ASSERT(m_rhs_which == index, "Bad access!");
+      // Implementation Note: This assignment is safe even if recursive_wrapper is vacant
+      // Because `detail::true_` here means that we are getting the recursive wrapper, not implicitly *'ing it.
       m_self.m_storage.template get_value<index>(detail::true_{}) = std::move(rhs);
     } else {
+      static_assert(noexcept(static_cast<variant*>(nullptr)->destroy()), "Noexcept assumption failed!");
+      static_assert(detail::variant_noexcept_helper<First, Types...>::assume_move_nothrow || noexcept(static_cast<variant*>(nullptr)->initialize<index>(std::declval<Rhs>())), "Noexcept assumption failed!");
+
       m_self.destroy();                         // nothrow
-      m_self.initialize<index>(std::move(rhs)); // nothrow (please)
+      m_self.initialize<index>(std::move(rhs)); // nothrow
     }
   }
 
