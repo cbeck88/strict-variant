@@ -1,0 +1,178 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<title>Advanced Usage</title>
+<link rel="stylesheet" href="../../../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="../../../index.html" title="Chapter&#160;1.&#160;Strict Variant 0.0">
+<link rel="up" href="../basic_usage.html" title="Basic Usage">
+<link rel="prev" href="../basic_usage.html" title="Basic Usage">
+<link rel="next" href="../reference.html" title="Reference">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<div class="spirit-nav">
+<a accesskey="p" href="../basic_usage.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../basic_usage.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="../reference.html"><img src="../../../images/next.png" alt="Next"></a>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="strict_variant.tutorial.basic_usage.advanced_usage"></a><a class="link" href="advanced_usage.html" title="Advanced Usage">Advanced
+        Usage</a>
+</h4></div></div></div>
+<h4>
+<a name="strict_variant.tutorial.basic_usage.advanced_usage.h0"></a>
+          <span><a name="strict_variant.tutorial.basic_usage.advanced_usage.more_general_visitors"></a></span><a class="link" href="advanced_usage.html#strict_variant.tutorial.basic_usage.advanced_usage.more_general_visitors">More
+          general visitors</a>
+        </h4>
+<p>
+          One thing which you'll note in <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code>
+          docs is that when applying a visitor, they always derive from <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">static_visitor</span></code>, or explicitly define
+          a typedef <code class="computeroutput"><span class="identifier">result_type</span></code>.
+        </p>
+<p>
+          In <code class="computeroutput"><span class="identifier">strict_variant</span></code>, this
+          isn't necessary, the return type will be deduced.
+        </p>
+<p>
+          In particular, this means that you can use lambdas as visitors, like so:
+        </p>
+<pre class="programlisting"><span class="identifier">strict_variant</span><span class="special">::</span><span class="identifier">variant</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">,</span> <span class="keyword">float</span><span class="special">&gt;</span> <span class="identifier">v</span><span class="special">;</span>
+<span class="identifier">v</span> <span class="special">=</span> <span class="number">5</span><span class="special">;</span>
+
+<span class="comment">// Prints 10.0</span>
+<span class="identifier">std</span><span class="special">::</span><span class="identifier">cout</span> <span class="special">&lt;&lt;</span> <span class="identifier">strict_variant</span><span class="special">::</span><span class="identifier">apply_visitor</span><span class="special">([](</span><span class="keyword">double</span> <span class="identifier">d</span><span class="special">)</span> <span class="special">-&gt;</span> <span class="keyword">double</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">d</span> <span class="special">*</span> <span class="number">2</span><span class="special">;</span> <span class="special">},</span> <span class="identifier">v</span><span class="special">)</span> <span class="special">&lt;&lt;</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">endl</span><span class="special">;</span>
+
+<span class="identifier">v</span> <span class="special">=</span> <span class="number">7.5</span>
+
+<span class="comment">// Prints 22.5</span>
+<span class="identifier">std</span><span class="special">::</span><span class="identifier">cout</span> <span class="special">&lt;&lt;</span> <span class="identifier">strict_variant</span><span class="special">::</span><span class="identifier">apply_visitor</span><span class="special">([](</span><span class="keyword">double</span> <span class="identifier">d</span><span class="special">)</span> <span class="special">-&gt;</span> <span class="keyword">double</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">d</span> <span class="special">*</span> <span class="number">3</span><span class="special">;</span> <span class="special">},</span> <span class="identifier">v</span><span class="special">)</span> <span class="special">&lt;&lt;</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">endl</span><span class="special">;</span>
+</pre>
+<p>
+          One feature of <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code> which we don't currently support
+          is <span class="bold"><strong>delayed visitation</strong></span>. For this, you will
+          have to use a capturing lambda or some other sort of ad-hoc function object.
+        </p>
+<h4>
+<a name="strict_variant.tutorial.basic_usage.advanced_usage.h1"></a>
+          <span><a name="strict_variant.tutorial.basic_usage.advanced_usage.recursive_variants"></a></span><a class="link" href="advanced_usage.html#strict_variant.tutorial.basic_usage.advanced_usage.recursive_variants">Recursive
+          variants</a>
+        </h4>
+<p>
+          <code class="computeroutput"><span class="identifier">strict_variant</span></code> has full
+          support for recursive variants, using <code class="computeroutput"><span class="identifier">strict_variant</span><span class="special">::</span><span class="identifier">recursive_wrapper</span></code>.
+          This is used in essentially the same way as <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">recursive_wrapper</span></code>.
+        </p>
+<p>
+          We don't provide any analogue of <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">make_recursive_variant</span></code>.
+        </p>
+<h4>
+<a name="strict_variant.tutorial.basic_usage.advanced_usage.h2"></a>
+          <span><a name="strict_variant.tutorial.basic_usage.advanced_usage.multivisitation"></a></span><a class="link" href="advanced_usage.html#strict_variant.tutorial.basic_usage.advanced_usage.multivisitation">Multivisitation</a>
+        </h4>
+<p>
+          <code class="computeroutput"><span class="identifier">strict_variant</span></code> has full
+          support for visiting 2 or more variants simultaneously, just as <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code> does.
+        </p>
+<p>
+          However for this you must include <code class="computeroutput"><span class="special">&lt;</span><span class="identifier">strict_variant</span><span class="special">/</span><span class="identifier">multivisit</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span></code>.
+        </p>
+<h4>
+<a name="strict_variant.tutorial.basic_usage.advanced_usage.h3"></a>
+          <span><a name="strict_variant.tutorial.basic_usage.advanced_usage.assignment"></a></span><a class="link" href="advanced_usage.html#strict_variant.tutorial.basic_usage.advanced_usage.assignment">Assignment</a>
+        </h4>
+<p>
+          Just like <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code> and any other standard container,
+          <code class="computeroutput"><span class="identifier">strict_variant</span></code> can be moved,
+          copied and assigned.
+        </p>
+<p>
+          However, like <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code> it has some restrictions.
+        </p>
+<p>
+          <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code> requires that all its constituent
+          types satisfy the <code class="computeroutput"><span class="identifier">Bounded</span> <span class="identifier">Type</span></code> concept, which required that they
+          are no-throw destructible, copy constructible or move constructible.
+        </p>
+<p>
+          <code class="computeroutput"><span class="identifier">strict_variant</span></code> requires
+          that its constituent types are no-throw destructible.
+        </p>
+<p>
+          Further, <code class="computeroutput"><span class="identifier">strict_variant</span></code>
+          is only assignable if the constituent types are all nothrow move constructible.
+        </p>
+<p>
+          Since that's not always possible for the types you may want to use it with,
+          there are a few handy solutions.
+        </p>
+<p>
+          Suppose that our goal is code like this:
+        </p>
+<pre class="programlisting"><span class="comment">// A class with a throwing move</span>
+<span class="keyword">class</span> <span class="identifier">X</span> <span class="special">{</span>
+  <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">foo</span><span class="special">;</span>
+
+<span class="keyword">public</span><span class="special">:</span>
+  <span class="identifier">X</span> <span class="special">();</span>
+  <span class="identifier">X</span> <span class="special">(</span><span class="keyword">const</span> <span class="identifier">X</span> <span class="special">&amp;);</span>
+  <span class="identifier">X</span> <span class="special">(</span><span class="identifier">X</span> <span class="special">&amp;&amp;)</span> <span class="special">=</span> <span class="keyword">delete</span><span class="special">;</span>
+<span class="special">};</span>
+
+<span class="comment">// A variant contianing X</span>
+<span class="keyword">int</span> <span class="identifier">main</span><span class="special">()</span> <span class="special">{</span>
+  <span class="identifier">strict_variant</span><span class="special">::</span><span class="identifier">variant</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">,</span> <span class="identifier">X</span><span class="special">&gt;</span> <span class="identifier">v</span><span class="special">;</span>
+  <span class="identifier">v</span> <span class="special">=</span> <span class="number">5</span><span class="special">;</span>
+  <span class="identifier">v</span> <span class="special">=</span> <span class="identifier">X</span><span class="special">();</span>
+<span class="special">}</span>
+</pre>
+<p>
+          This code will fail to compile, because <code class="computeroutput"><span class="identifier">v</span></code>
+          cannot be assigned if <code class="computeroutput"><span class="identifier">X</span></code>
+          has a throwing move. We have a few possible remedies:
+        </p>
+<div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem">
+              Use <code class="computeroutput"><span class="identifier">recursive_wrapper</span></code>
+              with types that have throwing moves.
+            </li></ol></div>
+<pre class="programlisting"><span class="keyword">int</span> <span class="identifier">main</span><span class="special">()</span> <span class="special">{</span>
+  <span class="identifier">strict_variant</span><span class="special">::</span><span class="identifier">variant</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">,</span> <span class="identifier">strict_variant</span><span class="special">::</span><span class="identifier">recursive_wrapper</span><span class="special">&lt;</span><span class="identifier">X</span><span class="special">&gt;&gt;</span> <span class="identifier">v</span><span class="special">;</span>
+  <span class="identifier">v</span> <span class="special">=</span> <span class="number">5</span><span class="special">;</span>
+  <span class="identifier">v</span> <span class="special">=</span> <span class="identifier">X</span><span class="special">();</span>
+<span class="special">}</span>
+</pre>
+<div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem">
+              Use <code class="computeroutput"><span class="identifier">easy_variant</span></code> instead
+              of <code class="computeroutput"><span class="identifier">strict_variant</span></code>.
+              It's the same, but it implicitly applies wrappers to its arguments
+              with throwing moves.
+            </li></ol></div>
+<pre class="programlisting"><span class="keyword">int</span> <span class="identifier">main</span><span class="special">()</span> <span class="special">{</span>
+  <span class="identifier">strict_variant</span><span class="special">::</span><span class="identifier">easy_variant</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">,</span> <span class="identifier">X</span><span class="special">&gt;</span> <span class="identifier">v</span><span class="special">;</span>
+  <span class="identifier">v</span> <span class="special">=</span> <span class="number">5</span><span class="special">;</span>
+  <span class="identifier">v</span> <span class="special">=</span> <span class="identifier">X</span><span class="special">();</span>
+<span class="special">}</span>
+</pre>
+<div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem">
+              Don't use assignment, and use the <code class="computeroutput"><span class="identifier">emplace</span></code>
+              method instead.
+            </li></ol></div>
+<pre class="programlisting"><span class="keyword">int</span> <span class="identifier">main</span><span class="special">()</span> <span class="special">{</span>
+  <span class="identifier">strict_variant</span><span class="special">::</span><span class="identifier">variant</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">,</span> <span class="identifier">X</span><span class="special">&gt;</span> <span class="identifier">v</span><span class="special">;</span>
+  <span class="identifier">v</span><span class="special">.</span><span class="identifier">emplace</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">&gt;(</span><span class="number">5</span><span class="special">);</span>
+  <span class="identifier">v</span><span class="special">.</span><span class="identifier">emplace</span><span class="special">&lt;</span><span class="identifier">X</span><span class="special">&gt;();</span>
+<span class="special">}</span>
+</pre>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright &#169; 2016 Chris Beck<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="../basic_usage.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../basic_usage.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="../reference.html"><img src="../../../images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>

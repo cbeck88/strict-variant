@@ -1,0 +1,55 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<title>Comparison</title>
+<link rel="stylesheet" href="../../../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="../../../index.html" title="Chapter&#160;1.&#160;Strict Variant 0.0">
+<link rel="up" href="../comparison.html" title="Notes">
+<link rel="prev" href="../comparison.html" title="Notes">
+<link rel="next" href="benchmarks.html" title="Benchmarks">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<div class="spirit-nav">
+<a accesskey="p" href="../comparison.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../comparison.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="benchmarks.html"><img src="../../../images/next.png" alt="Next"></a>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="strict_variant.tutorial.comparison.comparison"></a><a class="link" href="comparison.html" title="Comparison">Comparison</a>
+</h4></div></div></div>
+<p>
+          Because our <code class="computeroutput"><span class="identifier">recusrive_wrapper</span></code>
+          type is no-throw move constructible, this effectively
+        </p>
+<p>
+          It's primary advantages over <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code>
+          are that it does not require your objects to be copyable, nor does it rely
+          on making backup copies, and it's implementation is somewhat simpler which
+          may make it a little easier to reason about what happens under the hood
+          when you use it.
+        </p>
+<p>
+          It's primary difference over the <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">variant</span></code>
+          type which was introduced in C++17 is that it provides a never-empty guarantee,
+          like <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code>. In some applications this makes
+          it somewhat simpler to use correctly. The trade-off essentially is that
+          for less the well-behaved types that can lead to empty states, we compromise
+          on the "stack-based" property of <code class="computeroutput"><span class="identifier">variant</span></code>
+          and allocate them on the heap instead, in order to provide <span class="bold"><strong>strong
+          exception safety</strong></span> and a simpler interface.
+        </p>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright &#169; 2016 Chris Beck<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="../comparison.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../comparison.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="benchmarks.html"><img src="../../../images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>
