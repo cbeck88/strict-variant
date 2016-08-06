@@ -20,6 +20,8 @@ branches:
   only: 
    - master
 
+build: off
+
 install:
   - ps: |
     Add-Type -assembly "system.io.compression.filesystem"
@@ -33,8 +35,6 @@ install:
   - cmd: set PATH=%PATH%;C:\projects\boost_1_60_0;
   - cmd: echo "Building test executables..."
   - cmd: cd C:\projects\strict_variant\test && b2.exe --toolset=msvc-15.0
-
-build: off
 
 test_script:
   - cmd: echo "Running test executables..."
