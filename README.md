@@ -1,7 +1,7 @@
 # strict variant
 
 [![Build Status](https://travis-ci.org/cbeck88/strict-variant.svg?branch=master)](http://travis-ci.org/cbeck88/strict-variant)
-[![Appveyor status][badge.Appveyor](https://ci.appveyor.com/project/cbeck88/strict-variant)]
+[![Appveyor status](badge.Appveyor)](https://ci.appveyor.com/project/cbeck88/strict-variant)
 [![Boost licensed](https://img.shields.io/badge/license-Boost-blue.svg)](./LICENSE)
 
 
