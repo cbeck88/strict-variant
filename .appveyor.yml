@@ -23,16 +23,16 @@ branches:
 build: off
 
 install:
-  - ps: |
-  if($true)
+  - ps: >-
+  If($true)
   {
     Add-Type -assembly "system.io.compression.filesystem"
     Write-Host "Downloading boost..."
     (new-object net.webclient).DownloadFile("http://sourceforge.net/projects/boost/files/boost/1.60.0/boost_1_60_0.tar.gz", "C:\projects\boost_1_60_0.tar.gz")
-    Write-Host "Extracting boost..." 
+    Write-Host "Extracting boost..."
     [io.compression.zipfile]::ExtractToDirectory("C:\projects\boost_1_60_0.tar.gz", "C:\projects\")
     Set-Location "C:\projects\boost_1_60_0"
-    Write-Host "Building boost.build.." 
+    Write-Host "Building boost.build.."
     & ".\bootstrap.bat"
     $env:Path += ";C:\projects\boost_1_60_0;"
     Set-Location "C:\projects\strict_variant\test
@@ -43,10 +43,10 @@ install:
 #  - cmd: cd C:\projects\strict_variant\test && b2.exe --toolset=msvc-15.0
 
 test_script:
-  - ps: |
-  if($true)
+  - ps: >-
+  If($true)
   {
-    Write-Host "Running test executables.." 
+    Write-Host "Running test executables.."
     Set-Location "C:\projecst\strict_variant\test\stage"
     & .\variant
     & .\compare
