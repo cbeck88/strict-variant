@@ -38,6 +38,11 @@ rollback semantics if an assignment throws an exception. But it does not incur t
 backup copies which `boost::variant` pays, due to a different implementation approach. In some cases this allows
 improved performance.
 
+Documentation
+=============
+
+On [https://cbeck88.github.io/strict-variant/index.html](github pages).
+
 Overview
 ========
 
@@ -54,10 +59,7 @@ However, in the 5% of cases where overload resolution does the wrong thing, it c
 This includes the scenarios in which overload resolution is ambiguous, as well as the cases in which, due to some implicit conversion,
 an overload is selected which the user did not intend.
 
-Because integral types have so many permitted conversions, these problems are particularly obvious when you have a variant with
-several integral types.
-
-This happens commonly when using variant types to interface with some scripting language for instance. The typical dynamically-typed
+One case when this might cause problems for you is when using variant types to interface with some scripting language for instance. The typical dynamically-typed
 scripting language will permit a variety of primitive values, so when binding to it, you may naturally end up with something like
 
 ```c++
@@ -104,185 +106,7 @@ Assumptions
 Never Empty Guarantee
 =====================
 
-We deal with the "never empty" issue as follows:
-
-**Every type used with the variant must be no-throw move constructible, or the variant is not assignable.**
-
-This restriction is enforced using static asserts within the assignment operators. (There is also a way to turn off the static asserts with a preprocessor symbol, see "configuration". This doesn't lift the requirement though, it just makes it UB if one of the move ctors throws.)
-
-This allows the implementation to be very simple and efficient compared with some other variant types, which may have to make extra copies to facilitate
-exception-safety, or make only a "rarely empty" guarantee.
-
-**If you have a type `T` with a throwing move, you are encouraged to use `strict_variant::recursive_wrapper<T>` instead of `T` in the variant.**
-
-For a fully general `variant`, see also `easy_variant` below.
-
-recursive wrapper
------------------
-
-`recursive_wrapper<T>` represents a heap-allocated instance of `T`. The wrapper doesn't do anything special, but there is special support
-within `strict_variant::variant` so that you can call `get<T>(&v)` and get a pointer
-to a `T` rather than the wrapper, for instance, and similarly throughout the `variant` interface. This is exactly the same as the `recursive_wrapper` of `boost::variant`.
-
-`recursive_wrapper<T>` always has a `noexcept` move ctor even if `T` does not.
-
-By mostly restricting attention to no-throw move constructible types, the guts of the variant enjoy a very clean and simple implementation
--- there are no dynamic allocations taking place behind your back, and you mostly "intuitively" know what the variant is doing and what the costs
-are when you manipulate it. Moving assigning the variant won't be inherently more expensive than moving or move assigning an individual object, and when copy assigning,
-which let's imagine can throw, something similar to "copy and swap" (or rather "copy and move") takes place, with a single copy occuring on the stack before we move it into
-storage.
-
-If you want additional dynamic allocations beyond this in order to support throwing moves, you opt-in to that using `recursive_wrapper`, and otherwise you don't pay for
-what you don't use. There's no other additional storage in the variant or complexity added to the interface.
-
-Note that the *stated* purpose of recursive wrapper, in `boost::variant` docs, is to allow you to declare variants which contain an incomplete type.
-It also works great for that in `strict_variant::variant`.
-
-emplace
--------
-
-Even if the variant is not assignable, you can still use the `emplace` function to change the type of its value, provided that the constructor you invoke is `noexcept` or the requested type is no-throw move constructible.
-
-```c++
-  variant<const char *, std::string> v;
-
-  v = "foo";
-  assert(v.which() == 0);
-
-  v.emplace<std::string>("foo");
-  assert(v.which() == 1);
-```
-
-easy variant
--------------
-
-We provide a template `easy_variant` which takes care of these details if you don't care to be bothered by the compiler about a throwing move / dynamic allocation.  
-
-(Some programmers would prefer that the compiler not start making dynamic allocations without a warning, just because some `noexcept` annotation was not deduced the way they expected. But programmer convenience is a good thing too.)
-
-Specifically, any type that you put in the `easy_variant` which has a throwing move will be wrapped in `recursive_wrapper` implicitly.
-
-```c++
-namespace strict_variant {
-  template <typename ... Ts>
-  using easy_variant = variant<wrap_if_thowing_move_t<Ts>...>;
-}
-```
-
-where `wrap_if_throwing_move_t` is
-
-```c++
-namespace strict_variant {
-  struct <typename T, typename = mpl::enable_if_t<std::is_nothrow_destructible<T>::value && !std::is_reference<T>::value>>
-  struct wrap_if_throwing_move {
-    using type = typename std::conditional<std::is_nothrow_move_constructible<T>::value,
-                                           T,
-                                           recursive_wrapper<T>>::type;
-  };
-
-  template <typename T>
-  using wrap_if_throwing_move_t = typename wrap_if_throwing_move<T>::type;
-}
-```
-This relaxes the behavior of `boost::variant` which makes a "best effort" to store all
-objects in situ. However, it means that if none of the objects have throwing moves, we get *ideal* performance in terms of
-storage space, copies, etc. For those that do throw, programmers have already gotten used to the idea that if their objects
-are no-throw move constructible, then they get "fast track" behavior when stored within a `std::vector`, so most they typically try
-hard to avoid a throwing move. If it's unavoidable, then likely the object is big / complex / involves other dynamic allocations
-anyways, and then the marginal cost of another dynamic allocation is low -- it may be quite appropriate to put it on the heap anyways.
-
-Synopsis
-========
-
-The actual interface to `variant` is in most ways the same as `boost::variant`, which strongly inspired this.  
-
-(However, my interface is exception-free. If you want to have
-analogues of the throwing functions in `boost::variant` you'll have to write them, which is pretty easy to do on top of the exception-free interface.)
-
-```c++
-namespace strict_variant {
-
-  template <typename First, typename... Types>
-  class variant {
-
-    // Attempts to default construct the First type.
-    // If First is not default-constructible then this is not available.
-    variant();
-
-    // Special member functions: Nothing special here
-    variant(const variant &);
-    variant(variant &&);
-    ~variant() noexcept;
-
-    // Only available if all input types are no-throw move constructible
-    variant & operator=(variant &&);
-    variant & operator=(const variant &);
-
-    // Constructs the variant from a type outside the variant,
-    // using iterative strategy described in docs.
-    // (SFINAE expression omitted here)
-    template <typename T>
-    variant(T &&);
-
-    // Constructs the variant from a "subvariant", that is, another variant
-    // over a strictly smaller set of types, modulo recursive_wrapper.
-    // (SFINAE expression omitted here)
-    template <typename... OTypes>
-    variant(const variant<Otypes...> &);
-
-    template <typename... OTypes>
-    variant(variant<Otypes...> &&);
-
-    // Emplace ctor. Used to explicitly specify the type of the variant, and
-    // invoke an arbitrary ctor of that type.
-    template <typename T>
-    struct emplace_tag {};
-
-    template <typename T, typename... Args>
-    explicit variant(emplace_tag<T>, Args && ... args);
-
-    // Emplace operation
-    // Force the variant to a particular value.
-    // The user explicitly specifies the desired type as template parameter,
-    // which must be one of the variant types, modulo const, recursive wrapper.
-    // (There are actually two implementations of emplace, depending on whether
-    // the invoked ctor is noexcept. If it is not, then a move is used for
-    // strong exception-safety.)
-    template <typename T, typename... Args>
-    void emplace(Args &&... args);
-
-    // Reports the runtime type. The returned value is an index into the list
-    // <First, Types...>.
-    int which() const;
-
-    // Test for equality. The which values must match, and operator == for the
-    // underlying values must return true.
-    bool operator == (const variant &) const;
-    bool operator != (const variant &) const;
-  };
-
-  // Apply a visitor to the variant. It is called using the current value
-  // of the variant with its current type as the argument.
-  template <typename Visitor, typename Variant>
-  void apply_visitor(Visitor && visitor, Variant && var);
-
-  // Access the stored value. Returns `nullptr` if `T` is not the currently
-  // engaged type.
-  template <typename T, typename ... Types>
-  T * get(variant<Types...> * v);
-
-  template <typename T, typename ... Types>
-  const T * get(const variant<Types...> * v);
-
-  // Returns a reference to the stored value. If it does not currently have the
-  // indicated type, then the argument def is emplaced into the variant, and a
-  // reference to that value, within the variant, is returned.
-  // This is noexcept if T is no_throw_move_constructible.
-  template <typename T, typename ... Types>
-  T & get_or_default(variant<Types...> & v, T def = {});
-
-} // end namespace strict_variant
-```
+See documentation for how we handle the never-empty guarantee.
 
 
 Compiler Compatibility
@@ -291,93 +115,6 @@ Compiler Compatibility
 `strict_variant` targets the C++11 standard.
 
 It is known to work with `gcc >= 4.8` and `clang >= 3.5`.  
-
-Usage
-=====
-
-This is a header-only C++11 template library. To use it, all you need to do is
-add the `include` folder to your include path. Then use the following includes in your code.
-
-Forward-facing includes:
-
-- `#include <strict_variant/variant_fwd.hpp>`  
-  Forward declares the `variant type`, `recursive_wrapper` type.  
-- `#include <strict_variant/variant.hpp>`  
-  Defines the variant type, as well as `apply_visitor`, `get`, `get_or_default` functions.  
-- `#include <strict_variant/recursive_wrapper.hpp>`  
-  Similar to `boost::recursive_wrapper`, but for this variant type.  
-- `#include <strict_variant/variant_compare.hpp>`  
-  Gets a template type `variant_comparator`, which is appropriate to use with `std::map` or `std::set`.  
-  By default `strict_variant::variant` is not comparable.  
-- `#include <strict_variant/variant_hash.hpp>`  
-  Makes variant hashable. By default this is not brought in.
-- `#include <strict_variant/variant_stream_ops.hpp>`  
-  Gets ostream operations for the variant template type.  
-  By default `strict_variant::variant` is not streamable.  
-- `#include <strict_variant/variant_spirit.hpp>`  
-  Defines customization points within `boost::spirit` so that `strict_variant::variant` can be used just like `boost::variant` in your `qi` grammars.
-- `#include <strict_variant/multivisit.hpp>`  
-  Needed to support multi-visitation. Unary visitation is already brought in by `strict_variant/variant.hpp`.  
-  *Multi-visitation* means that a series of variants are passed along with a visitor, and value of each is determined and forwarded to the visitor.  
-
-All the library definitions are made within the namespace `strict_variant`.
-
-I guess I recommend that you use a namespace alias for that, e.g. `namespace util = strict_variant;`, or
-use a series of using declarations. In another project that uses this library, I did this:
-
-
-```c++
-    // util/variant_fwd.hpp
-    
-    #include <strict_variant/variant_fwd.hpp>
-
-    namespace util {
-      using variant = strict_variant::variant;
-    }
-```
-
-```c++
-    // util/variant.hpp
-    #include <strict_variant/variant.hpp>
-    #include <strict_variant/recursive_wrapper.hpp>
-    #include <strict_variant/variant_hash.hpp>
-
-    namespace util {
-      using strict_variant::variant;
-      using strict_variant::get;
-      using strict_variant::get_or_default;
-      using strict_variant::apply_visitor;
-      using strict_variant::recursive_wrapper;
-    }
-```
-
-...
-
-but you should be able to do it however you like of course.
-
-Configuration
-=============
-
-There are three preprocessor defines it responds to:
-
-- `STRICT_VARIANT_ASSUME_MOVE_NOTHROW`  
-  Assume that moves of input types won't throw, regardless of their `noexcept`
-  status. This might be useful if you are using old versions of the standard
-  library and things like `std::string` are not no-throw move constructible for
-  you, but you want `strict_variant::variant` to act as though they are. This will
-  allow you to get assignment operators for the variant as though everything
-  were move constructible, but if anything actually does throw you get UB.
-
-- `STRICT_VARIANT_ASSUME_COPY_NOTHROW`
-  Assumes that copies of input types won't throw, regardless of their `noexcept`
-  status. This is pretty dangerous, it only makes sense in projects where you
-  already assume that dynamic allocations will never fail and just want to go
-  as fast as possible given that assumption. Probably you are already using
-  `-fno-exceptions` anyways and a custom allocator, which you monitor on the side
-  for memory exhaustion, or something like this.
-
-- `STRICT_VARIANT_DEBUG`  
-  Turn on debugging assertions.
 
 Licensing and Distribution
 ==========================
@@ -592,7 +329,6 @@ Known issues
 - Need to fixup operator declarations / inclusions
 - Fixup noexcept in recursive_wrapper
 - Review move of recursive_wrapper vs. variant
-- Rethink T && ctor, perhaps use overload resolution + SFINAE instead
 - No `constexpr` support. This is really extremely difficult to do in a variant at
   C++11 standard, it's only really feasible in C++14. If you want `constexpr` support
   then I suggest having a look at [`eggs::variant`](https://github.com/eggs-cpp/variant).
