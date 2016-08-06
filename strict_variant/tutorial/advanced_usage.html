@@ -118,7 +118,7 @@
   <span class="identifier">X</span> <span class="special">(</span><span class="identifier">X</span> <span class="special">&amp;&amp;)</span> <span class="special">=</span> <span class="keyword">delete</span><span class="special">;</span>
 <span class="special">};</span>
 
-<span class="comment">// A variant contianing X</span>
+<span class="comment">// A variant containing X</span>
 <span class="keyword">int</span> <span class="identifier">main</span><span class="special">()</span> <span class="special">{</span>
   <span class="identifier">strict_variant</span><span class="special">::</span><span class="identifier">variant</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">,</span> <span class="identifier">X</span><span class="special">&gt;</span> <span class="identifier">v</span><span class="special">;</span>
   <span class="identifier">v</span> <span class="special">=</span> <span class="number">5</span><span class="special">;</span>
@@ -130,38 +130,46 @@
         cannot be assigned if <code class="computeroutput"><span class="identifier">X</span></code> has
         a throwing move. We have a few possible remedies:
       </p>
-<div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem">
+<div class="orderedlist"><ol class="orderedlist" type="1">
+<li class="listitem">
+<p class="simpara">
             Use <code class="computeroutput"><span class="identifier">recursive_wrapper</span></code>
             with types that have throwing moves.
-          </li></ol></div>
+          </p>
 <pre class="programlisting"><span class="keyword">int</span> <span class="identifier">main</span><span class="special">()</span> <span class="special">{</span>
   <span class="identifier">strict_variant</span><span class="special">::</span><span class="identifier">variant</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">,</span> <span class="identifier">strict_variant</span><span class="special">::</span><span class="identifier">recursive_wrapper</span><span class="special">&lt;</span><span class="identifier">X</span><span class="special">&gt;&gt;</span> <span class="identifier">v</span><span class="special">;</span>
   <span class="identifier">v</span> <span class="special">=</span> <span class="number">5</span><span class="special">;</span>
   <span class="identifier">v</span> <span class="special">=</span> <span class="identifier">X</span><span class="special">();</span>
 <span class="special">}</span>
 </pre>
-<div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem">
+</li>
+<li class="listitem">
+<p class="simpara">
             Use <code class="computeroutput"><span class="identifier">easy_variant</span></code> instead
             of <code class="computeroutput"><span class="identifier">strict_variant</span></code>. It's
             the same, but it implicitly applies wrappers to its arguments with throwing
             moves.
-          </li></ol></div>
+          </p>
 <pre class="programlisting"><span class="keyword">int</span> <span class="identifier">main</span><span class="special">()</span> <span class="special">{</span>
   <span class="identifier">strict_variant</span><span class="special">::</span><span class="identifier">easy_variant</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">,</span> <span class="identifier">X</span><span class="special">&gt;</span> <span class="identifier">v</span><span class="special">;</span>
   <span class="identifier">v</span> <span class="special">=</span> <span class="number">5</span><span class="special">;</span>
   <span class="identifier">v</span> <span class="special">=</span> <span class="identifier">X</span><span class="special">();</span>
 <span class="special">}</span>
 </pre>
-<div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem">
+</li>
+<li class="listitem">
+<p class="simpara">
             Don't use assignment, and use the <code class="computeroutput"><span class="identifier">emplace</span></code>
             method instead.
-          </li></ol></div>
+          </p>
 <pre class="programlisting"><span class="keyword">int</span> <span class="identifier">main</span><span class="special">()</span> <span class="special">{</span>
   <span class="identifier">strict_variant</span><span class="special">::</span><span class="identifier">variant</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">,</span> <span class="identifier">X</span><span class="special">&gt;</span> <span class="identifier">v</span><span class="special">;</span>
   <span class="identifier">v</span><span class="special">.</span><span class="identifier">emplace</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">&gt;(</span><span class="number">5</span><span class="special">);</span>
   <span class="identifier">v</span><span class="special">.</span><span class="identifier">emplace</span><span class="special">&lt;</span><span class="identifier">X</span><span class="special">&gt;();</span>
 <span class="special">}</span>
 </pre>
+</li>
+</ol></div>
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
 <td align="left"></td>
