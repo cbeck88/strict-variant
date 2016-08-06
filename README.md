@@ -41,7 +41,7 @@ improved performance.
 Documentation
 =============
 
-On [https://cbeck88.github.io/strict-variant/index.html](github pages).
+On [github pages](https://cbeck88.github.io/strict-variant/index.html).
 
 Overview
 ========
