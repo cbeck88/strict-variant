@@ -2,8 +2,8 @@
 os: Visual Studio 2015
 
 # build platform, i.e. Win32 (instead of x86), x64, Any CPU. This setting is optional.
-platform: 
-- Win32
+# platform: 
+# - Win32
 # - x64
 
 # scripts that are called at very beginning, before repo cloning
@@ -11,7 +11,7 @@ init:
   - git config --global core.autocrlf input
 
 # clone directory
-clone_folder: c:\projects\strict_variant
+clone_folder: C:\projects\strict_variant
 
 # fetch repository as zip archive
 shallow_clone: true                 # default is "false"
@@ -30,17 +30,17 @@ install:
     Set-Location "C:\projects\boost_1_60_0"
     Write-Host "Building boost.build.." 
     & ".\bootstrap.bat"
-
+  - cmd: set PATH=%PATH%;C:\projects\boost_1_60_0\tools\build;
 
 #    Set-Location "C:\projects\boost_1_60_0\tools\build"
 #    & .\b2 --toolset=msvc-15.0
 
 build_script:
-  - ps: |
-    Set-Location "C:\projects\strict_variant\test"
-    & C:\projects\boost_1_60_0\tools\build\b2 --toolset=msvc-15.0
+  - cmd: echo "Building test executables..."
+  - cmd: cd C:\projects\strict_variant\test && b2 --toolset=msvc-15.0
 
 test_script:
+  - cmd: echo "Running test executables..."
   - ps: |
     Set-Location "C:\projecst\strict_variant\test\stage"
     & .\variant
