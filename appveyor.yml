@@ -33,6 +33,7 @@ install:
         Set-Location "C:\projects\boost_1_60_0"
         Write-Host "Building boost.build.."
         & ".\bootstrap.bat"
+        $env:BOOST_ROOT = "C:\projects\boost_1_60_0"
         $env:Path += ";C:\projects\boost_1_60_0;"
         Set-Location "C:\projects\strict_variant\test"
         & b2 --toolset=msvc
