@@ -41,7 +41,7 @@ alias boost : : : : <include>$(BOOST_INCLUDE_DIR) ;
 
 # TODO: Work around this on windows
 # <cxxflags>"-Wall -Werror -Wextra -pedantic -std=c++11"
-STRICT = <warnings>"all" <warnings-as-errors>"on" <define>"STRICT_VARIANT_DEBUG" <toolset>gcc:<cxxflags>"-std=c++11" <toolset>clang:<cxxflags>"-std=c++11" ;
+STRICT = <warnings>"all" <toolset>gcc:<warnings-as-errors>"on" <toolset>clang:<warnings-as-errors>"on" <define>"STRICT_VARIANT_DEBUG" <toolset>gcc:<cxxflags>"-std=c++11" <toolset>clang:<cxxflags>"-std=c++11" ;
 
 exe variant : variant.cpp strict_variant test_harness : $(STRICT) ;
 exe compare : compare.cpp strict_variant test_harness : $(STRICT) ;
