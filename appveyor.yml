@@ -44,7 +44,7 @@ test_script:
   - ps: >-
       If($true) {
         Write-Host "Running test executables.."
-        $files = Get-ChildItem C:\projects\strict_variant\test\stage\*
+        $files = Get-ChildItem C:\projects\strict_variant\test\stage\*.exe
         ForEach($file in $files) {
           Write-Host $file.fullName " ... "
           & $file.fullName
