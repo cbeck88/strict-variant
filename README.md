@@ -1,8 +1,10 @@
 # strict variant
 
 [![Build Status](https://travis-ci.org/cbeck88/strict-variant.svg?branch=master)](http://travis-ci.org/cbeck88/strict-variant)
-[![Coverage Status](https://coveralls.io/repos/cbeck88/strict-variant/badge.svg?branch=master&service=github)](https://coveralls.io/github/cbeck88/strict-variant?branch=master)
+[![Appveyor status][badge.Appveyor](https://ci.appveyor.com/project/cbeck88/strict-variant)]
 [![Boost licensed](https://img.shields.io/badge/license-Boost-blue.svg)](./LICENSE)
+
+
 
 Do you use `boost::variant` or one of the many open-source C++11 implementations of a "tagged union" or variant type
 in your C++ projects?
