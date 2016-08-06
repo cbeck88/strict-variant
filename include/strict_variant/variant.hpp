@@ -216,10 +216,12 @@ private:
 
   // Test_Priority
   // Find the highest level at which we are able to construct the type.
+  // Primary Template: If there are none at this priority, then reduce priority.
   template <typename T, int priority, typename UL = mpl::count_t<sizeof...(Types) + 1>,
             typename Enable = void>
-  struct Test_Priority;
+  struct Test_Priority : Test_Priority<T, priority - 1, UL> {};
 
+  // If there are some at this priority, then use that priority
   template <typename T, int priority, unsigned... us>
   struct Test_Priority<T, priority, mpl::ulist<us...>,
                        mpl::enable_if_t<priority >= 0
@@ -227,13 +229,8 @@ private:
     static constexpr int value = priority;
   };
 
-  template <typename T, int priority, unsigned... us>
-  struct Test_Priority<T, priority, mpl::ulist<us...>,
-                       mpl::enable_if_t<priority >= 0
-                                        && !Any_At_Priority<T, priority, us...>::value>>
-    : Test_Priority<T, priority - 1, mpl::ulist<us...>> {};
-
   // Fire a bunch of static asserts explaining that we cannot construct the variant
+  // because priority got down to -1 and we didn't find anything.
   template <typename T, unsigned... us>
   struct Test_Priority<T, -1, mpl::ulist<us...>> {
     static constexpr int dummy[] = {(report_problem<T, us>{0}, 0)..., 0};
