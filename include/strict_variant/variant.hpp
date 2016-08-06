@@ -168,7 +168,7 @@ private:
   // Initializer base is (possibly) a function object
   // If construction is prohibited, then don't generate operator()
   template <typename T, unsigned idx, int priority, typename ENABLE = void>
-  struct initializer_base;
+  struct initializer_base {};
 
   template <typename T, unsigned idx, int priority>
   struct initializer_base<T, idx, priority,
@@ -181,11 +181,6 @@ private:
       std::forward<V>(v).template initialize<idx>(std::move(val));
     }
   };
-
-  // If not valid then don't generate a call operator
-  template <typename T, unsigned idx, int priority>
-  struct initializer_base<T, idx, priority,
-                          mpl::enable_if_t<!init_helper<T, idx>::valid_at_priority(priority)>> {};
 
   // Report problem
   template <typename T, unsigned idx>
