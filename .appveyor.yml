@@ -1,0 +1,49 @@
+# Operating system (build VM template)
+os: Visual Studio 2015
+
+# build platform, i.e. Win32 (instead of x86), x64, Any CPU. This setting is optional.
+# platform: 
+# - Win32
+# - x64
+
+# scripts that are called at very beginning, before repo cloning
+# init:
+#  - git config --global core.autocrlf input
+
+# clone directory
+clone_folder: C:\projects\strict_variant
+
+# fetch repository as zip archive
+shallow_clone: true                 # default is "false"
+
+branches:
+  only: 
+   - master
+
+build: off
+
+install:
+  - ps: |
+  Add-Type -assembly "system.io.compression.filesystem"
+  Write-Host "Downloading boost..."
+  (new-object net.webclient).DownloadFile("http://sourceforge.net/projects/boost/files/boost/1.60.0/boost_1_60_0.tar.gz", "C:\projects\boost_1_60_0.tar.gz")
+  Write-Host "Extracting boost..." 
+  [io.compression.zipfile]::ExtractToDirectory("C:\projects\boost_1_60_0.tar.gz", "C:\projects\")
+  Set-Location "C:\projects\boost_1_60_0"
+  Write-Host "Building boost.build.." 
+  & ".\bootstrap.bat"
+  $env:Path += ";C:\projects\boost_1_60_0;"
+  Set-Location "C:\projects\strict_variant\test
+  & b2 --toolset=msvc
+  
+#  - cmd: echo "Building test executables..."
+#  - cmd: cd C:\projects\strict_variant\test && b2.exe --toolset=msvc-15.0
+
+test_script:
+  - ps: |
+  Write-Host "Running test executables.." 
+  Set-Location "C:\projecst\strict_variant\test\stage"
+  & .\variant
+  & .\compare
+  & .\hash
+  & .\spirit
