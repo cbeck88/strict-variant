@@ -75,6 +75,9 @@ namespace strict_variant {
 ```
 
 [h3 `get`]
+
+The `get` function can be used to access a `variant` without using a visitor.
+
 ```
 namespace strict_variant {
 
@@ -96,7 +99,15 @@ namespace strict_variant {
 } // end namespace strict_variant
 ```
 
+Note that we only support the "pointer" versions of `get`. `boost::variant`
+also supports a value version, which returns a reference to the requested type
+or throws an exception. We don't currently have an implementation of that, you
+would have to roll your own.
+
 [h3 `apply_visitor`]
+
+`apply_visitor` takes an arbitrary function object as its first parameter
+(the visitor), and a variant as its second.
 
 ```
 namespace strict_variant {
