@@ -44,9 +44,9 @@ test_script:
   - ps: >-
       If($true) {
         Write-Host "Running test executables.."
-        Set-Location "C:\projects\strict_variant\test\stage"
-        & .\variant
-        & .\compare
-        & .\hash
-        & .\spirit
+        $files = Get-ChildItem C:\projects\strict_variant\test\stage\*
+        ForEach($file in $files) {
+          Write-Host $file.fullName " ... "
+          & $file.fullName
+        }
       }
