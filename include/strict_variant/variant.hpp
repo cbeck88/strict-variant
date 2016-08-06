@@ -161,8 +161,15 @@ private:
 
     static constexpr bool value = trait::value;
     static constexpr int priority = trait::priority;
+  };
 
-    static constexpr bool valid_at_priority(int p) { return value && p < priority; }
+  // valid_property
+  template <int p>
+  struct valid_at {
+    template <typename U>
+    struct prop {
+      static constexpr bool value = U::value && p <= U::priority;
+    };
   };
 
   // Initializer base is (possibly) a function object
@@ -172,7 +179,7 @@ private:
 
   template <typename T, unsigned idx, int priority>
   struct initializer_base<T, idx, priority,
-                          mpl::enable_if_t<init_helper<T, idx>::valid_at_priority(priority)>> {
+                          mpl::enable_if_t<valid_at<priority>::template prop<init_helper<T, idx>>::value>> {
     using target_type = typename init_helper<T, idx>::type;
 
     template <typename V>
@@ -196,15 +203,6 @@ private:
       // static_assert(!std::is_constructible<typename init_helper<T, idx>::type, T>::value ||
       // !init_helper<T, idx>::value, "Not clear whats wrong!");
     }
-  };
-
-  // valid_property
-  template <int p>
-  struct valid_at {
-    template <typename T>
-    struct prop {
-      static constexpr bool value = T::valid_at_priority(p);
-    };
   };
 
   // Any_At_Priority
