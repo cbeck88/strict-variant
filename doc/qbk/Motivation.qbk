@@ -7,6 +7,30 @@ style of `boost::variant`, designed for the C++11 standard.
 
 [h3 Motivation]
 
+Do you use `boost::variant` or one of the many open-source C++11 implementations of a "tagged union" or variant type
+in your C++ projects?
+
+Do you get annoyed that code like this may compile, without any warning or error message?
+
+```
+  boost::variant<std::string, int> v;  
+
+  v = true;  
+```
+
+Do you get annoyed that code like this may compile on some machines, but not others?
+
+```
+  boost::variant<long, unsigned int> v;  
+
+  v = 10;  
+```
+
+Do you crave the performance benefits of `std::variant`, but don't want to have
+to put up with an empty state?
+
+If so, then this may be the variant type for you.
+
 The design goals of `strict_variant` are:
 
 * Provide a variant type which is strongly exception safe and never-empty.
