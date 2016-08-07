@@ -22,56 +22,74 @@
         do is add the <code class="computeroutput"><span class="identifier">include</span></code> folder
         to your include path. Then use the following includes in your code.
       </p>
-<div class="itemizedlist"><ul class="itemizedlist" type="disc">
-<li class="listitem">
-            <code class="computeroutput"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">strict_variant</span><span class="special">/</span><span class="identifier">variant_fwd</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span></code>
-            <br> Forward declares the <code class="computeroutput"><span class="identifier">variant</span>
-            <span class="identifier">type</span></code>, <code class="computeroutput"><span class="identifier">recursive_wrapper</span></code>
-            type.
-          </li>
-<li class="listitem">
-            <code class="computeroutput"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">strict_variant</span><span class="special">/</span><span class="identifier">variant</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span></code>
-            <br> Defines the variant type, as well as <code class="computeroutput"><span class="identifier">apply_visitor</span></code>,
-            <code class="computeroutput"><span class="identifier">get</span></code>, <code class="computeroutput"><span class="identifier">get_or_default</span></code>
-            functions.
-          </li>
-<li class="listitem">
-            <code class="computeroutput"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">strict_variant</span><span class="special">/</span><span class="identifier">recursive_wrapper</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span></code>
-            <br> Similar to <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">recursive_wrapper</span></code>,
-            but for this variant type.
-          </li>
-<li class="listitem">
-            <code class="computeroutput"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">strict_variant</span><span class="special">/</span><span class="identifier">variant_compare</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span></code>
-            <br> Gets a template type <code class="computeroutput"><span class="identifier">variant_comparator</span></code>,
-            which is appropriate to use with <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">map</span></code>
-            or <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">set</span></code>. By default <code class="computeroutput"><span class="identifier">strict_variant</span><span class="special">::</span><span class="identifier">variant</span></code>
-            is not comparable.
-          </li>
-<li class="listitem">
-            <code class="computeroutput"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">strict_variant</span><span class="special">/</span><span class="identifier">variant_hash</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span></code>
-            <br> Makes variant hashable. By default this is not brought in.
-          </li>
-<li class="listitem">
-            <code class="computeroutput"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">strict_variant</span><span class="special">/</span><span class="identifier">variant_stream_ops</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span></code>
-            <br> Gets ostream operations for the variant template type. By default
-            <code class="computeroutput"><span class="identifier">strict_variant</span><span class="special">::</span><span class="identifier">variant</span></code> is not streamable.
-          </li>
-<li class="listitem">
-            <code class="computeroutput"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">strict_variant</span><span class="special">/</span><span class="identifier">variant_spirit</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span></code>
-            <br> Defines customization points within <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">spirit</span></code>
-            so that <code class="computeroutput"><span class="identifier">strict_variant</span><span class="special">::</span><span class="identifier">variant</span></code>
-            can be used just like <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code>
-            in your <code class="computeroutput"><span class="identifier">qi</span></code> grammars.
-          </li>
-<li class="listitem">
-            <code class="computeroutput"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">strict_variant</span><span class="special">/</span><span class="identifier">multivisit</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span></code>
-            <br> Needed to support multi-visitation. Unary visitation is already
-            brought in by <code class="computeroutput"><span class="identifier">strict_variant</span><span class="special">/</span><span class="identifier">variant</span><span class="special">.</span><span class="identifier">hpp</span></code>.
-            <span class="bold"><strong>Multi-visitation</strong></span> means that a series
-            of variants are passed along with a visitor, and value of each is determined
-            and forwarded to the visitor.
-          </li>
-</ul></div>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term"><code class="computeroutput"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">strict_variant</span><span class="special">/</span><span class="identifier">variant_fwd</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span></code></span></dt>
+<dd><p>
+              Forward declares the <code class="computeroutput"><span class="identifier">variant</span>
+              <span class="identifier">type</span></code>, <code class="computeroutput"><span class="identifier">recursive_wrapper</span></code>
+              type.
+            </p></dd>
+<dt><span class="term"><code class="computeroutput"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">strict_variant</span><span class="special">/</span><span class="identifier">variant</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span></code></span></dt>
+<dd><p>
+              Defines the variant type, as well as <code class="computeroutput"><span class="identifier">apply_visitor</span></code>,
+              <code class="computeroutput"><span class="identifier">get</span></code>, <code class="computeroutput"><span class="identifier">get_or_default</span></code> functions.
+            </p></dd>
+<dt><span class="term"><code class="computeroutput"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">strict_variant</span><span class="special">/</span><span class="identifier">recursive_wrapper</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span></code></span></dt>
+<dd><p>
+              Similar to <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">recursive_wrapper</span></code>, but for this variant
+              type.
+            </p></dd>
+<dt><span class="term"><code class="computeroutput"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">strict_variant</span><span class="special">/</span><span class="identifier">variant_compare</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span></code></span></dt>
+<dd>
+<p>
+              Gets a template type <code class="computeroutput"><span class="identifier">variant_comparator</span></code>,
+              which is appropriate to use with <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">map</span></code>
+              or <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">set</span></code>.
+            </p>
+<p>
+              By default <code class="computeroutput"><span class="identifier">strict_variant</span><span class="special">::</span><span class="identifier">variant</span></code>
+              is not comparable.
+            </p>
+</dd>
+<dt><span class="term"> <code class="computeroutput"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">strict_variant</span><span class="special">/</span><span class="identifier">variant_hash</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span></code></span></dt>
+<dd><p>
+              Makes variant hashable. By default this is not brought in.
+            </p></dd>
+<dt><span class="term"> <code class="computeroutput"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">strict_variant</span><span class="special">/</span><span class="identifier">variant_stream_ops</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span></code>
+          </span></dt>
+<dd>
+<p>
+              Gets ostream operations for the variant template type.
+            </p>
+<p>
+              By default <code class="computeroutput"><span class="identifier">strict_variant</span><span class="special">::</span><span class="identifier">variant</span></code>
+              is not streamable.
+            </p>
+</dd>
+<dt><span class="term"><code class="computeroutput"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">strict_variant</span><span class="special">/</span><span class="identifier">variant_spirit</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span></code>
+          </span></dt>
+<dd><p>
+              Defines customization points within <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">spirit</span></code>
+              so that <code class="computeroutput"><span class="identifier">strict_variant</span><span class="special">::</span><span class="identifier">variant</span></code>
+              can be used just like <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code>
+              in your <code class="computeroutput"><span class="identifier">qi</span></code> grammars.
+            </p></dd>
+<dt><span class="term"><code class="computeroutput"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">strict_variant</span><span class="special">/</span><span class="identifier">multivisit</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span></code></span></dt>
+<dd>
+<p>
+              Needed to support multi-visitation. Unary visitation is already brought
+              in by <code class="computeroutput"><span class="identifier">strict_variant</span><span class="special">/</span><span class="identifier">variant</span><span class="special">.</span><span class="identifier">hpp</span></code>.
+            </p>
+<p>
+              <span class="bold"><strong>Multi-visitation</strong></span> means that a series
+              of variants are passed along with a visitor, and value of each is determined
+              and forwarded to the visitor.
+            </p>
+</dd>
+</dl>
+</div>
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
 <td align="left"></td>
