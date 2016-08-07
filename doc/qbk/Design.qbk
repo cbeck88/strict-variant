@@ -142,8 +142,8 @@ From the user's point of view, this design results in a very familiar feel:
     is either nothrow-moveable itself or is put in a nothrow-moveable wrapper.
   * The wrapper abstraction ends up doing most of the "work".
   * The special member functions of the variant itself are implemented in a very
-    straightforward way, basically using "copy and swap" or "copy and move" just
-    as you might typically use in one of your classes.
+    straightforward way, basically using "copy and swap" or "copy and move"
+    idioms just as you might typically use in one of your classes.
 * There is no storage overhead -- the only memory used is the memory for the largest
   of the contained types, plus an indicator for the current type.
 * Visitation is simple, just like it was for `boost::variant`. You don't have
