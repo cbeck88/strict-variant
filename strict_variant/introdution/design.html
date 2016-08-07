@@ -177,14 +177,22 @@
         the pointer can't fail, even if the object has a throwing move.
       </p>
 <p>
-        For example, this solves the copy-assignment problem as follows: * If the
-        new value is nothrow moveable, then we construct it first on the stack. This
-        might throw an exception. If it succeeds, then we destroy the current value,
-        and move the new value into storage, neither of which can fail. * If the
-        new value has a throwing move, then we construct it first on the heap. This
-        might throw an exception. If it succeeds, then we destroy the current value,
-        and move the pointer into storage, neither of which can fail.
+        For example, this solves the copy-assignment problem as follows:
       </p>
+<div class="itemizedlist"><ul class="itemizedlist" type="disc">
+<li class="listitem">
+            If the new value is nothrow moveable, then we construct it first on the
+            stack. <br> This might throw an exception. If it succeeds, then we
+            destroy the current value, and move the new value into storage, neither
+            of which can fail.
+          </li>
+<li class="listitem">
+            If the new value has a throwing move, then we construct it first on the
+            heap. <br> This might throw an exception. If it succeeds, then we destroy
+            the current value, and move the pointer into storage, neither of which
+            can fail.
+          </li>
+</ul></div>
 <p>
         When using the <code class="computeroutput"><span class="identifier">easy_variant</span></code>
         template alias, the throwing move is detected and the wrapper is handled
