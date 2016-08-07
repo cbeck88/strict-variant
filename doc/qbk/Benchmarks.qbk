@@ -1,4 +1,101 @@
-[section Benchmarks]
-TODO:
+[section Vistation Benchmarks]
+
+There is a benchmarks suite included in the repository.
+
+(GNU-like compilers only at time of writing.)
+
+['Take these benchmarks with a large grain of salt,] as actual performance will
+depend greatly on success of branch prediction / whether the instructions in the
+jump table are prefetched, and compiler inline decisions will be affected by
+what the actual visitor is doing.
+
+(From experience, these microbenchmarks are
+extremely sensitive to the benchmark framework -- marking different components
+at different steps as opaque to the optimizer has a very large effect. Feel free
+to poke it and see what I'm talking about.)
+
+But with that in mind, here are some
+benchmark numbers for visiting ten thousand variants in randomly distributed
+states, with varying numbers of types in the variant.
+
+Benchmark numbers represent *average number of nanoseconds per visit*.
+
+[h3 `gcc 5.4.0`]
+
+[table
+[[              Number of types ][         2 ][         3 ][         4 ][         5 ][         6 ][         8 ][        10 ][        12 ][        15 ][        18 ][        20 ][        50 ]]
+[[             `boost::variant` ][  6.481400 ][  7.102700 ][  7.851000 ][  8.150300 ][  8.705700 ][  9.607100 ][  9.010800 ][  9.151600 ][  9.319300 ][  9.435100 ][  9.369900 ][       N/A ]]
+[[  libcxx (dev) `std::variant` ][  8.157500 ][ 10.038500 ][ 11.234200 ][ 12.202000 ][ 12.081600 ][ 15.154700 ][ 15.588100 ][ 13.664700 ][ 13.287600 ][ 20.551800 ][ 19.929300 ][ 24.191200 ]]
+[[    `strict_variant::variant` ][  0.538400 ][  3.010500 ][  5.066300 ][  7.719000 ][  9.092100 ][ 10.049600 ][ 11.931200 ][ 13.531000 ][ 14.647300 ][ 14.891000 ][ 16.392000 ][ 25.794200 ]]
+[[            `mapbox::variant` ][  0.676200 ][  2.958400 ][  3.465800 ][  4.423300 ][  5.006200 ][  6.020200 ][  6.966400 ][  7.431300 ][  7.585400 ][  8.796200 ][  9.485000 ][ 13.482700 ]]
+[[             `juice::variant` ][  8.331400 ][  9.701500 ][ 10.550000 ][ 11.724400 ][ 12.618300 ][ 15.397400 ][ 18.612200 ][ 16.798500 ][ 19.801800 ][ 21.027400 ][ 21.903400 ][ 26.065400 ]]
+[[              `eggs::variant` ][  6.805700 ][  8.315000 ][  8.948000 ][  9.379700 ][ 10.019700 ][ 10.797000 ][ 10.483200 ][ 10.682700 ][ 10.854300 ][ 10.828700 ][ 10.955000 ][ 11.177400 ]]
+[[ `std::experimental::variant` ][  6.744500 ][  8.357300 ][  9.757800 ][ 10.487500 ][ 10.113300 ][ 10.634800 ][ 11.095100 ][ 11.595900 ][ 12.160900 ][ 19.551400 ][ 19.727200 ][ 22.055700 ]]
+]
+
+[h3 `clang 3.8.0`]
+
+[table
+[[              Number of types ][         2 ][         3 ][         4 ][         5 ][         6 ][         8 ][        10 ][        12 ][        15 ][        18 ][        20 ][        50 ]]
+[[             `boost::variant` ][  7.477200 ][  6.645700 ][  6.545900 ][  6.628300 ][  6.568700 ][  6.564100 ][  6.889100 ][  6.581600 ][  6.545600 ][  7.651300 ][  0.915300 ][       N/A ]]
+[[  libcxx (dev) `std::variant` ][  8.080700 ][ 10.121900 ][ 11.084000 ][ 12.564200 ][ 12.486700 ][ 13.248000 ][ 14.108300 ][ 14.250700 ][ 14.377300 ][ 14.378900 ][ 14.913100 ][ 14.945100 ]]
+[[    `strict_variant::variant` ][  0.837900 ][  1.889300 ][  2.091400 ][  4.484100 ][  5.044800 ][  5.205900 ][  7.585900 ][  8.154700 ][  8.149400 ][ 10.217100 ][ 12.028300 ][ 16.273400 ]]
+[[            `mapbox::variant` ][  0.865100 ][  1.212400 ][  2.521900 ][  4.265600 ][  3.997600 ][  5.940000 ][  6.685200 ][  7.643000 ][  8.871700 ][  9.998200 ][ 10.028600 ][ 14.105200 ]]
+[[             `juice::variant` ][  9.606700 ][ 10.345300 ][ 10.603600 ][ 10.897700 ][ 13.203500 ][ 14.954600 ][ 15.090100 ][ 17.874800 ][ 19.452000 ][ 19.677100 ][ 19.533400 ][ 25.147900 ]]
+[[              `eggs::variant` ][  6.944900 ][  8.718300 ][  9.555800 ][ 10.104900 ][ 10.443600 ][ 11.002000 ][ 11.322000 ][ 11.809000 ][ 11.509700 ][ 11.656900 ][ 11.696600 ][ 12.044800 ]]
+[[ `std::experimental::variant` ][  7.009600 ][  8.675900 ][  9.564000 ][ 10.066800 ][ 10.524500 ][ 11.320100 ][ 11.098200 ][ 11.244600 ][ 11.586100 ][ 11.549700 ][ 11.686800 ][ 11.972000 ]]
+]
+
+[h3 configuration data]
+
+The settings used for these numbers are:
+```
+  seq_length = 10000
+  repeat_num = 1000
+```
+
+Test subjects:
+
+* `boost::variant` at version 1.58
+* `eggs::variant` from [@https://github.com/eggs-cpp/variant this repository] at commit `1692cb849311cd8dfe77146ad21b4f00299a68cd`
+* `juice::variant` from [@https://github.com/jarro2783/thenewcpp this repository] at commit `5572c1b9017f50e9b39d9bf33b1a6719e1983476`
+* `mapbox::variant` from [@https://github.com/mapbox/variant this repository] at commit `388376ac9f0102feba2d2122873b08e15a66a879`
+* `std::experimental::variant` from [@https://github.com/mpark/variant this repository]
+* libcxx `std::variant` draft at `variant` branch from [@https://github.com/efcs/libcxx/tree/variant this repository] at commit `d93edff042e7b9d333eb5b6f16145953e00fd182`
+* `strict_variant` from this repository at commit `94f80fe1cd0d34f8b49268e223f3dfca66605c3a`
+
+Test machine `/proc/cpuinfo` looks like this:
+
+```
+$ cat /proc/cpuinfo 
+processor	: 0
+vendor_id	: GenuineIntel
+cpu family	: 6
+model		: 78
+model name	: Intel(R) Core(TM) i7-6600U CPU @ 2.60GHz
+stepping	: 3
+microcode	: 0x6a
+cpu MHz		: 438.484
+cache size	: 4096 KB
+physical id	: 0
+siblings	: 4
+core id		: 0
+cpu cores	: 2
+apicid		: 0
+initial apicid	: 0
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 22
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx pdpe1gb rdtscp lm constant_tsc art arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc aperfmperf eagerfpu pni pclmulqdq dtes64 monitor ds_cpl vmx smx est tm2 ssse3 sdbg fma cx16 xtpr pdcm pcid sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm abm 3dnowprefetch epb intel_pt tpr_shadow vnmi flexpriority ept vpid fsgsbase tsc_adjust bmi1 hle avx2 smep bmi2 erms invpcid rtm mpx rdseed adx smap clflushopt xsaveopt xsavec xgetbv1 dtherm ida arat pln pts hwp hwp_notify hwp_act_window hwp_epp
+bugs		:
+bogomips	: 5615.78
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 39 bits physical, 48 bits virtual
+power management:
+```
+
+with three additional cores identical to that one.
 
 [endsect]

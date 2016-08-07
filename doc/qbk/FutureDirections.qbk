@@ -1,0 +1,39 @@
+[section Future Directions]
+
+[h4 `constexpr` support]
+
+`constexpr` support is somewhat harder to do at C++11 standard compared to at
+C++14, and since it does not support dynamic allocation, it's not consistent
+with `recursive_wrapper` which is somehow an essential component of
+`strict_variant`. Any `constexpr` usage would be somewhat orthogonal to the
+bulk of the development work so far.
+
+It could be added in the future, but for now there is no `constexpr` support.
+If you need this, you might want to take a good look at `eggs::variant`.
+
+[h4 `allocator` support]
+
+Since `recursive_wrapper` makes dynamic allocations on behalf of the variant,
+a quite natural refinement would be to allow custom allocators to be used with
+the wrapper.
+
+Most likely, the allocator should become a template parameter and a member of
+the `strict_variant` itself, which then passes it on to any `recursive_wrapper`
+that are constructed. But execution of this plan is left to future work.
+
+[h4 Extract heap objects]
+
+One way to mitigate the costs of using `recursive_wrapper` in the variant would
+be if it were possible to "take ownership" of the dynamic allocation from the
+variant. The idea would be, once the contained type has been determined to be
+`recursive_wrapper<T>`, we could imagine a function which consumes the variant
+and yields `unique_ptr<T>`, taking ownership of the pointer that is in storage.
+
+This is also left to future work.
+
+[h4 Support extended integer types]
+
+Is there a good way that we can potentially extend the "safely_constructible"
+framework to include potential implementation-specific extended integer types?
+
+[endsect]

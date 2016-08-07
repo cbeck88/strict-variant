@@ -28,7 +28,8 @@
 [include Configuration.qbk]
 [endsect]
 
-[/ [section:comparison Notes]
-   [include Comparison.qbk]
-   [include Benchmarks.qbk]
-   [endsect] ]
+[section:discussion Remarks]
+[include PerformanceCharacteristics.qbk]
+[include Benchmarks.qbk]
+[include FutureDirections.qbk]
+[endsect]

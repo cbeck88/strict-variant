@@ -1,0 +1,101 @@
+[section Performance Characteristics]
+
+[h3 Assignment]
+
+The main point of variation among variant types is usually how they handle the
+never-empty guarantee.  (Beyond that, they often vary significantly in how they
+actually implement the storage, especially if they seek `constexpr` support.)
+
+In `boost::variant`, the strategy is to make a heap-allocated backup copy of the
+value, and then destroy the original and attempt to allocate the new value in the
+in situ storage. If that operation throws, then the heap-allocated copy still
+exists, and subsequent uses point to that. Any later type-changing assignments
+will try to take place in situ, and the heap-allocated backup will remain until
+one of those succeeds.
+
+This provides the most comprehensive support, but it incurs an extra copy and
+an extra dynamic allocation for each assignment. There's also some space overhead
+for the pointer.
+
+In the C++17 `std::variant`, the strategy is to relax the never-empty guarantee
+to a "rarely empty" guarantee, by introducing an empty state which occurs when
+construction fails. This greatly simplifies assignment and makes that more efficient,
+but it may complicate visitation, depending on how concerned you are about the
+empty state. In essence we are sacrificing strong exception safety for only
+basic exception safety, in a quest for performance.
+
+In `strict_variant`, the focus is on a less general case. We basically "favor"
+the nothrow move-constructible members, which enjoy optimal performance like they
+would in `std::variant`. We accomodates all members with throwing move by
+putting them on the heap -- then the pointer can be moved into storage without
+failure.
+
+In comparison with `boost::variant`, this results in no extra calls
+to copy constructors when we make an assignment.
+It also will impact speed of visitation, in the sense
+that you must dereference an extra pointer to find the object -- `boost::variant`
+always tries to get the object in situ, and only puts it on the heap if an exception
+is thrown. However, if exceptions are thrown regularly, then you would already
+have had to tolerate this overhead with `boost::variant`. An advantage, though,
+is that operations on `strict_variant` are relatively easy to reason about, as
+there are no dynamic allocations taking place that you don't explicitly opt in
+to. And besides, for the use cases like those for which `strict_variant` was
+originally designed and for which the "no unsafe conversions" property is
+most relevant, the types will all likely be no-throw move constructible anyways.
+
+Regardless, at least when your types are in fact no-throw move constructible,
+we enjoy essentially the same interface as `boost::variant` updated to modern
+C++, without the extra copies or dynamic allocations that were required prior to
+C++11. And also in that case, we enjoy the same performance as `std::variant`
+without the added complexity of an empty state.
+
+[h3 Visitation]
+
+The other major point of variation among variant templates is the speed of visitation.
+
+In `boost::variant`, at least the early implementations used `boost::mpl`, and
+were limited to twenty or so types. `boost::variant` works even prior to the
+variadic templates feature. Doing without variadic templates makes the header
+pretty complicated and hurts the compile times, but its very helpful to speed of
+visitation, which can be done using an explicit `switch` statement.
+
+In a variadic template-based implementation, switch statements cannot be used,
+because there is no pack-expansion analogue for switch statements. The most
+common strategy that I saw is to declare an array of function pointers, and
+fill it with a series of instantiations of a template function. Each pointer
+corresponds to an one of the input types. Then this array is indexed
+and the appropriate function pointer is called, passing along the visitor,
+the variant storage, etc. The array thus forms a little manual jump table of
+sorts.
+
+This implementation is pretty straightforward, but it has the drawback that the
+function pointers cannot always be inlined by the compiler,
+and so for relatively small numbers of elements, it can be outperformed by
+other strategies.
+
+In a second strategy, a binary tree is formed which holds at
+each leaf one of the input types. We then search the binary tree using the
+"which" value which would have been the index to the jump table. When we arrive
+at the leaf, we know the runtime-type of the value, and can invoke the visitor
+appropriately. This implementation involves no function pointers, so the calls
+can always be inlined -- but it may involve several branches. However, these
+branches may benefit from branch prediction, and in practice, its quite common
+to have variants with only a handful of types. Particularly when there is one
+type which is the "most popular", branch prediction can significantly speed up
+the visitation well beyond what you will see in benchmarks with random data,
+which are already quite favorable to the "binary" search strategy for small
+numbers of types. This is the strategy currently used by `strict_variant`.
+
+A third strategy, naive tail recursion, is used by `mapbox::variant`.
+Surprisingly (for me), this is the best performing strategy, for both `gcc` and
+`clang` and all regimes, according to most recent benchmark investigations.
+
+See the next section for benchmark data.
+
+[h3 Compile-Times]
+
+I did not attempt to benchmark the compile-time performance, but I expect that
+the differences would be negligible, especially in comparison to other common
+libraries which are known to have heavy compile times.
+
+[endsect]

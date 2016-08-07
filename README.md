@@ -259,7 +259,7 @@ clang++ (3.8.0)
 |              Number of types |         2 |         3 |         4 |         5 |         6 |         8 |        10 |        12 |        15 |        18 |        20 |        50 |
 | ---------------------------- | --------- | --------- | --------- | --------- | --------- | --------- | --------- | --------- | --------- | --------- | --------- | --------- |
 |             `boost::variant` |  7.477200 |  6.645700 |  6.545900 |  6.628300 |  6.568700 |  6.564100 |  6.889100 |  6.581600 |  6.545600 |  7.651300 |  0.915300 |       N/A |
-|   libcc (dev) `std::variant` |  8.080700 | 10.121900 | 11.084000 | 12.564200 | 12.486700 | 13.248000 | 14.108300 | 14.250700 | 14.377300 | 14.378900 | 14.913100 | 14.945100 |
+|  libcxx (dev) `std::variant` |  8.080700 | 10.121900 | 11.084000 | 12.564200 | 12.486700 | 13.248000 | 14.108300 | 14.250700 | 14.377300 | 14.378900 | 14.913100 | 14.945100 |
 |    `strict_variant::variant` |  0.837900 |  1.889300 |  2.091400 |  4.484100 |  5.044800 |  5.205900 |  7.585900 |  8.154700 |  8.149400 | 10.217100 | 12.028300 | 16.273400 |
 |            `mapbox::variant` |  0.865100 |  1.212400 |  2.521900 |  4.265600 |  3.997600 |  5.940000 |  6.685200 |  7.643000 |  8.871700 |  9.998200 | 10.028600 | 14.105200 |
 |             `juice::variant` |  9.606700 | 10.345300 | 10.603600 | 10.897700 | 13.203500 | 14.954600 | 15.090100 | 17.874800 | 19.452000 | 19.677100 | 19.533400 | 25.147900 |
@@ -322,7 +322,8 @@ with three additional cores identical to that one.
 Known issues
 ============
 
-- Need to fixup operator declarations / inclusions
+- Better docu regarding `recursive_wrapper` and design considerations
+- Allocator support?
 - No `constexpr` support. This is really extremely difficult to do in a variant at
   C++11 standard, it's only really feasible in C++14. If you want `constexpr` support
   then I suggest having a look at [`eggs::variant`](https://github.com/eggs-cpp/variant).
