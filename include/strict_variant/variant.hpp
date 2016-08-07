@@ -57,6 +57,9 @@
 
 namespace strict_variant {
 
+/***
+ * Trait to detect specializations of variant
+ */
 template <typename T>
 struct is_variant : std::false_type {};
 
@@ -241,8 +244,6 @@ private:
     : initializer_base<T, us, Test_Priority<T, mpl::priority_max>::value>... {};
 
 public:
-  // TODO: How should this work when First is incomplete? I guess we can't disable it?
-  // Probably this is the best we can do?
   template <typename ENABLE = void>
   variant() noexcept(detail::is_nothrow_default_constructible<First>::value);
 
@@ -334,12 +335,7 @@ public:
   int which() const noexcept { return m_which; }
 
   // operator ==
-  bool operator==(const variant & rhs) const {
-    eq_checker eq(*this, rhs.which());
-    // Pass detail::false because it needs to pierce the recursive wrapper
-    return apply_visitor(eq, rhs);
-  }
-
+  bool operator==(const variant & rhs) const;
   bool operator!=(const variant & rhs) const { return !(*this == rhs); }
 
   // get
@@ -750,6 +746,14 @@ variant<First, Types...>::variant(emplace_tag<T>, Args &&... args) noexcept(
   static_assert(idx < sizeof...(Types) + 1, "Requested type is not a member of this variant type");
 
   this->initialize<idx>(std::forward<Args>(args)...);
+}
+
+// Operator ==
+template <typename First, typename... Types>
+bool variant<First, Types...>::operator==(const variant & rhs) const; {
+  eq_checker eq(*this, rhs.which());
+  // Pass detail::false because it needs to pierce the recursive wrapper
+  return apply_visitor(eq, rhs);
 }
 
 } // end namespace strict_variant
