@@ -2,13 +2,15 @@
 
 [h4 `constexpr` support]
 
-`constexpr` support is somewhat harder to do at C++11 standard compared to at
-C++14, and since it does not support dynamic allocation, it's not consistent
-with `recursive_wrapper` which is somehow an essential component of
-`strict_variant`. Any `constexpr` usage would be somewhat orthogonal to the
-bulk of the development work so far.
+`constexpr` support is somewhat harder to do well at C++11 standard compared to
+at C++14. And since `constexpr` computations cannot make dynamic allocations,
+it's not consistent with `recursive_wrapper` which is somehow an essential
+component of `strict_variant`. Any `constexpr` usage would be somewhat
+orthogonal to the bulk of the development work so far.
 
-It could be added in the future, but for now there is no `constexpr` support.
+It could be added in the future, but for now we simply use placement-new in our
+storage and there is no `constexpr` support.
+
 If you need this, you might want to take a good look at `eggs::variant`.
 
 [h4 `allocator` support]
@@ -35,5 +37,33 @@ This is also left to future work.
 
 Is there a good way that we can potentially extend the "safely_constructible"
 framework to include potential implementation-specific extended integer types?
+
+[h4 Improve `noexcept` annotations of `variant` when using `recursive_wrapper`?]
+
+One of the basic design ideas here is to use `recursive_wrapper` when a type
+has a throwing move.
+
+However, this has the potential to reduce the quality of our `noexcept`
+annotations in certain situations.
+
+The reason is that, `recursive_wrapper` is supposed to work
+also when the type is incomplete -- in that case the traits that determine
+whether special member functions of the variant throw, basically have to assume
+that they might, since we can't check the actual type.
+
+In cases when the type *is* complete, we could introduce a different wrapper,
+say, `heap_wrapper` or something, which would be the same, but we would be able
+to interrogate the type to determine situations in which it throws.
+
+Now, usually you would only use `heap_wrapper` when the type has a throwing move,
+and in that case, it likely also has a throwing copy. So not much is likely to
+be gained by `heap_wrapper` here.
+
+It would be nice if, when `recursive_wrapper` is used with a type which is
+incomplete, but doesn't actually throw, we can actually deduce that fact.
+But as far as I know this isn't feasible -- the `noexcept` annotations on the 
+`variant` special member functions must be complete at the point of
+instantiation of the variant. So we have to assume the worst when the user uses
+`recursive_wrapper`, so far as I know.
 
 [endsect]
