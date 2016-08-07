@@ -114,14 +114,9 @@ private:
   /***
    * Used for internal visitors
    */
-  template <typename Internal = detail::true_, typename Visitor>
+  template <typename Visitor>
   auto apply_visitor_internal(Visitor & visitor) -> typename Visitor::result_type {
-    return detail::visitor_dispatch<Internal, 1 + sizeof...(Types)>{}(m_which, m_storage, visitor);
-  }
-
-  template <typename Internal = detail::true_, typename Visitor>
-  auto apply_visitor_internal(Visitor & visitor) const -> typename Visitor::result_type {
-    return detail::visitor_dispatch<Internal, 1 + sizeof...(Types)>{}(m_which, m_storage, visitor);
+    return detail::visitor_dispatch<detail::true_, 1 + sizeof...(Types)>{}(m_which, m_storage, visitor);
   }
 
   /***
@@ -278,10 +273,6 @@ public:
   variant(T && t) /*noexcept(noexcept((*static_cast<initializer<T> *>(nullptr)) (
     *static_cast<variant *>(nullptr), std::forward<T>(std::declval<T>())))) */;
 
-  /// Friend all other instances of variant (needed for next two ctors)
-  template <typename F, typename... Ts>
-  friend class variant;
-
   /// "Generalizing Ctor"
   /// Allow constructing from a variant over a subset of our types
   /// (Boost variant does this, and we need it to comfortably interact with
@@ -346,7 +337,7 @@ public:
   bool operator==(const variant & rhs) const {
     eq_checker eq(*this, rhs.which());
     // Pass detail::false because it needs to pierce the recursive wrapper
-    return rhs.apply_visitor_internal<detail::false_>(eq);
+    return apply_visitor(eq, rhs);
   }
 
   bool operator!=(const variant & rhs) const { return !(*this == rhs); }
@@ -669,7 +660,7 @@ template <typename First, typename... Types>
 variant<First, Types...>::variant(const variant & rhs) noexcept(
   detail::variant_noexcept_helper<First, Types...>::nothrow_copy_ctors) {
   copy_constructor c(*this);
-  rhs.apply_visitor_internal<detail::false_>(c);
+  apply_visitor(c, rhs);
   STRICT_VARIANT_ASSERT(rhs.which() == this->which(), "Postcondition failed!");
   STRICT_VARIANT_ASSERT_WHICH_INVARIANT;
 }
@@ -681,7 +672,7 @@ template <typename First, typename... Types>
 variant<First, Types...>::variant(variant && rhs) noexcept(
   detail::variant_noexcept_helper<First, Types...>::nothrow_move_ctors) {
   move_constructor mc(*this);
-  rhs.apply_visitor_internal<detail::false_>(mc); // pierce rhs recursive_wrapper
+  apply_visitor(mc, rhs);
   STRICT_VARIANT_ASSERT(rhs.which() == this->which(), "Postcondition failed!");
   STRICT_VARIANT_ASSERT_WHICH_INVARIANT;
 }
@@ -692,7 +683,7 @@ variant<First, Types...>::operator=(const variant & rhs) noexcept(
   detail::variant_noexcept_helper<First, Types...>::nothrow_copy_assign) {
   if (this != &rhs) {
     copy_assigner a(*this, rhs.which());
-    rhs.apply_visitor_internal<detail::false_>(a);
+    apply_visitor(a, rhs);
     STRICT_VARIANT_ASSERT(rhs.which() == this->which(), "Postcondition failed!");
   }
   STRICT_VARIANT_ASSERT_WHICH_INVARIANT;
@@ -706,7 +697,7 @@ variant<First, Types...>::operator=(variant && rhs) noexcept(
   detail::variant_noexcept_helper<First, Types...>::nothrow_move_assign) {
   if (this != &rhs) {
     move_assigner ma(*this, rhs.which());
-    rhs.apply_visitor_internal<detail::false_>(ma); // pierce rhs recursive_wrapper
+    apply_visitor(ma, rhs);
     STRICT_VARIANT_ASSERT(rhs.which() == this->which(), "Postcondition failed!");
   }
   STRICT_VARIANT_ASSERT_WHICH_INVARIANT;
@@ -735,7 +726,7 @@ template <typename OFirst, typename... OTypes, typename Enable>
 variant<First, Types...>::variant(const variant<OFirst, OTypes...> & other) noexcept(
   detail::variant_noexcept_helper<OFirst, OTypes...>::nothrow_copy_ctors) {
   copy_constructor c(*this);
-  other.template apply_visitor_internal<detail::false_>(c);
+  apply_visitor(c, other);
   STRICT_VARIANT_ASSERT_WHICH_INVARIANT;
 }
 
@@ -745,8 +736,7 @@ template <typename OFirst, typename... OTypes, typename Enable>
 variant<First, Types...>::variant(variant<OFirst, OTypes...> && other) noexcept(
   detail::variant_noexcept_helper<OFirst, OTypes...>::nothrow_move_ctors) {
   move_constructor c(*this);
-  // pierce other's recursive_wrapper, avoid empty state
-  other.template apply_visitor_internal<detail::false_>(c);
+  apply_visitor(c, other);
   STRICT_VARIANT_ASSERT_WHICH_INVARIANT;
 }
 
