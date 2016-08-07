@@ -26,6 +26,7 @@
 [include Synopsis.qbk]
 [include Includes.qbk]
 [include Configuration.qbk]
+[include Compatibility.qbk]
 [endsect]
 
 [section:discussion Remarks]

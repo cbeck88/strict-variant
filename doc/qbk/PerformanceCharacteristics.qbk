@@ -6,7 +6,7 @@ The main point of variation among variant types is usually how they handle the
 never-empty guarantee.  (Beyond that, they often vary significantly in how they
 actually implement the storage, especially if they seek `constexpr` support.)
 
-[h4 `boost::variant]
+[h4 `boost::variant`]
 
 In `boost::variant`, the strategy is to make a heap-allocated backup copy of the
 value, and then destroy the original and attempt to allocate the new value in the
