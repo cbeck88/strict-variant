@@ -13,6 +13,24 @@
 #include <type_traits>
 #include <utility>
 
+// #define STRICT_VARIANT_DEBUG
+
+#ifdef STRICT_VARIANT_DEBUG
+#include <cassert>
+
+#define STRICT_VARIANT_ASSERT(X, C)                                                                \
+  do {                                                                                             \
+    assert((X) && C);                                                                              \
+  } while (0)
+
+#else // STRICT_VARIANT_DEBUG
+
+#define STRICT_VARIANT_ASSERT(X, C)                                                                \
+  do {                                                                                             \
+  } while (0)
+
+#endif // STRICT_VARIANT_DEBUG
+
 namespace strict_variant {
 
 template <typename T>
@@ -50,13 +68,7 @@ public:
     rhs.m_t = nullptr;
   }
 
-  recursive_wrapper & operator=(
-    const recursive_wrapper & rhs) // noexcept checks assign(const recursive_wrapper &)
-  // TODO: Fix emscripten here:
-  // noexcept( std::declval<recursive_wrapper>().assign(static_cast<const
-  // recursive_wrapper
-  // &>(std::declval<recursive_wrapper>())))
-  {
+  recursive_wrapper & operator=(const recursive_wrapper & rhs) {
     this->assign(rhs.get());
     return *this;
   }
@@ -68,26 +80,28 @@ public:
     return *this;
   }
 
-  recursive_wrapper & operator=(const T & t) // noexcept checks assign(const T &)
-  // TODO: Emscripten broke here:
-  // noexcept(std::declval<recursive_wrapper>().assign(static_cast<const T
-  // &>(std::declval<T>())))
-  {
+  recursive_wrapper & operator=(const T & t) {
     this->assign(t);
     return *this;
   }
 
-  recursive_wrapper & operator=(T && t) // noexcept checks assign(T &&)
-  // TODO: Emscripten broke here:
-  // noexcept(std::declval<recursive_wrapper>().assign(std::declval<T>()))
-  {
+  recursive_wrapper & operator=(T && t) {
     this->assign(std::move(t));
     return *this;
   }
 
-  T & get() & { return *m_t; }
-  const T & get() const & { return *m_t; }
-  T && get() && { return std::move(*m_t); }
+  T & get() & {
+    STRICT_VARIANT_ASSERT(m_t, "Bad access!");
+    return *m_t;
+  }
+  const T & get() const & {
+    STRICT_VARIANT_ASSERT(m_t, "Bad access!");
+    return *m_t;
+  }
+  T && get() && {
+    STRICT_VARIANT_ASSERT(m_t, "Bad access!");
+    return std::move(*m_t);
+  }
 
   // TODO: This is a work-around for when we generalize the variant type and
   // need to construct `int` from `const recursive_wrapper<int>`. But we should
@@ -160,3 +174,5 @@ template <typename T>
 using wrap_if_throwing_move_t = typename wrap_if_throwing_move<T>::type;
 
 } // end namespace strict_variant
+
+#undef STRICT_VARIANT_ASSERT
