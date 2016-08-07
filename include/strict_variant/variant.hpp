@@ -67,6 +67,12 @@ template <typename First, typename... Types>
 struct is_variant<variant<First, Types...>> : std::true_type {};
 
 /***
+ * Tag used in tag-dispatch with emplace-ctor
+ */
+template <typename T>
+struct emplace_tag {};
+
+/***
  * Class variant
  */
 template <typename First, typename... Types>
@@ -293,9 +299,6 @@ public:
 
   // Emplace ctor. Used to explicitly specify the type of the variant, and
   // invoke an arbitrary ctor of that type.
-  template <typename T>
-  struct emplace_tag {};
-
   template <typename T, typename... Args>
   explicit variant(emplace_tag<T>,
                    Args &&... args) noexcept(std::is_nothrow_constructible<T, Args...>::value);
@@ -750,7 +753,7 @@ variant<First, Types...>::variant(emplace_tag<T>, Args &&... args) noexcept(
 
 // Operator ==
 template <typename First, typename... Types>
-bool variant<First, Types...>::operator==(const variant & rhs) const; {
+bool variant<First, Types...>::operator==(const variant & rhs) const {
   eq_checker eq(*this, rhs.which());
   // Pass detail::false because it needs to pierce the recursive wrapper
   return apply_visitor(eq, rhs);

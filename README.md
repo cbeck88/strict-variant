@@ -93,7 +93,7 @@ scripting language will permit a variety of primitive values, so when binding to
 - There is also an emplace-ctor, where you select the type using tag dispatch.
 
   ```c++
-    variant v{variant::emplace_tag<my_type>, arg1, arg2, arg3};
+    variant v{emplace_tag<my_type>, arg1, arg2, arg3};
   ```
 
 So, keep in mind, this is not a drop-in replacement for `boost::variant` or one of the other versions, its semantics are fundamentally different.
