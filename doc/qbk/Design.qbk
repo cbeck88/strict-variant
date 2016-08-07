@@ -122,10 +122,11 @@ them on the heap. The wrapper only holds a pointer, and moving the pointer can't
 even if the object has a throwing move.
 
 For example, this solves the copy-assignment problem as follows:
-* If the new value is nothrow moveable, then we construct it first on the stack.
+
+* If the new value is nothrow moveable, then we construct it first on the stack. [br]
   This might throw an exception. If it succeeds, then we destroy the current value,
   and move the new value into storage, neither of which can fail.
-* If the new value has a throwing move, then we construct it first on the heap.
+* If the new value has a throwing move, then we construct it first on the heap. [br]
   This might throw an exception. If it succeeds, then we destroy the current value,
   and move the pointer into storage, neither of which can fail.
 
