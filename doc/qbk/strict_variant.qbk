@@ -29,6 +29,7 @@
 [endsect]
 
 [section:discussion Remarks]
+[include ImplementationNotes.qbk]
 [include PerformanceCharacteristics.qbk]
 [include Benchmarks.qbk]
 [include FutureDirections.qbk]

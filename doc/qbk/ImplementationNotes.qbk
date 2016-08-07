@@ -1,0 +1,57 @@
+[section Implementation Notes]
+
+The main subtlety involved in correctly implementing the design has to do with
+the `recursive_wrapper`.
+
+If you'll recall, `recursive_wrapper<T>` represents a heap-allocated instance of
+`T`. In the design section, we pointed out that a `recursive_wrapper<T>` could
+be moved by simply moving a pointer.
+
+However, those who are intimately familiar with implementation details of
+`boost::variant` may recall that that is not actually how
+`boost::recursive_wrapper` works.
+
+In `boost::variant`, when a `recursive_wrapper<T>` is move-constructed, what
+happens is a new dynamic allocation is made, and `T` is move-constructed there.
+
+We'll call that the "value-move", in contrast with the "pointer-move".
+
+Clearly, the pointer-move plays a crucial role in `strict_variant`, since the
+value-move is throwing, while the pointer-move isn't.
+
+But, we can't always use the pointer-move.
+
+To see why, consider that the point of the whole exercise is to create a never-empty variant.
+What happens if variant `x` is moved-assigned into variant `y`? If `x` contains
+a `recursive_wrapper` and this is pointer-moved into `y`, then `x` is left holding
+nothing. It's effectively in an empty state, and since visitation implicitly
+pierces the `recursive_wrapper`, the result would be UB if you attempt to visit
+`x` after the move. Nevermind that "it's not empty, it merely contains an empty
+container" -- that's the sort of explanation that only a compiler would be
+satisfied with.
+
+(Granted, in some applications, no one plans to visit a variant that has been
+moved from, and if they could avoid a dynamic allocation, they would prefer that
+it gets left in some illegal/empty state. We might implement some sort of
+configuration option to allow for this optimization, but doesn't exist now and
+it wouldn't the default.)
+
+With this in mind, how should `strict_variant::recursive_wrapper`'s move ctor
+actually be implemented? Should we use tag-dispatch to differentiate the two
+options?
+
+The strategy that we've adopted is, `strict_variant::recursive_wrapper`'s move
+ctor is the pointer move. But in most cases, when visiting a variant, even for
+purposes of copy or move construction of another variant, we call a function
+`detail::pierce_recursive_wrapper` which ensures that we pierce the wrapper and
+move the value rather than the wrapper. Essentially, the only time that we want
+to visit a variant and not pierce the wrapper, is when calling the destructor.
+When constructing the value that gets moved into *our* storage though, this should
+always have a wrapper if appropriate, regardless of what the visited value is.
+This ensures correctness also when we are using the "generalizing" ctors of
+`variant`.
+
+See the `move_constructor` and `move_assigner` visitors in `variant.hpp` for
+complete examples.
+
+[endsect]
