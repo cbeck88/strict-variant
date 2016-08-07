@@ -623,7 +623,7 @@ struct variant<First, Types...>::eq_checker {
     if (m_self.which() == m_rhs_which) {
       // the types are the same, so use operator eq
       STRICT_VARIANT_ASSERT(m_rhs_which == index, "Bad access!");
-      return m_self.m_storage.template get_value<index>(detail::false_{}) == rhs;
+      return m_self.m_storage.template get_value<index>(detail::false_{}) == detail::pierce_recursive_wrapper(rhs);
     } else {
       return false;
     }
@@ -668,7 +668,7 @@ template <typename First, typename... Types>
 variant<First, Types...>::variant(const variant & rhs) noexcept(
   detail::variant_noexcept_helper<First, Types...>::nothrow_copy_ctors) {
   copy_constructor c(*this);
-  rhs.apply_visitor_internal(c);
+  rhs.apply_visitor_internal<detail::false_>(c);
   STRICT_VARIANT_ASSERT(rhs.which() == this->which(), "Postcondition failed!");
   STRICT_VARIANT_ASSERT_WHICH_INVARIANT;
 }
@@ -691,7 +691,7 @@ variant<First, Types...>::operator=(const variant & rhs) noexcept(
   detail::variant_noexcept_helper<First, Types...>::nothrow_copy_assign) {
   if (this != &rhs) {
     copy_assigner a(*this, rhs.which());
-    rhs.apply_visitor_internal(a);
+    rhs.apply_visitor_internal<detail::false_>(a);
     STRICT_VARIANT_ASSERT(rhs.which() == this->which(), "Postcondition failed!");
   }
   STRICT_VARIANT_ASSERT_WHICH_INVARIANT;
@@ -734,7 +734,7 @@ template <typename OFirst, typename... OTypes, typename Enable>
 variant<First, Types...>::variant(const variant<OFirst, OTypes...> & other) noexcept(
   detail::variant_noexcept_helper<OFirst, OTypes...>::nothrow_copy_ctors) {
   copy_constructor c(*this);
-  other.apply_visitor_internal(c);
+  other.template apply_visitor_internal<detail::false_>(c);
   STRICT_VARIANT_ASSERT_WHICH_INVARIANT;
 }
 

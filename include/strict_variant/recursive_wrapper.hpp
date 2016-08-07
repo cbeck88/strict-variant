@@ -102,13 +102,6 @@ public:
     STRICT_VARIANT_ASSERT(m_t, "Bad access!");
     return std::move(*m_t);
   }
-
-  // TODO: This is a work-around for when we generalize the variant type and
-  // need to construct `int` from `const recursive_wrapper<int>`. But we should
-  // probably just insert some template code into storage obj for this case...
-  operator T &() & { return this->get(); }
-  operator T const &() const & { return this->get(); }
-  operator T &&() && { return std::move(this->get()); }
 };
 
 namespace detail {
