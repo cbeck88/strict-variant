@@ -1,6 +1,10 @@
 [section Implementation Notes]
 
-The main subtlety involved in correctly implementing the design has to do with
+As mentioned in the design notes, the implementation details of the actual
+`variant` class end up being relatively simple, and the wrapper abstraction ends
+up doing much of the work related to exception safety.
+
+The main subtlety involved in the overall implementation actually has to do with
 the `recursive_wrapper`.
 
 If you'll recall, `recursive_wrapper<T>` represents a heap-allocated instance of
@@ -34,7 +38,7 @@ satisfied with.
 moved from, and if they could avoid a dynamic allocation, they would prefer that
 it gets left in some illegal/empty state. We might implement some sort of
 configuration option to allow for this optimization, but doesn't exist now and
-it wouldn't the default.)
+I don't think it should be the default.)
 
 With this in mind, how should `strict_variant::recursive_wrapper`'s move ctor
 actually be implemented? Should we use tag-dispatch to differentiate the two
