@@ -179,7 +179,8 @@ private:
 
   template <typename T, unsigned idx, int priority>
   struct initializer_base<T, idx, priority,
-                          mpl::enable_if_t<valid_at<priority>::template prop<init_helper<T, idx>>::value>> {
+                          mpl::enable_if_t<valid_at<priority>::template prop<init_helper<T, idx>>::
+                                             value>> {
     using target_type = typename init_helper<T, idx>::type;
 
     template <typename V>

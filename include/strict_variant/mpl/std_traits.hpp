@@ -39,7 +39,7 @@ using enable_if_t = typename std::enable_if<b, U>::type;
 
 template<bool B, class T = void>
 struct enable_if {};
- 
+
 template<class T>
 struct enable_if<true, T> { typedef T type; };
 
