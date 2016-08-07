@@ -623,7 +623,8 @@ struct variant<First, Types...>::eq_checker {
     if (m_self.which() == m_rhs_which) {
       // the types are the same, so use operator eq
       STRICT_VARIANT_ASSERT(m_rhs_which == index, "Bad access!");
-      return m_self.m_storage.template get_value<index>(detail::false_{}) == detail::pierce_recursive_wrapper(rhs);
+      return m_self.m_storage.template get_value<index>(detail::false_{})
+             == detail::pierce_recursive_wrapper(rhs);
     } else {
       return false;
     }
