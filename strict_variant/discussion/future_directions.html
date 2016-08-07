@@ -22,15 +22,19 @@
       </h5>
 <p>
         <code class="computeroutput"><span class="keyword">constexpr</span></code> support is somewhat
-        harder to do at C++11 standard compared to at C++14, and since it does not
-        support dynamic allocation, it's not consistent with <code class="computeroutput"><span class="identifier">recursive_wrapper</span></code>
+        harder to do well at C++11 standard compared to at C++14. And since <code class="computeroutput"><span class="keyword">constexpr</span></code> computations cannot make dynamic
+        allocations, it's not consistent with <code class="computeroutput"><span class="identifier">recursive_wrapper</span></code>
         which is somehow an essential component of <code class="computeroutput"><span class="identifier">strict_variant</span></code>.
         Any <code class="computeroutput"><span class="keyword">constexpr</span></code> usage would be
         somewhat orthogonal to the bulk of the development work so far.
       </p>
 <p>
-        It could be added in the future, but for now there is no <code class="computeroutput"><span class="keyword">constexpr</span></code>
-        support. If you need this, you might want to take a good look at <code class="computeroutput"><span class="identifier">eggs</span><span class="special">::</span><span class="identifier">variant</span></code>.
+        It could be added in the future, but for now we simply use placement-new
+        in our storage and there is no <code class="computeroutput"><span class="keyword">constexpr</span></code>
+        support.
+      </p>
+<p>
+        If you need this, you might want to take a good look at <code class="computeroutput"><span class="identifier">eggs</span><span class="special">::</span><span class="identifier">variant</span></code>.
       </p>
 <h5>
 <a name="strict_variant.discussion.future_directions.h1"></a>
@@ -71,6 +75,47 @@
 <p>
         Is there a good way that we can potentially extend the "safely_constructible"
         framework to include potential implementation-specific extended integer types?
+      </p>
+<h5>
+<a name="strict_variant.discussion.future_directions.h4"></a>
+        <span><a name="strict_variant.discussion.future_directions.improve_noexcept_annotations_of_"></a></span><a class="link" href="future_directions.html#strict_variant.discussion.future_directions.improve_noexcept_annotations_of_">Improve
+        <code class="computeroutput"><span class="keyword">noexcept</span></code> annotations of <code class="computeroutput"><span class="identifier">variant</span></code> when using <code class="computeroutput"><span class="identifier">recursive_wrapper</span></code>?</a>
+      </h5>
+<p>
+        One of the basic design ideas here is to use <code class="computeroutput"><span class="identifier">recursive_wrapper</span></code>
+        when a type has a throwing move.
+      </p>
+<p>
+        However, this has the potential to reduce the quality of our <code class="computeroutput"><span class="keyword">noexcept</span></code> annotations in certain situations.
+      </p>
+<p>
+        The reason is that, <code class="computeroutput"><span class="identifier">recursive_wrapper</span></code>
+        is supposed to work also when the type is incomplete -- in that case the
+        traits that determine whether special member functions of the variant throw,
+        basically have to assume that they might, since we can't check the actual
+        type.
+      </p>
+<p>
+        In cases when the type <span class="bold"><strong>is</strong></span> complete, we could
+        introduce a different wrapper, say, <code class="computeroutput"><span class="identifier">heap_wrapper</span></code>
+        or something, which would be the same, but we would be able to interrogate
+        the type to determine situations in which it throws.
+      </p>
+<p>
+        Now, usually you would only use <code class="computeroutput"><span class="identifier">heap_wrapper</span></code>
+        when the type has a throwing move, and in that case, it likely also has a
+        throwing copy. So not much is likely to be gained by <code class="computeroutput"><span class="identifier">heap_wrapper</span></code>
+        here.
+      </p>
+<p>
+        It would be nice if, when <code class="computeroutput"><span class="identifier">recursive_wrapper</span></code>
+        is used with a type which is incomplete, but doesn't actually throw, we can
+        actually deduce that fact. But as far as I know this isn't feasible -- the
+        <code class="computeroutput"><span class="keyword">noexcept</span></code> annotations on the
+        <code class="computeroutput"><span class="identifier">variant</span></code> special member functions
+        must be complete at the point of instantiation of the variant. So we have
+        to assume the worst when the user uses <code class="computeroutput"><span class="identifier">recursive_wrapper</span></code>,
+        so far as I know.
       </p>
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
