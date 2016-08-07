@@ -116,26 +116,33 @@ standardization proposals like this [footnote C.f. David Sanke "Simply a Strong 
 with a different trade-off. Instead of compromising on strong-exception safety,
 we compromise somewhat on the stack-based goal -- we simply say that any type
 that is not no-throw move-constructible needs to be allocated on the heap.
-In other words, only objects that are no-throw move-constructible are elligible
-for in situ storage in the variant, and objects with throwing moves must be on
-the heap. When using the `easy_variant` template alias, this scenario is detected and handled
-transparently to the programmer, giving a general, easy-to-use, and performant
-variant.
+
+Specifically, objects with throwing moves get put in a ['wrapper] which allocates
+them on the heap. The wrapper only holds a pointer, and moving the pointer can't fail,
+even if the object has a throwing move.
+
+For example, this solves the copy-assignment problem as follows:
+* If the new value is nothrow moveable, then we construct it first on the stack.
+  This might throw an exception. If it succeeds, then we destroy the current value,
+  and move the new value into storage, neither of which can fail.
+* If the new value has a throwing move, then we construct it first on the heap.
+  This might throw an exception. If it succeeds, then we destroy the current value,
+  and move the pointer into storage, neither of which can fail.
+
+When using the `easy_variant` template alias, the throwing move is detected and the
+wrapper is handled transparently for the programmer, giving a general,
+easy-to-use, and performant variant.
 
 From the user's point of view, this design results in a very familiar feel:
 
 * The container is strongly exception safe, like the containers that you are used to
-* It's easy to understand what is going on under the hood.
-  * Because every type
-    is either nothrow-moveable itself or is put in a nothrow-moveable wrapper, the
-  chicken-and-egg problem is solved, and assigning happens in a simple and intuitive
-  way.
-  * ['Move assignment] works by destroying the contained object first, then
-  moving the new value into storage, which never fails.
-  * ['Copy assignment] works
-  via the "copy and move" idiom, just as you might use in one of your classes --
-  we simply make a copy on the stack, and if it succeeds, destroy the contained
-  value and move the new one into storage, which never fails.
+* It's relatively easy to understand what is going on under the hood.
+  * Every type in the `strict_variant`
+    is either nothrow-moveable itself or is put in a nothrow-moveable wrapper.
+  * The wrapper abstraction ends up doing most of the "work".
+  * The special member functions of the variant itself are implemented in a very
+    straightforward way, basically using "copy and swap" or "copy and move" just
+    as you might typically use in one of your classes.
 * There is no storage overhead -- the only memory used is the memory for the largest
   of the contained types, plus an indicator for the current type.
 * Visitation is simple, just like it was for `boost::variant`. You don't have
