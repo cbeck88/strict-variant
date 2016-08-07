@@ -169,12 +169,27 @@
         by making a different implementation decision with a different trade-off.
         Instead of compromising on strong-exception safety, we compromise somewhat
         on the stack-based goal -- we simply say that any type that is not no-throw
-        move-constructible needs to be allocated on the heap. In other words, only
-        objects that are no-throw move-constructible are elligible for in situ storage
-        in the variant, and objects with throwing moves must be on the heap. When
-        using the <code class="computeroutput"><span class="identifier">easy_variant</span></code> template
-        alias, this scenario is detected and handled transparently to the programmer,
-        giving a general, easy-to-use, and performant variant.
+        move-constructible needs to be allocated on the heap.
+      </p>
+<p>
+        Specifically, objects with throwing moves get put in a <span class="emphasis"><em>wrapper</em></span>
+        which allocates them on the heap. The wrapper only holds a pointer, and moving
+        the pointer can't fail, even if the object has a throwing move.
+      </p>
+<p>
+        For example, this solves the copy-assignment problem as follows: * If the
+        new value is nothrow moveable, then we construct it first on the stack. This
+        might throw an exception. If it succeeds, then we destroy the current value,
+        and move the new value into storage, neither of which can fail. * If the
+        new value has a throwing move, then we construct it first on the heap. This
+        might throw an exception. If it succeeds, then we destroy the current value,
+        and move the pointer into storage, neither of which can fail.
+      </p>
+<p>
+        When using the <code class="computeroutput"><span class="identifier">easy_variant</span></code>
+        template alias, the throwing move is detected and the wrapper is handled
+        transparently for the programmer, giving a general, easy-to-use, and performant
+        variant.
       </p>
 <p>
         From the user's point of view, this design results in a very familiar feel:
@@ -185,24 +200,21 @@
             are used to
           </li>
 <li class="listitem">
-            It's easy to understand what is going on under the hood.
+            It's relatively easy to understand what is going on under the hood.
             <div class="itemizedlist"><ul class="itemizedlist" type="circle">
 <li class="listitem">
-                  Because every type is either nothrow-moveable itself or is put
-                  in a nothrow-moveable wrapper, the chicken-and-egg problem is solved,
-                  and assigning happens in a simple and intuitive way.
+                  Every type in the <code class="computeroutput"><span class="identifier">strict_variant</span></code>
+                  is either nothrow-moveable itself or is put in a nothrow-moveable
+                  wrapper.
                 </li>
 <li class="listitem">
-                  <span class="emphasis"><em>Move assignment</em></span> works by destroying the contained
-                  object first, then moving the new value into storage, which never
-                  fails.
+                  The wrapper abstraction ends up doing most of the "work".
                 </li>
 <li class="listitem">
-                  <span class="emphasis"><em>Copy assignment</em></span> works via the "copy and
-                  move" idiom, just as you might use in one of your classes
-                  -- we simply make a copy on the stack, and if it succeeds, destroy
-                  the contained value and move the new one into storage, which never
-                  fails.
+                  The special member functions of the variant itself are implemented
+                  in a very straightforward way, basically using "copy and swap"
+                  or "copy and move" just as you might typically use in
+                  one of your classes.
                 </li>
 </ul></div>
           </li>

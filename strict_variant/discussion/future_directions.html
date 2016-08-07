@@ -73,9 +73,25 @@
         extended integer types</a>
       </h5>
 <p>
-        Is there a good way that we can potentially extend the "safely_constructible"
+        Is there a good way that we can potentially extend the <code class="computeroutput"><span class="identifier">safely_constructible</span></code>
         framework to include potential implementation-specific extended integer types?
       </p>
+<p>
+        Right now, I think the user could accomplish this by specializing a number
+        of traits in our header, but
+      </p>
+<div class="orderedlist"><ol class="orderedlist" type="1">
+<li class="listitem">
+            Those traits aren't documented, and I'm not even sure if I consider them
+            forwarding-facing.
+          </li>
+<li class="listitem">
+            I haven't actually tested this.
+          </li>
+<li class="listitem">
+            It could probably be made much simpler for them.
+          </li>
+</ol></div>
 <h5>
 <a name="strict_variant.discussion.future_directions.h4"></a>
         <span><a name="strict_variant.discussion.future_directions.improve_noexcept_annotations_of_"></a></span><a class="link" href="future_directions.html#strict_variant.discussion.future_directions.improve_noexcept_annotations_of_">Improve
@@ -116,6 +132,64 @@
         must be complete at the point of instantiation of the variant. So we have
         to assume the worst when the user uses <code class="computeroutput"><span class="identifier">recursive_wrapper</span></code>,
         so far as I know.
+      </p>
+<h5>
+<a name="strict_variant.discussion.future_directions.h5"></a>
+        <span><a name="strict_variant.discussion.future_directions.add_an_operator_t_overload"></a></span><a class="link" href="future_directions.html#strict_variant.discussion.future_directions.add_an_operator_t_overload">Add
+        an <code class="computeroutput"><span class="keyword">operator</span> <span class="special">=</span>
+        <span class="special">(</span><span class="identifier">T</span> <span class="special">&amp;&amp;)</span></code> overload?</a>
+      </h5>
+<p>
+        Currently, the only conversions from non-variant types to variants happen
+        in the forwarding-reference constructor. A statement:
+      </p>
+<pre class="programlisting"><span class="identifier">var_t</span> <span class="identifier">v</span><span class="special">;</span>
+<span class="identifier">v</span> <span class="special">=</span> <span class="number">5</span><span class="special">;</span>
+</pre>
+<p>
+        actually compiles to something like this:
+      </p>
+<pre class="programlisting"><span class="identifier">var_t</span> <span class="identifier">v</span><span class="special">;</span>
+<span class="identifier">v</span> <span class="special">=</span> <span class="identifier">var_t</span><span class="special">{</span><span class="number">5</span><span class="special">};</span>
+</pre>
+<p>
+        This is why assignment cannot work if <span class="bold"><strong>any</strong></span>
+        of the types in <code class="computeroutput"><span class="identifier">strict_variant</span></code>
+        has a throwing move. Even if the value <code class="computeroutput"><span class="number">5</span></code>
+        as above does not.
+      </p>
+<p>
+        Currently, the only assignment operators are the usual special member functions.
+      </p>
+<p>
+        We could consider adding an <code class="computeroutput"><span class="keyword">operator</span>
+        <span class="special">=</span> <span class="special">(</span><span class="identifier">T</span><span class="special">&amp;&amp;)</span></code>
+        overload so that syntax like
+      </p>
+<pre class="programlisting"><span class="identifier">v</span> <span class="special">=</span> <span class="number">5</span><span class="special">;</span>
+</pre>
+<p>
+        is legal, even if <code class="computeroutput"><span class="identifier">var_t</span></code> contains
+        some types with throwing moves.
+      </p>
+<p>
+        However,
+      </p>
+<div class="orderedlist"><ol class="orderedlist" type="1">
+<li class="listitem">
+            It would involve significant code duplication -- we would also have to
+            duplicate the "generalizing constructors" which promote a variant
+            to a variant over more types.
+          </li>
+<li class="listitem">
+            There are already effective workarounds -- use <code class="computeroutput"><span class="identifier">emplace</span></code>,
+            the <code class="computeroutput"><span class="identifier">emplace</span> <span class="identifier">ctor</span></code>,
+            or use <code class="computeroutput"><span class="identifier">easy_variant</span></code>.
+          </li>
+</ol></div>
+<p>
+        I haven't been able to convince myself that adding this is actually a good
+        idea, but I might be open to it in the future.
       </p>
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>

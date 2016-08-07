@@ -31,6 +31,34 @@
         <span><a name="strict_variant.introdution.abstract_and_motivation.motivation"></a></span><a class="link" href="abstract_and_motivation.html#strict_variant.introdution.abstract_and_motivation.motivation">Motivation</a>
       </h4>
 <p>
+        Do you use <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code> or one of the many open-source
+        C++11 implementations of a "tagged union" or variant type in your
+        C++ projects?
+      </p>
+<p>
+        Do you get annoyed that code like this may compile, without any warning or
+        error message?
+      </p>
+<pre class="programlisting"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">,</span> <span class="keyword">int</span><span class="special">&gt;</span> <span class="identifier">v</span><span class="special">;</span>
+
+<span class="identifier">v</span> <span class="special">=</span> <span class="keyword">true</span><span class="special">;</span>
+</pre>
+<p>
+        Do you get annoyed that code like this may compile on some machines, but
+        not others?
+      </p>
+<pre class="programlisting"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span><span class="special">&lt;</span><span class="keyword">long</span><span class="special">,</span> <span class="keyword">unsigned</span> <span class="keyword">int</span><span class="special">&gt;</span> <span class="identifier">v</span><span class="special">;</span>
+
+<span class="identifier">v</span> <span class="special">=</span> <span class="number">10</span><span class="special">;</span>
+</pre>
+<p>
+        Do you crave the performance benefits of <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">variant</span></code>,
+        but don't want to have to put up with an empty state?
+      </p>
+<p>
+        If so, then this may be the variant type for you.
+      </p>
+<p>
         The design goals of <code class="computeroutput"><span class="identifier">strict_variant</span></code>
         are:
       </p>

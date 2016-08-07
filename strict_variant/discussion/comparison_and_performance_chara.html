@@ -1,0 +1,288 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<title>Comparison and Performance Characteristics</title>
+<link rel="stylesheet" href="../../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="../../index.html" title="Chapter&#160;1.&#160;Strict Variant 0.0">
+<link rel="up" href="../discussion.html" title="Remarks">
+<link rel="prev" href="../discussion.html" title="Remarks">
+<link rel="next" href="vistation_benchmarks.html" title="Vistation Benchmarks">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<div class="spirit-nav">
+<a accesskey="p" href="../discussion.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../discussion.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="vistation_benchmarks.html"><img src="../../images/next.png" alt="Next"></a>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="strict_variant.discussion.comparison_and_performance_chara"></a><a class="link" href="comparison_and_performance_chara.html" title="Comparison and Performance Characteristics">Comparison
+      and Performance Characteristics</a>
+</h3></div></div></div>
+<h4>
+<a name="strict_variant.discussion.comparison_and_performance_chara.h0"></a>
+        <span><a name="strict_variant.discussion.comparison_and_performance_chara.assignment"></a></span><a class="link" href="comparison_and_performance_chara.html#strict_variant.discussion.comparison_and_performance_chara.assignment">Assignment</a>
+      </h4>
+<p>
+        The main point of variation among variant types is usually how they handle
+        the never-empty guarantee. (Beyond that, they often vary significantly in
+        how they actually implement the storage, especially if they seek <code class="computeroutput"><span class="keyword">constexpr</span></code> support.)
+      </p>
+<h5>
+<a name="strict_variant.discussion.comparison_and_performance_chara.h1"></a>
+        <span><a name="strict_variant.discussion.comparison_and_performance_chara.boost_variant"></a></span><a class="link" href="comparison_and_performance_chara.html#strict_variant.discussion.comparison_and_performance_chara.boost_variant">`boost::variant</a>
+      </h5>
+<p>
+        In <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code>, the strategy is to make a heap-allocated
+        backup copy of the value, and then destroy the original and attempt to allocate
+        the new value in the in situ storage. If that operation throws, then the
+        heap-allocated copy still exists, and subsequent uses point to that. Any
+        later type-changing assignments will try to take place in situ, and the heap-allocated
+        backup will remain until one of those succeeds.
+      </p>
+<p>
+        This provides the most comprehensive support, but it incurs an extra copy
+        and an extra dynamic allocation for each assignment. There's also some space
+        overhead for the pointer.
+      </p>
+<p>
+        The copy may be particularly unattractive because while sometimes a value
+        is entirely "self-contained", sometimes the object that we put
+        in the variant may be connected to other components of our program, and copying
+        it may have nontrivial side-effects. For instance, it may have to talk to
+        a manager, or increment reference counters for resources, or talk to a number
+        of subsidiary objects, when it is copied. Even if this isn't a performance
+        concern, it may be confusing for the programmer who isn't intimately familiar
+        with the implementation details of <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code>.
+        "I assigned a <code class="computeroutput"><span class="identifier">B</span></code> to the
+        variant, so why did that trigger a copy constructor for unrelated type <code class="computeroutput"><span class="identifier">A</span></code> and all of these side-effects?".
+      </p>
+<p>
+        Granted, when <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code> is compiled at C++11 standard,
+        this copy may be a move instead, and then such side effects are much less
+        likely.
+      </p>
+<p>
+        However, even a backup-move has the drawback that the <code class="computeroutput"><span class="identifier">move</span></code>
+        itself may throw an exception. That is, when assigning <code class="computeroutput"><span class="identifier">B</span></code>
+        to the variant, an exception may result from <code class="computeroutput"><span class="identifier">A</span></code>
+        being moved out of storage, which may be counter-intuitive for the programmer.
+      </p>
+<p>
+        If I have a variant
+      </p>
+<pre class="programlisting"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span><span class="special">&lt;</span><span class="identifier">X</span><span class="special">,</span> <span class="identifier">Y</span><span class="special">&gt;</span> <span class="identifier">v</span><span class="special">;</span>
+</pre>
+<p>
+        where <code class="computeroutput"><span class="identifier">X</span></code> and <code class="computeroutput"><span class="identifier">Y</span></code> have a throwing move, ideally, it would
+        be true that
+      </p>
+<pre class="programlisting"><span class="identifier">v</span> <span class="special">=</span> <span class="identifier">Y</span><span class="special">();</span>
+</pre>
+<p>
+        can only throw exceptions generated by <code class="computeroutput"><span class="identifier">Y</span></code>.
+        But with <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code>, this isn't true, the assignment
+        can generate exceptions thrown by <code class="computeroutput"><span class="identifier">X</span></code>
+        or by <code class="computeroutput"><span class="identifier">Y</span></code>.
+      </p>
+<div class="orderedlist"><ol class="orderedlist" type="1">
+<li class="listitem">
+            <code class="computeroutput"><span class="identifier">X</span></code> is moved onto the heap.
+            (Dynamic allocation may throw, <code class="computeroutput"><span class="identifier">X</span></code>'s
+            move may throw.)
+          </li>
+<li class="listitem">
+            <code class="computeroutput"><span class="identifier">X</span></code> in storage is destroyed
+            (noexcept)
+          </li>
+<li class="listitem">
+            <code class="computeroutput"><span class="identifier">Y</span></code> is moved into storage
+            (may throw a <code class="computeroutput"><span class="identifier">Y</span></code> exception)
+          </li>
+</ol></div>
+<p>
+        This is what happens with <code class="computeroutput"><span class="identifier">strict_variant</span></code>.
+      </p>
+<div class="orderedlist"><ol class="orderedlist" type="1">
+<li class="listitem">
+            <code class="computeroutput"><span class="identifier">Y</span></code> is moved onto the heap.
+            (Dynamic allocation may throw, <code class="computeroutput"><span class="identifier">Y</span></code>'s
+            move may thorw.)
+          </li>
+<li class="listitem">
+            <code class="computeroutput"><span class="identifier">X</span></code> in storage is destroyed
+            (noexcept)
+          </li>
+<li class="listitem">
+            Pointer to <code class="computeroutput"><span class="identifier">Y</span></code> moved into
+            storage (noexcept).
+          </li>
+</ol></div>
+<p>
+        In both cases, there is a dynamic allocation, but <code class="computeroutput"><span class="identifier">strict_variant</span></code>
+        only causes one move rather than two, and only exceptions related to the
+        object that we are creating can be thrown.
+      </p>
+<p>
+        This means that if we need to perform <code class="computeroutput"><span class="identifier">v</span>
+        <span class="special">=</span> <span class="identifier">Y</span><span class="special">();</span></code> in a place where any exceptions have to
+        be handled on-site, it's much simpler and we have many fewer possibilities
+        to handle. And the code won't necessarily need fixup if we later add more
+        types to the <code class="computeroutput"><span class="identifier">variant</span></code>.
+      </p>
+<p>
+        A drawback of <code class="computeroutput"><span class="identifier">strict_variant</span></code>
+        here is that when we try to visit the variant later, it's slower because
+        the value is on the heap rather than in situ. <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code>
+        really tries hard to get the value in situ -- that's basically the source
+        of the complexity relative to <code class="computeroutput"><span class="identifier">strict_variant</span></code>.
+      </p>
+<p>
+        In <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code>, the value may still end up being
+        on the heap permanently, if an exception was thrown. So if this happens frequently,
+        then you are already paying this penalty.
+      </p>
+<p>
+        The main points in favor of <code class="computeroutput"><span class="identifier">strict_variant</span></code>
+        here are:
+      </p>
+<div class="orderedlist"><ol class="orderedlist" type="1">
+<li class="listitem">
+            With the <code class="computeroutput"><span class="identifier">strict_variant</span></code>,
+            there are no dynamic allocations that you don't explicitly opt-in to,
+            using the <code class="computeroutput"><span class="identifier">recursive_wrapper</span></code>.
+            So if it's important to you to avoid this, it's not built-in to the variant
+            and it won't happen silently.
+          </li>
+<li class="listitem">
+            With the <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code> method, you may end up with
+            extra storage space used for the pointer to the backup dynamic allocation.
+            With the <code class="computeroutput"><span class="identifier">strict_variant</span></code>
+            method, basically this pointer ends up in the storage rather than along-side
+            the storage.
+          </li>
+<li class="listitem">
+            We hope to make up any ground lost in visitation speed by using a different
+            visitor dispatch mechanism -- many modern variadic-variant implementations
+            use a dispatch method that sometimes ends up generating an extra call
+            to a function pointer whenever the <code class="computeroutput"><span class="identifier">variant</span></code>
+            is visited, which cannot always be inlined by compilers like <code class="computeroutput"><span class="identifier">gcc</span></code> and <code class="computeroutput"><span class="identifier">clang</span></code>.
+            <code class="computeroutput"><span class="identifier">strict_variant</span></code> uses a
+            different approach which is a bit more complicated, but with the result
+            that this function can always be inlined. See next section for more details.
+          </li>
+</ol></div>
+<h5>
+<a name="strict_variant.discussion.comparison_and_performance_chara.h2"></a>
+        <span><a name="strict_variant.discussion.comparison_and_performance_chara.std_variant"></a></span><a class="link" href="comparison_and_performance_chara.html#strict_variant.discussion.comparison_and_performance_chara.std_variant"><code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">variant</span></code></a>
+      </h5>
+<p>
+        In the C++17 <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">variant</span></code>, the strategy is to relax the never-empty
+        guarantee to a "rarely empty" guarantee, by introducing an empty
+        state which occurs when construction fails. This greatly simplifies assignment
+        and makes that more efficient, but it may complicate visitation, depending
+        on how concerned you are about the empty state. In essence we are sacrificing
+        strong exception safety for only basic exception safety, in a quest for performance.
+      </p>
+<p>
+        In <code class="computeroutput"><span class="identifier">strict_variant</span></code>, the focus
+        is on a less general case. We basically "favor" the nothrow move-constructible
+        members, which enjoy optimal performance like they would in <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">variant</span></code>.
+        In <code class="computeroutput"><span class="identifier">easy_variant</span></code>, we accomodates
+        all members with throwing move by putting them on the heap -- then the pointer
+        can be moved into storage without failure.
+      </p>
+<p>
+        Basically, the cost of <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">variant</span></code>
+        is that you have to put up with an empty state. If you don't actually have
+        any throwing moves in your variant, then you still end up "paying for
+        what you don't use" in some sense because of the added interface complexity,
+        the fact that the compiler may deduce <code class="computeroutput"><span class="identifier">apply_visitor</span></code>
+        to be potentially throwing even if the visitor itself is <code class="computeroutput"><span class="keyword">noexcept</span></code>,
+        etc.
+      </p>
+<p>
+        Besides this, <code class="computeroutput"><span class="identifier">strict_variant</span></code>
+        can be used even on old compilers like <code class="computeroutput"><span class="identifier">gcc</span>
+        <span class="number">4.8</span></code> and <code class="computeroutput"><span class="identifier">clang</span>
+        <span class="number">3.5</span></code>, and at C++11 standard, which makes
+        it more appropriate for some projects.
+      </p>
+<h4>
+<a name="strict_variant.discussion.comparison_and_performance_chara.h3"></a>
+        <span><a name="strict_variant.discussion.comparison_and_performance_chara.visitation"></a></span><a class="link" href="comparison_and_performance_chara.html#strict_variant.discussion.comparison_and_performance_chara.visitation">Visitation</a>
+      </h4>
+<p>
+        The other major point of variation among variant implementations is the speed
+        of visitation.
+      </p>
+<p>
+        In <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code>, at least the early implementations
+        used <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">mpl</span></code>, and were limited to twenty or so types.
+        <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code> works even prior to the variadic
+        templates feature. Doing without variadic templates makes the header pretty
+        complicated and hurts the compile times, but it's very helpful to speed of
+        visitation, which can be done using an explicit <code class="computeroutput"><span class="keyword">switch</span></code>
+        statement.
+      </p>
+<p>
+        In a variadic template-based implementation, switch statements cannot be
+        used, because there is no pack-expansion analogue for switch statements.
+        The most common strategy that I saw is to declare an array of function pointers,
+        and fill it with a series of instantiations of a template function. Each
+        pointer corresponds to an one of the input types. Then this array is indexed
+        and the appropriate function pointer is called, passing along the visitor,
+        the variant storage, etc. The array thus forms a little manual jump table
+        of sorts.
+      </p>
+<p>
+        This implementation is pretty straightforward, but it has the drawback that
+        the function pointers cannot always be inlined by the compiler, and so for
+        relatively small numbers of elements, it can be outperformed by other strategies.
+      </p>
+<p>
+        In a second strategy, a binary tree is formed which holds at each leaf one
+        of the input types. We then search the binary tree using the "which"
+        value which would have been the index to the jump table. When we arrive at
+        the leaf, we know the runtime-type of the value, and can invoke the visitor
+        appropriately. This implementation involves no function pointers, so the
+        calls can always be inlined -- but it may involve several branches. However,
+        these branches may benefit from branch prediction, and in practice, its quite
+        common to have variants with only a handful of types. Particularly when there
+        is one type which is the "most popular", branch prediction can
+        significantly speed up the visitation well beyond what you will see in benchmarks
+        with random data, which are already quite favorable to the "binary"
+        search strategy for small numbers of types. This is the strategy currently
+        used by <code class="computeroutput"><span class="identifier">strict_variant</span></code>.
+      </p>
+<p>
+        A third strategy, naive tail recursion, is used by <code class="computeroutput"><span class="identifier">mapbox</span><span class="special">::</span><span class="identifier">variant</span></code>.
+        Surprisingly (for me), this is the best performing strategy, for both <code class="computeroutput"><span class="identifier">gcc</span></code> and <code class="computeroutput"><span class="identifier">clang</span></code>
+        and all regimes, according to most recent benchmark investigations.
+      </p>
+<p>
+        See the next section for benchmark data.
+      </p>
+<h4>
+<a name="strict_variant.discussion.comparison_and_performance_chara.h4"></a>
+        <span><a name="strict_variant.discussion.comparison_and_performance_chara.compile_times"></a></span><a class="link" href="comparison_and_performance_chara.html#strict_variant.discussion.comparison_and_performance_chara.compile_times">Compile-Times</a>
+      </h4>
+<p>
+        I did not attempt to benchmark the compile-time performance, but I expect
+        that the differences would be negligible, especially in comparison to other
+        common libraries which are known to have heavy compile times.
+      </p>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright &#169; 2016 Chris Beck<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="../discussion.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../discussion.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="vistation_benchmarks.html"><img src="../../images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>
