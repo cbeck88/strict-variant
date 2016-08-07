@@ -35,8 +35,16 @@ This is also left to future work.
 
 [h4 Support extended integer types]
 
-Is there a good way that we can potentially extend the "safely_constructible"
+Is there a good way that we can potentially extend the `safely_constructible`
 framework to include potential implementation-specific extended integer types?
+
+Right now, I think the user could accomplish this by specializing a number of
+traits in our header, but
+
+# Those traits aren't documented, and I'm not even sure if I consider them
+  forwarding-facing.
+# I haven't actually tested this.
+# It could probably be made much simpler for them.
 
 [h4 Improve `noexcept` annotations of `variant` when using `recursive_wrapper`?]
 
@@ -65,5 +73,46 @@ But as far as I know this isn't feasible -- the `noexcept` annotations on the
 `variant` special member functions must be complete at the point of
 instantiation of the variant. So we have to assume the worst when the user uses
 `recursive_wrapper`, so far as I know.
+
+[h4 Add an `operator = (T &&)` overload?]
+
+Currently, the only conversions from non-variant types to variants happen in the
+forwarding-reference constructor. A statement:
+
+```
+  var_t v;
+  v = 5;
+```
+
+actually compiles to something like this:
+
+```
+  var_t v;
+  v = var_t{5};
+```
+
+This is why assignment cannot work if *any* of the types in `strict_variant` has
+a throwing move. Even if the value `5` as above does not.
+
+Currently, the only assignment operators are the usual special member functions.
+
+We could consider adding an `operator = (T&&)` overload so that syntax like
+
+```
+  v = 5;
+```
+
+is legal, even if `var_t` contains some types with throwing moves.
+
+However,
+
+# It would involve significant code duplication -- we would also have to duplicate
+  the "generalizing constructors" which promote a variant to a variant
+  over more types.
+# There are already effective workarounds -- use `emplace`, the `emplace ctor`,
+  or use `easy_variant`.
+
+I haven't been able to convince myself that adding this is actually a good idea,
+but I might be open to it in the future.
 
 [endsect]
