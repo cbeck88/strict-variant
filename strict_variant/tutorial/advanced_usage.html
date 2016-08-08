@@ -19,20 +19,71 @@
 </h3></div></div></div>
 <h4>
 <a name="strict_variant.tutorial.advanced_usage.h0"></a>
+        <span><a name="strict_variant.tutorial.advanced_usage.emplace_constructor"></a></span><a class="link" href="advanced_usage.html#strict_variant.tutorial.advanced_usage.emplace_constructor">Emplace
+        constructor</a>
+      </h4>
+<p>
+        In some cases, you might want to use <code class="computeroutput"><span class="identifier">emplace</span></code>
+        to initialize a variant to a specific type explicitly. For instance it might
+        be in an initializer list, and it's not an option to use the <code class="computeroutput"><span class="identifier">emplace</span></code> method.
+      </p>
+<p>
+        The emplace constructor is selected using tag dispatch:
+      </p>
+<pre class="programlisting"><span class="identifier">variant</span><span class="special">::</span><span class="identifier">variant</span><span class="special">(</span><span class="identifier">emplace_tag</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;,</span> <span class="identifier">args</span><span class="special">...)</span>
+</pre>
+<p>
+        for example, in an initializer list, it looks like this:
+      </p>
+<pre class="programlisting"><span class="identifier">my_struct</span><span class="special">()</span>
+  <span class="special">:</span> <span class="identifier">v</span><span class="special">(</span><span class="identifier">emplace_tag</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">&gt;{},</span> <span class="string">"foo"</span><span class="special">)</span>
+  <span class="special">,</span> <span class="special">...</span>
+<span class="special">{}</span>
+</pre>
+<h4>
+<a name="strict_variant.tutorial.advanced_usage.h1"></a>
+        <span><a name="strict_variant.tutorial.advanced_usage.generalizing_constructor"></a></span><a class="link" href="advanced_usage.html#strict_variant.tutorial.advanced_usage.generalizing_constructor">Generalizing
+        constructor</a>
+      </h4>
+<p>
+        A variant can be converted to a variant over strictly more types. This is
+        called the "generalizing" constructor. This was also supported
+        by <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code>.
+      </p>
+<pre class="programlisting"><span class="identifier">variant</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">,</span> <span class="keyword">double</span><span class="special">&gt;</span> <span class="identifier">v</span><span class="special">;</span>
+<span class="identifier">variant</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">,</span> <span class="keyword">double</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">&gt;</span> <span class="identifier">v2</span><span class="special">{</span><span class="identifier">v</span><span class="special">};</span>
+</pre>
+<p>
+        This constructor also allows reordering the types, and adding or removing
+        <code class="computeroutput"><span class="identifier">recursive_</span> <span class="identifier">wrapper</span></code>.
+      </p>
+<pre class="programlisting"><span class="identifier">variant</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">,</span> <span class="keyword">double</span><span class="special">&gt;</span> <span class="identifier">v</span><span class="special">;</span>
+<span class="identifier">variant</span><span class="special">&lt;</span><span class="keyword">double</span><span class="special">,</span> <span class="keyword">int</span><span class="special">&gt;</span> <span class="identifier">v2</span><span class="special">{</span><span class="identifier">v</span><span class="special">};</span>
+</pre>
+<h4>
+<a name="strict_variant.tutorial.advanced_usage.h2"></a>
         <span><a name="strict_variant.tutorial.advanced_usage.more_general_visitors"></a></span><a class="link" href="advanced_usage.html#strict_variant.tutorial.advanced_usage.more_general_visitors">More
         general visitors</a>
       </h4>
 <p>
         One thing which you'll note in <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code>
-        docs is that when applying a visitor, they always derive from <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">static_visitor</span></code>, or explicitly define a
-        typedef <code class="computeroutput"><span class="identifier">result_type</span></code>.
+        docs is that when a visitor should always derive from <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">static_visitor</span></code>,
+        or failing that, explicitly define a typedef <code class="computeroutput"><span class="identifier">result_type</span></code>
+        which matches the return type of the function object.
       </p>
 <p>
         In <code class="computeroutput"><span class="identifier">strict_variant</span></code>, this isn't
         necessary, the return type will be deduced.
       </p>
 <p>
-        In particular, this means that you can use lambdas as visitors, like so:
+        This is necessary to support lambdas being used as visitors.
+      </p>
+<h5>
+<a name="strict_variant.tutorial.advanced_usage.h3"></a>
+        <span><a name="strict_variant.tutorial.advanced_usage.lambda_visitors"></a></span><a class="link" href="advanced_usage.html#strict_variant.tutorial.advanced_usage.lambda_visitors">Lambda visitors</a>
+      </h5>
+<p>
+        You can also use a lambda as a visitor in some cases:
       </p>
 <pre class="programlisting"><span class="identifier">strict_variant</span><span class="special">::</span><span class="identifier">variant</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">,</span> <span class="keyword">float</span><span class="special">&gt;</span> <span class="identifier">v</span><span class="special">;</span>
 <span class="identifier">v</span> <span class="special">=</span> <span class="number">5</span><span class="special">;</span>
@@ -40,32 +91,91 @@
 <span class="comment">// Prints 10.0</span>
 <span class="identifier">std</span><span class="special">::</span><span class="identifier">cout</span> <span class="special">&lt;&lt;</span> <span class="identifier">strict_variant</span><span class="special">::</span><span class="identifier">apply_visitor</span><span class="special">([](</span><span class="keyword">double</span> <span class="identifier">d</span><span class="special">)</span> <span class="special">-&gt;</span> <span class="keyword">double</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">d</span> <span class="special">*</span> <span class="number">2</span><span class="special">;</span> <span class="special">},</span> <span class="identifier">v</span><span class="special">)</span> <span class="special">&lt;&lt;</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">endl</span><span class="special">;</span>
 
-<span class="identifier">v</span> <span class="special">=</span> <span class="number">7.5</span>
+<span class="identifier">v</span> <span class="special">=</span> <span class="number">7.5f</span>
 
 <span class="comment">// Prints 22.5</span>
 <span class="identifier">std</span><span class="special">::</span><span class="identifier">cout</span> <span class="special">&lt;&lt;</span> <span class="identifier">strict_variant</span><span class="special">::</span><span class="identifier">apply_visitor</span><span class="special">([](</span><span class="keyword">double</span> <span class="identifier">d</span><span class="special">)</span> <span class="special">-&gt;</span> <span class="keyword">double</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">d</span> <span class="special">*</span> <span class="number">3</span><span class="special">;</span> <span class="special">},</span> <span class="identifier">v</span><span class="special">)</span> <span class="special">&lt;&lt;</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">endl</span><span class="special">;</span>
 </pre>
+<h5>
+<a name="strict_variant.tutorial.advanced_usage.h4"></a>
+        <span><a name="strict_variant.tutorial.advanced_usage.generic_visitors"></a></span><a class="link" href="advanced_usage.html#strict_variant.tutorial.advanced_usage.generic_visitors">Generic
+        visitors</a>
+      </h5>
+<p>
+        One of the nicest things about visitors is that they can use templates --
+        when you have a visitor with many types which should be handled similarly,
+        this can save you much typing. It also means that a single visitor can often
+        be equally useful for many different variants, which helps you to be very
+        DRY.
+      </p>
+<pre class="programlisting"><span class="keyword">struct</span> <span class="identifier">formatter</span> <span class="special">{</span>
+  <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="keyword">operator</span><span class="special">()(</span><span class="keyword">const</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="special">&amp;</span> <span class="identifier">s</span><span class="special">)</span> <span class="keyword">const</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">s</span><span class="special">;</span> <span class="special">}</span>
+
+  <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">,</span> <span class="keyword">typename</span> <span class="special">=</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">enable_if_t</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">is_integral</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;::</span><span class="identifier">value</span><span class="special">&gt;&gt;</span>
+  <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="keyword">operator</span><span class="special">()(</span><span class="identifier">T</span> <span class="identifier">t</span><span class="special">)</span> <span class="keyword">const</span> <span class="special">{</span> <span class="keyword">return</span> <span class="string">"["</span> <span class="special">+</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">to_string</span><span class="special">(</span><span class="identifier">t</span><span class="special">)</span> <span class="special">+</span> <span class="string">"]"</span><span class="special">;</span> <span class="special">}</span>
+
+  <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
+  <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="keyword">operator</span><span class="special">()(</span><span class="keyword">const</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span> <span class="special">&amp;</span> <span class="identifier">vec</span><span class="special">)</span> <span class="keyword">const</span> <span class="special">{</span>
+    <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">result</span> <span class="special">=</span> <span class="string">"{ "</span><span class="special">;</span>
+    <span class="keyword">for</span> <span class="special">(</span><span class="keyword">int</span> <span class="identifier">i</span> <span class="special">=</span> <span class="number">0</span><span class="special">;</span> <span class="identifier">i</span> <span class="special">&lt;</span> <span class="identifier">vec</span><span class="special">.</span><span class="identifier">size</span><span class="special">();</span> <span class="special">++</span><span class="identifier">i</span><span class="special">)</span> <span class="special">{</span>
+      <span class="keyword">if</span> <span class="special">(</span><span class="identifier">i</span><span class="special">)</span> <span class="special">{</span> <span class="identifier">result</span> <span class="special">+=</span> <span class="string">", "</span><span class="special">;</span> <span class="special">}</span>
+      <span class="identifier">result</span> <span class="special">+=</span> <span class="special">(*</span><span class="keyword">this</span><span class="special">)(</span><span class="identifier">vec</span><span class="special">[</span><span class="identifier">i</span><span class="special">]);</span>
+    <span class="special">}</span>
+    <span class="identifier">result</span> <span class="special">+=</span> <span class="string">" }"</span><span class="special">;</span>
+    <span class="keyword">return</span> <span class="identifier">result</span><span class="special">;</span>
+  <span class="special">}</span>
+<span class="special">};</span>
+</pre>
+<p>
+        This generic visitor is appropriate for a wide variety of variants:
+      </p>
+<pre class="programlisting"><span class="identifier">variant</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">,</span> <span class="keyword">double</span><span class="special">&gt;</span> <span class="identifier">v1</span><span class="special">;</span>
+<span class="identifier">variant</span><span class="special">&lt;</span><span class="keyword">float</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">&gt;&gt;</span> <span class="identifier">v2</span><span class="special">;</span>
+<span class="identifier">variant</span><span class="special">&lt;</span><span class="keyword">long</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">&gt;&gt;&gt;</span> <span class="identifier">v3</span><span class="special">;</span>
+
+<span class="identifier">apply_visitor</span><span class="special">(</span><span class="identifier">formatter</span><span class="special">{},</span> <span class="identifier">v1</span><span class="special">);</span>
+<span class="identifier">apply_visitor</span><span class="special">(</span><span class="identifier">formatter</span><span class="special">{},</span> <span class="identifier">v2</span><span class="special">);</span>
+<span class="identifier">apply_visitor</span><span class="special">(</span><span class="identifier">formatter</span><span class="special">{},</span> <span class="identifier">v3</span><span class="special">);</span>
+</pre>
+<h5>
+<a name="strict_variant.tutorial.advanced_usage.h5"></a>
+        <span><a name="strict_variant.tutorial.advanced_usage.polymorphic_return_type"></a></span><a class="link" href="advanced_usage.html#strict_variant.tutorial.advanced_usage.polymorphic_return_type">Polymorphic
+        return type</a>
+      </h5>
+<p>
+        A more elaborate use of the deduced return-type feature involves function
+        objects that might return multiple different types depending on the arguments.
+      </p>
+<pre class="programlisting"><span class="identifier">TODO</span>
+</pre>
+<p>
+        This works as long as the returns can be reconciled in a fashion similar
+        to <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">common_type</span></code>. <sup>[<a name="strict_variant.tutorial.advanced_usage.f0" href="#ftn.strict_variant.tutorial.advanced_usage.f0" class="footnote">10</a>]</sup>
+      </p>
 <p>
         One feature of <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code> which we <span class="emphasis"><em>don't currently
         support</em></span> is <span class="emphasis"><em>delayed visitation</em></span>. For this,
         you will have to use a capturing lambda or some other sort of ad-hoc function
         object.
       </p>
-<h4>
-<a name="strict_variant.tutorial.advanced_usage.h1"></a>
-        <span><a name="strict_variant.tutorial.advanced_usage.recursive_variants"></a></span><a class="link" href="advanced_usage.html#strict_variant.tutorial.advanced_usage.recursive_variants">Recursive
-        variants</a>
-      </h4>
 <p>
-        <code class="computeroutput"><span class="identifier">strict_variant</span></code> has full support
-        for recursive variants, using <code class="computeroutput"><span class="identifier">strict_variant</span><span class="special">::</span><span class="identifier">recursive_wrapper</span></code>.
-        This is used in essentially the same way as <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">recursive_wrapper</span></code>.
+        Other interesting visitor styles:
       </p>
-<p>
-        We don't provide any analogue of <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">make_recursive_variant</span></code>.
-      </p>
+<div class="itemizedlist"><ul class="itemizedlist" type="disc">
+<li class="listitem">
+            In C++14, you can use generic lambdas as visitors also.
+          </li>
+<li class="listitem">
+            If you incorporate code into your project like that proposed in <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0051r1.pdf" target="_top">PR0051</a>,
+            then you can glue multiple lambas together and use them as a visitor
+            in one line:
+          </li>
+</ul></div>
+<pre class="programlisting"><span class="identifier">apply_visitor</span><span class="special">(</span> <span class="identifier">overload</span><span class="special">(</span> <span class="special">[](</span><span class="keyword">double</span> <span class="identifier">d</span><span class="special">)</span> <span class="special">-&gt;</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">to_string</span><span class="special">(</span><span class="identifier">d</span><span class="special">);</span> <span class="special">},</span>
+                         <span class="special">[](</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">s</span><span class="special">)</span> <span class="special">-&gt;</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">s</span><span class="special">;</span> <span class="special">}</span> <span class="special">),</span>  <span class="identifier">v1</span> <span class="special">);</span>
+</pre>
 <h4>
-<a name="strict_variant.tutorial.advanced_usage.h2"></a>
+<a name="strict_variant.tutorial.advanced_usage.h6"></a>
         <span><a name="strict_variant.tutorial.advanced_usage.multivisitation"></a></span><a class="link" href="advanced_usage.html#strict_variant.tutorial.advanced_usage.multivisitation">Multivisitation</a>
       </h4>
 <p>
@@ -77,7 +187,7 @@
         However for this you must include <code class="computeroutput"><span class="special">&lt;</span><span class="identifier">strict_variant</span><span class="special">/</span><span class="identifier">multivisit</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span></code>.
       </p>
 <h4>
-<a name="strict_variant.tutorial.advanced_usage.h3"></a>
+<a name="strict_variant.tutorial.advanced_usage.h7"></a>
         <span><a name="strict_variant.tutorial.advanced_usage.assignment"></a></span><a class="link" href="advanced_usage.html#strict_variant.tutorial.advanced_usage.assignment">Assignment</a>
       </h4>
 <p>
@@ -170,6 +280,15 @@
 </pre>
 </li>
 </ol></div>
+<div class="footnotes">
+<br><hr width="100" align="left">
+<div class="footnote"><p><sup>[<a name="ftn.strict_variant.tutorial.advanced_usage.f0" href="#strict_variant.tutorial.advanced_usage.f0" class="para">10</a>] </sup>
+          Note that we don't actually use <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">common_type</span></code>:
+          for one, that is C++14, for two, it wouldn't allow us to return references.
+          We compromise by allowing the return of lvalue references but not rvalue
+          references -- non-lvalue references will decay when returned by apply visitor.
+        </p></div>
+</div>
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
 <td align="left"></td>
