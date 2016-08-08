@@ -39,13 +39,13 @@ alias boost : : : : <include>$(BOOST_INCLUDE_DIR) ;
 
 ### Build tests
 
-# TODO: Work around this on windows
-# <cxxflags>"-Wall -Werror -Wextra -pedantic -std=c++11"
-STRICT = <warnings>"all" <toolset>gcc:<warnings-as-errors>"on" <toolset>clang:<warnings-as-errors>"on" <define>"STRICT_VARIANT_DEBUG" <toolset>gcc:<cxxflags>"-std=c++11" <toolset>clang:<cxxflags>"-std=c++11" ;
+GNU_FLAGS = "-Wall -Werror -Wextra -pedantic -std=c++11" ;
+FLAGS = <define>"STRICT_VARIANT_DEBUG" <warnings>"all" <warnings-as-errors>"on" <toolset>gcc:<cxxflags>$(GNU_FLAGS) <toolset>clang:<cxxflags>$(GNU_FLAGS) ;
 
-exe variant : variant.cpp strict_variant test_harness : $(STRICT) ;
-exe compare : compare.cpp strict_variant test_harness : $(STRICT) ;
-exe hash    : hash.cpp strict_variant test_harness : $(STRICT) ;
+exe variant : variant.cpp strict_variant test_harness : $(FLAGS) ;
+exe compare : compare.cpp strict_variant test_harness : $(FLAGS) ;
+exe hash    : hash.cpp strict_variant test_harness : $(FLAGS) ;
+
 
 install install-bin : variant compare hash : $(INSTALL_LOC) ;
 
@@ -55,8 +55,18 @@ if $(BOOST_INCLUDE_DIR) {
 
   alias boost_headers : : : : <include>$(BOOST_INCLUDE_DIR) ;
 
-  exe spirit : spirit.cpp strict_variant test_harness boost_headers : $(STRICT) ;
+  exe spirit : spirit.cpp strict_variant test_harness boost_headers : $(FLAGS) ;
 
   install install-bin-boost : spirit : $(INSTALL_LOC) ;
 
 }
+
+### Example code
+# Also use -fno-exceptions -fno-rtti
+
+GNU_FLAGS = "$(GNU_FLAGS) -fno-exceptions -fno-rtti" ;
+FLAGS = <define>"STRICT_VARIANT_DEBUG" <warnings>"all" <warnings-as-errors>"on" <toolset>gcc:<cxxflags>$(GNU_FLAGS) <toolset>clang:<cxxflags>$(GNU_FLAGS) ;
+
+exe tutorial_basic  : tutorial_basic.cpp strict_variant : $(FLAGS) ;
+
+install install-example : tutorial_basic : $(INSTALL_LOC) ;
