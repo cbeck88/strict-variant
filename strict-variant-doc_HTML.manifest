@@ -11,8 +11,8 @@ strict_variant/reference/synopsis.html
 strict_variant/reference/includes.html
 strict_variant/reference/configuration.html
 strict_variant/reference/compiler_compatibility.html
-strict_variant/discussion.html
-strict_variant/discussion/implementation_notes.html
-strict_variant/discussion/comparison_and_performance_chara.html
-strict_variant/discussion/vistation_benchmarks.html
-strict_variant/discussion/future_directions.html
+strict_variant/remarks.html
+strict_variant/remarks/implementation_notes.html
+strict_variant/remarks/comparison_and_performance_chara.html
+strict_variant/remarks/benchmarks.html
+strict_variant/remarks/future_directions.html

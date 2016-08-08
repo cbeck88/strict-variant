@@ -55,10 +55,15 @@
 </pre>
 <p>
         This constructor also allows reordering the types, and adding or removing
-        <code class="computeroutput"><span class="identifier">recursive_</span> <span class="identifier">wrapper</span></code>.
+        <code class="computeroutput"><span class="identifier">recursive_wrapper</span></code>.
       </p>
 <pre class="programlisting"><span class="identifier">variant</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">,</span> <span class="keyword">double</span><span class="special">&gt;</span> <span class="identifier">v</span><span class="special">;</span>
 <span class="identifier">variant</span><span class="special">&lt;</span><span class="keyword">double</span><span class="special">,</span> <span class="keyword">int</span><span class="special">&gt;</span> <span class="identifier">v2</span><span class="special">{</span><span class="identifier">v</span><span class="special">};</span>
+
+<span class="identifier">variant</span><span class="special">&lt;</span><span class="identifier">recursive_wrapper</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">&gt;,</span> <span class="keyword">double</span><span class="special">&gt;</span> <span class="identifier">v3</span><span class="special">;</span>
+<span class="identifier">v3</span> <span class="special">=</span> <span class="identifier">v</span><span class="special">;</span>
+<span class="identifier">v2</span> <span class="special">=</span> <span class="identifier">v3</span><span class="special">;</span>
+<span class="identifier">v</span> <span class="special">=</span> <span class="identifier">v2</span><span class="special">;</span>
 </pre>
 <h4>
 <a name="strict_variant.tutorial.advanced_usage.h2"></a>
@@ -79,7 +84,7 @@
 </pre>
 <p>
         In <code class="computeroutput"><span class="identifier">strict_variant</span></code>, this isn't
-        necessary, the return type will be deduced.
+        necessary, the return type will be deduced. So you can omit <code class="computeroutput"><span class="identifier">static_visitor</span></code>.
       </p>
 <p>
         This is necessary to support lambdas being used as visitors, for instance.
@@ -164,9 +169,11 @@
         you will have to use a capturing lambda or some other sort of ad-hoc function
         object.
       </p>
-<p>
-        Other interesting visitor styles:
-      </p>
+<h5>
+<a name="strict_variant.tutorial.advanced_usage.h6"></a>
+        <span><a name="strict_variant.tutorial.advanced_usage.other_interesting_visitor_styles"></a></span><a class="link" href="advanced_usage.html#strict_variant.tutorial.advanced_usage.other_interesting_visitor_styles">Other
+        interesting visitor styles</a>
+      </h5>
 <div class="itemizedlist"><ul class="itemizedlist" type="disc">
 <li class="listitem">
             In C++14, you can use generic lambdas as visitors also.
@@ -183,7 +190,7 @@
                <span class="identifier">v1</span> <span class="special">);</span>
 </pre>
 <h4>
-<a name="strict_variant.tutorial.advanced_usage.h6"></a>
+<a name="strict_variant.tutorial.advanced_usage.h7"></a>
         <span><a name="strict_variant.tutorial.advanced_usage.multivisitation"></a></span><a class="link" href="advanced_usage.html#strict_variant.tutorial.advanced_usage.multivisitation">Multivisitation</a>
       </h4>
 <p>
@@ -195,7 +202,7 @@
         However for this you must include <code class="computeroutput"><span class="special">&lt;</span><span class="identifier">strict_variant</span><span class="special">/</span><span class="identifier">multivisit</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span></code>.
       </p>
 <h4>
-<a name="strict_variant.tutorial.advanced_usage.h7"></a>
+<a name="strict_variant.tutorial.advanced_usage.h8"></a>
         <span><a name="strict_variant.tutorial.advanced_usage.assignment"></a></span><a class="link" href="advanced_usage.html#strict_variant.tutorial.advanced_usage.assignment">Assignment</a>
       </h4>
 <p>
