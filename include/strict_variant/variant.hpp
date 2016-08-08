@@ -125,7 +125,11 @@ private:
    */
   template <typename Visitor>
   auto apply_visitor_internal(Visitor & visitor) -> typename Visitor::result_type {
-    return detail::visitor_dispatch<detail::true_, 1 + sizeof...(Types)>{}(m_which, m_storage, visitor);
+    // Implementation note:
+    // `detail::true_` here indicates that the visit is internal and we should
+    // NOT pierce `recursive_wrapper`.
+    return detail::visitor_dispatch<detail::true_, 1 + sizeof...(Types)>{}(m_which, m_storage,
+                                                                           visitor);
   }
 
   /***
@@ -753,7 +757,8 @@ variant<First, Types...>::variant(emplace_tag<T>, Args &&... args) noexcept(
 
 // Operator ==
 template <typename First, typename... Types>
-bool variant<First, Types...>::operator==(const variant & rhs) const {
+bool
+variant<First, Types...>::operator==(const variant & rhs) const {
   eq_checker eq(*this, rhs.which());
   // Pass detail::false because it needs to pierce the recursive wrapper
   return apply_visitor(eq, rhs);
