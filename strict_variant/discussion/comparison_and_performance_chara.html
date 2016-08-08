@@ -161,14 +161,18 @@
             the storage.
           </li>
 <li class="listitem">
-            We hope to make up any ground lost in visitation speed by using a different
-            visitor dispatch mechanism -- many modern variadic-variant implementations
-            use a dispatch method that sometimes ends up generating an extra call
-            to a function pointer whenever the <code class="computeroutput"><span class="identifier">variant</span></code>
-            is visited, which cannot always be inlined by compilers like <code class="computeroutput"><span class="identifier">gcc</span></code> and <code class="computeroutput"><span class="identifier">clang</span></code>.
-            <code class="computeroutput"><span class="identifier">strict_variant</span></code> uses a
-            different approach which is a bit more complicated, but with the result
-            that this function can always be inlined. See next section for more details.
+            I guess I hope that we make up ground lost in visitation speed anyway
+            by a micro-optimization that comes from using a different visitor dispatch
+            mechanism. Many modern variadic-variant implementations use a dispatch
+            method that often ends up generating an extra call to a function pointer
+            whenever the <code class="computeroutput"><span class="identifier">variant</span></code>
+            is visited. From experiments, <code class="computeroutput"><span class="identifier">gcc</span></code>
+            and <code class="computeroutput"><span class="identifier">clang</span></code> cannot always
+            be counted on to inline this function pointer, so you'll end up with
+            an extra function call each time you visit. In some cases it would be
+            a lot better if visitation were transparent to the optimizer. <code class="computeroutput"><span class="identifier">strict_variant</span></code> uses a different approach
+            which is a bit more complicated to implement, but with the result that
+            this function can always be inlined. See next section for more details.
           </li>
 </ol></div>
 <h5>
@@ -187,7 +191,7 @@
         In <code class="computeroutput"><span class="identifier">strict_variant</span></code>, the focus
         is on a less general case. We basically "favor" the nothrow move-constructible
         members, which enjoy optimal performance like they would in <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">variant</span></code>.
-        In <code class="computeroutput"><span class="identifier">easy_variant</span></code>, we accomodates
+        In <code class="computeroutput"><span class="identifier">easy_variant</span></code>, we accomodate
         all members with throwing move by putting them on the heap -- then the pointer
         can be moved into storage without failure.
       </p>

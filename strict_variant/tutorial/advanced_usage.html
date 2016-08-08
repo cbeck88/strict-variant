@@ -67,16 +67,22 @@
       </h4>
 <p>
         One thing which you'll note in <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code>
-        docs is that when a visitor should always derive from <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">static_visitor</span></code>,
-        or failing that, explicitly define a typedef <code class="computeroutput"><span class="identifier">result_type</span></code>
+        docs is that in <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code>, a visitor should always be a structure
+        and should derive from <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">static_visitor</span></code>,
+        or, failing that, explicitly define a typedef <code class="computeroutput"><span class="identifier">result_type</span></code>
         which matches the return type of the function object.
       </p>
+<pre class="programlisting"><span class="keyword">struct</span> <span class="identifier">formatter</span> <span class="special">:</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">static_visitor</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">&gt;</span> <span class="special">{</span>
+  <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="keyword">operator</span><span class="special">()(</span><span class="keyword">const</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="special">&amp;</span> <span class="identifier">s</span><span class="special">)</span> <span class="keyword">const</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">s</span><span class="special">;</span> <span class="special">}</span>
+  <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="keyword">operator</span><span class="special">()(</span><span class="keyword">int</span> <span class="identifier">i</span><span class="special">)</span> <span class="keyword">const</span> <span class="special">{</span> <span class="keyword">return</span> <span class="string">"["</span> <span class="special">+</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">to_string</span><span class="special">(</span><span class="identifier">i</span><span class="special">)</span> <span class="special">+</span> <span class="string">"]"</span><span class="special">;</span> <span class="special">}</span>
+<span class="special">};</span>
+</pre>
 <p>
         In <code class="computeroutput"><span class="identifier">strict_variant</span></code>, this isn't
         necessary, the return type will be deduced.
       </p>
 <p>
-        This is necessary to support lambdas being used as visitors.
+        This is necessary to support lambdas being used as visitors, for instance.
       </p>
 <h5>
 <a name="strict_variant.tutorial.advanced_usage.h3"></a>
@@ -172,7 +178,9 @@
           </li>
 </ul></div>
 <pre class="programlisting"><span class="identifier">apply_visitor</span><span class="special">(</span> <span class="identifier">overload</span><span class="special">(</span> <span class="special">[](</span><span class="keyword">double</span> <span class="identifier">d</span><span class="special">)</span> <span class="special">-&gt;</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">to_string</span><span class="special">(</span><span class="identifier">d</span><span class="special">);</span> <span class="special">},</span>
-                         <span class="special">[](</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">s</span><span class="special">)</span> <span class="special">-&gt;</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">s</span><span class="special">;</span> <span class="special">}</span> <span class="special">),</span>  <span class="identifier">v1</span> <span class="special">);</span>
+                         <span class="special">[](</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">s</span><span class="special">)</span> <span class="special">-&gt;</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">s</span><span class="special">;</span> <span class="special">}</span>
+                       <span class="special">),</span>
+               <span class="identifier">v1</span> <span class="special">);</span>
 </pre>
 <h4>
 <a name="strict_variant.tutorial.advanced_usage.h6"></a>
@@ -201,7 +209,7 @@
 <p>
         <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code> requires that all its constituent
         types satisfy the <code class="computeroutput"><span class="identifier">Bounded</span> <span class="identifier">Type</span></code> concept, which required that they
-        are no-throw destructible, copy constructible or move constructible.
+        are no-throw destructible, and that they are copy constructible or move constructible.
       </p>
 <p>
         <code class="computeroutput"><span class="identifier">strict_variant</span></code> requires that
@@ -230,7 +238,7 @@
 
 <span class="comment">// A variant containing X</span>
 <span class="keyword">int</span> <span class="identifier">main</span><span class="special">()</span> <span class="special">{</span>
-  <span class="identifier">strict_variant</span><span class="special">::</span><span class="identifier">variant</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">,</span> <span class="identifier">X</span><span class="special">&gt;</span> <span class="identifier">v</span><span class="special">;</span>
+  <span class="identifier">variant</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">,</span> <span class="identifier">X</span><span class="special">&gt;</span> <span class="identifier">v</span><span class="special">;</span>
   <span class="identifier">v</span> <span class="special">=</span> <span class="number">5</span><span class="special">;</span>
   <span class="identifier">v</span> <span class="special">=</span> <span class="identifier">X</span><span class="special">();</span>
 <span class="special">}</span>
@@ -247,7 +255,7 @@
             with types that have throwing moves.
           </p>
 <pre class="programlisting"><span class="keyword">int</span> <span class="identifier">main</span><span class="special">()</span> <span class="special">{</span>
-  <span class="identifier">strict_variant</span><span class="special">::</span><span class="identifier">variant</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">,</span> <span class="identifier">strict_variant</span><span class="special">::</span><span class="identifier">recursive_wrapper</span><span class="special">&lt;</span><span class="identifier">X</span><span class="special">&gt;&gt;</span> <span class="identifier">v</span><span class="special">;</span>
+  <span class="identifier">variant</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">,</span> <span class="identifier">recursive_wrapper</span><span class="special">&lt;</span><span class="identifier">X</span><span class="special">&gt;&gt;</span> <span class="identifier">v</span><span class="special">;</span>
   <span class="identifier">v</span> <span class="special">=</span> <span class="number">5</span><span class="special">;</span>
   <span class="identifier">v</span> <span class="special">=</span> <span class="identifier">X</span><span class="special">();</span>
 <span class="special">}</span>
@@ -261,7 +269,7 @@
             moves.
           </p>
 <pre class="programlisting"><span class="keyword">int</span> <span class="identifier">main</span><span class="special">()</span> <span class="special">{</span>
-  <span class="identifier">strict_variant</span><span class="special">::</span><span class="identifier">easy_variant</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">,</span> <span class="identifier">X</span><span class="special">&gt;</span> <span class="identifier">v</span><span class="special">;</span>
+  <span class="identifier">easy_variant</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">,</span> <span class="identifier">X</span><span class="special">&gt;</span> <span class="identifier">v</span><span class="special">;</span>
   <span class="identifier">v</span> <span class="special">=</span> <span class="number">5</span><span class="special">;</span>
   <span class="identifier">v</span> <span class="special">=</span> <span class="identifier">X</span><span class="special">();</span>
 <span class="special">}</span>
@@ -273,7 +281,7 @@
             method instead.
           </p>
 <pre class="programlisting"><span class="keyword">int</span> <span class="identifier">main</span><span class="special">()</span> <span class="special">{</span>
-  <span class="identifier">strict_variant</span><span class="special">::</span><span class="identifier">variant</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">,</span> <span class="identifier">X</span><span class="special">&gt;</span> <span class="identifier">v</span><span class="special">;</span>
+  <span class="identifier">variant</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">,</span> <span class="identifier">X</span><span class="special">&gt;</span> <span class="identifier">v</span><span class="special">;</span>
   <span class="identifier">v</span><span class="special">.</span><span class="identifier">emplace</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">&gt;(</span><span class="number">5</span><span class="special">);</span>
   <span class="identifier">v</span><span class="special">.</span><span class="identifier">emplace</span><span class="special">&lt;</span><span class="identifier">X</span><span class="special">&gt;();</span>
 <span class="special">}</span>

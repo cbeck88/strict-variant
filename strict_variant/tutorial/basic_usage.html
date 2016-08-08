@@ -19,9 +19,9 @@
 </h3></div></div></div>
 <p>
         The "basic usage" of <code class="computeroutput"><span class="identifier">strict_variant</span><span class="special">::</span><span class="identifier">variant</span></code>
-        mirrors exactly the usage of <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code>.
-        If you are not familiar with <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code>,
-        I suggest you have a look at <a href="http://www.boost.org/doc/libs/1_61_0/doc/html/variant/tutorial.html#variant.tutorial.basic" target="_top">their
+        mirrors that of <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code>. If you are not familiar with
+        <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code>, I suggest you have a look at
+        <a href="http://www.boost.org/doc/libs/1_61_0/doc/html/variant/tutorial.html#variant.tutorial.basic" target="_top">their
         tutorial</a> first.
       </p>
 <div class="note"><table border="0" summary="Note">
@@ -113,6 +113,31 @@
 <span class="identifier">assert</span><span class="special">(!</span><span class="identifier">get</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">&gt;(&amp;</span><span class="identifier">v</span><span class="special">));</span>
 <span class="identifier">assert</span><span class="special">(</span><span class="string">"bar"</span> <span class="special">==</span> <span class="special">*</span><span class="identifier">get</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">&gt;(&amp;</span><span class="identifier">v</span><span class="special">));</span>
 </pre>
+<div class="note"><table border="0" summary="Note">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="../../images/note.png"></td>
+<th align="left">Note</th>
+</tr>
+<tr><td align="left" valign="top">
+<p>
+          In <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code> docs, you will also see a version
+          of <code class="computeroutput"><span class="identifier">get</span></code> which takes a reference
+          rather than a pointer, and returns a reference. E.g.
+        </p>
+<pre class="programlisting"><span class="keyword">int</span> <span class="special">&amp;</span> <span class="identifier">foo</span> <span class="special">=</span> <span class="identifier">get</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">&gt;(</span><span class="identifier">v</span><span class="special">);</span>
+</pre>
+<p>
+          This throws a <code class="computeroutput"><span class="identifier">bad_variant_access</span></code>
+          exception if <code class="computeroutput"><span class="identifier">v</span></code> does not
+          currently have type <code class="computeroutput"><span class="keyword">int</span></code>.
+        </p>
+<p>
+          <code class="computeroutput"><span class="identifier">strict_variant</span></code> doesn't
+          have that built-in, but it's trivial to implement it yourself if you want
+          it.
+        </p>
+</td></tr>
+</table></div>
 <h5>
 <a name="strict_variant.tutorial.basic_usage.h0"></a>
         <span><a name="strict_variant.tutorial.basic_usage.visitors"></a></span><a class="link" href="basic_usage.html#strict_variant.tutorial.basic_usage.visitors">Visitors</a>
