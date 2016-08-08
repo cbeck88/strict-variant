@@ -2,7 +2,7 @@
 
 The "basic usage" of `strict_variant::variant` mirrors that of
 `boost::variant`. If you are not familiar with `boost::variant`, I suggest
-you have a look at [@boost:/doc/html/variant/tutorial.html#variant.tutorial.basic their tutorial] first.
+you have a look at [@boost:/libs/variant/doc/html/variant/tutorial.html#variant.tutorial.basic their tutorial] first.
 
 [note In this example code, we will be implicitly `using namespace strict_variant;`.
 
@@ -182,9 +182,9 @@ struct xml_node {
 };
 ```
 
-See also `boost::spirit` documentation for an extended example using `boost::variant`.
+See also `boost::spirit` tutorial for an [@boost:/libs/spirit/doc/html/spirit/qi/tutorials/mini_xml___asts_.html#spirit.qi.tutorials.mini_xml___asts_.the_structures extended example] using `boost::variant`.
 
-`recursive_wrapper<T>` is more or less the same in `strict_variant` as it is in `boost::variant`.
+`recursive_wrapper<T>` is, from the user's point of view, the same in `strict_variant` as it is in `boost::variant`.
 
 There are several ways to define an xml-tree data structure like this -- you can
 have a look also at `boost::property_tree` for instance. But using a `variant` like

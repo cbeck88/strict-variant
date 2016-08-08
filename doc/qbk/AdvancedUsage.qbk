@@ -31,12 +31,16 @@ the "generalizing" constructor. This was also supported by `boost::variant`.
   variant<int, double, std::string> v2{v};
 ```
 
-This constructor also allows reordering the types, and adding or removing `recursive_
-wrapper`.
+This constructor also allows reordering the types, and adding or removing `recursive_wrapper`.
 
 ```
   variant<int, double> v;
   variant<double, int> v2{v};
+
+  variant<recursive_wrapper<int>, double> v3;
+  v3 = v;
+  v2 = v3;
+  v = v2;
 ```
 
 [h3 More general visitors]
@@ -53,7 +57,7 @@ struct formatter : boost::static_visitor<std::string> {
 };
 ```
 
-In `strict_variant`, this isn't necessary, the return type will be deduced.
+In `strict_variant`, this isn't necessary, the return type will be deduced. So you can omit `static_visitor`.
 
 This is necessary to support lambdas being used as visitors, for instance.
 
@@ -127,7 +131,7 @@ This works as long as the returns can be reconciled in a fashion similar to `std
 One feature of `boost::variant` which we ['don't currently support] is ['delayed visitation]. For this, you will
 have to use a capturing lambda or some other sort of ad-hoc function object.
 
-Other interesting visitor styles:
+[h4 Other interesting visitor styles]
 
 * In C++14, you can use generic lambdas as visitors also.
 * If you incorporate code into your project like that proposed in [@http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0051r1.pdf PR0051],

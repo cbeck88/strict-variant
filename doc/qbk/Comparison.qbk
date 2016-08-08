@@ -169,7 +169,7 @@ A third strategy, naive tail recursion, is used by `mapbox::variant`.
 Surprisingly (for me), this is the best performing strategy, for both `gcc` and
 `clang` and all regimes, according to most recent benchmark investigations.
 
-See the next section for benchmark data.
+See the [link strict_variant.remarks.benchmarks next section] for benchmark data.
 
 [h3 Compile-Times]
 

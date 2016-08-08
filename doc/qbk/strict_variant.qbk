@@ -1,5 +1,6 @@
 [library Strict Variant
     [quickbook 1.6]
+    [id strict_variant]
     [version 0.0]
     [copyright 2016 Chris Beck]
     [authors [Beck, Chris]]
@@ -30,7 +31,7 @@
 [include Compatibility.qbk]
 [endsect]
 
-[section:discussion Remarks]
+[section:remarks Remarks]
 [include ImplementationNotes.qbk]
 [include Comparison.qbk]
 [include Benchmarks.qbk]
