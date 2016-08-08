@@ -368,6 +368,38 @@ UNIT_TEST(assign_wrapper) {
   TEST_TRUE(a.get<double>());
 }
 
+// Test indexed get
+UNIT_TEST(get_index) {
+  typedef variant<int, float, double, std::string> Var_t;
+
+  Var_t a{5};
+  TEST_TRUE(a.get<0>());
+  TEST_FALSE(a.get<2>());
+
+  a = "1234";
+  TEST_FALSE(a.get<0>());
+  TEST_FALSE(a.get<2>());
+  TEST_TRUE(a.get<3>());
+
+  a = 1234.0;
+  TEST_TRUE(a.get<2>());
+
+  a = 1234;
+  TEST_EQ(a.which(), 0);
+  TEST_TRUE(a.get<0>());
+  TEST_EQ(1234, *a.get<0>());
+
+  a = 1234.0f;
+  TEST_EQ(a.which(), 1);
+  TEST_TRUE(a.get<1>());
+  TEST_EQ(1234.0f, *a.get<1>());
+
+  a = 1234.0;
+  TEST_EQ(a.which(), 2);
+  TEST_TRUE(a.get<2>());
+  TEST_EQ(1234.0, *a.get<2>());
+}
+
 // Test Emplace function
 
 UNIT_TEST(emplace) {

@@ -352,11 +352,7 @@ public:
     static_assert(idx < sizeof...(Types) + 1,
                   "Requested type is not a member of this variant type");
 
-    if (idx == m_which) {
-      return &m_storage.template get_value<idx>(detail::false_{});
-    } else {
-      return nullptr;
-    }
+    return this->get<idx>();
   }
 
   template <typename T>
@@ -365,6 +361,21 @@ public:
     static_assert(idx < sizeof...(Types) + 1,
                   "Requested type is not a member of this variant type");
 
+    return this->get<idx>();
+  }
+
+  // get with integer index
+  template <std::size_t idx>
+  auto get() noexcept -> decltype(&static_cast<storage_t*>(nullptr)->template get_value<idx>(detail::false_{})) {
+    if (idx == m_which) {
+      return &m_storage.template get_value<idx>(detail::false_{});
+    } else {
+      return nullptr;
+    }
+  }
+
+  template <std::size_t idx>
+  auto get() const noexcept -> decltype(&static_cast<const storage_t*>(nullptr)->template get_value<idx>(detail::false_{})) {
     if (idx == m_which) {
       return &m_storage.template get_value<idx>(detail::false_{});
     } else {
@@ -423,6 +434,20 @@ const T *
 get(const variant<Types...> * var) noexcept {
   return var->template get<T>();
 }
+
+// Using integer index
+template <std::size_t idx, typename... Types>
+auto
+get(variant<Types...> * var) noexcept -> decltype(static_cast<variant<Types...>*>(nullptr)->template get<idx>()) {
+  return var->template get<idx>();
+}
+
+template <std::size_t idx, typename... Types>
+auto
+get(const variant<Types...> * var) noexcept -> decltype(static_cast<const variant<Types...>*>(nullptr)->template get<idx>()) {
+  return var->template get<idx>();
+}
+
 
 /// If a variant has type T, then get a reference to it,
 /// otherwise, create a new T default value in the variant

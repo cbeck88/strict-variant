@@ -119,7 +119,6 @@ Licensing and Distribution
 TODO
 ====
 
-- Allow `get<0>`, `get<1>` syntax in addition to `get<T>`.
 - `noexcept` correctness for `apply_visitor`?
 - Improve docu w.r.t. class template synopses
 - Use quickbook `import` directives for tutorial code
