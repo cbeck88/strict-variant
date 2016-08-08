@@ -18,7 +18,8 @@
 [endsect]
 
 [section:tutorial Tutorial]
-[include Tutorial.qbk]
+[include BasicUsage.qbk]
+[include AdvancedUsage.qbk]
 [endsect]
 
 [section:reference Reference]

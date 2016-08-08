@@ -1,0 +1,207 @@
+[section Advanced Usage]
+
+[h3 Emplace constructor]
+
+In some cases, you might want to use `emplace` to initialize a variant to a
+specific type explicitly. For instance it might be in an initializer list, and
+it's not an option to use the `emplace` method.
+
+The emplace constructor is selected using tag dispatch:
+
+```
+variant::variant(emplace_tag<T>, args...)
+```
+
+for example, in an initializer list, it looks like this:
+
+```
+my_struct()
+  : v(emplace_tag<std::string>{}, "foo")
+  , ...
+{}
+```
+
+[h3 Generalizing constructor]
+
+A variant can be converted to a variant over strictly more types. This is called
+the "generalizing" constructor. This was also supported by `boost::variant`.
+
+```
+  variant<int, double> v;
+  variant<int, double, std::string> v2{v};
+```
+
+This constructor also allows reordering the types, and adding or removing `recursive_
+wrapper`.
+
+```
+  variant<int, double> v;
+  variant<double, int> v2{v};
+```
+
+[h3 More general visitors]
+
+One thing which you'll note in `boost::variant` docs is that when a
+visitor should always derive from `boost::static_visitor`, or failing that,
+explicitly define a typedef `result_type` which matches the return type of the
+function object.
+
+In `strict_variant`, this isn't necessary, the return type will be deduced.
+
+This is necessary to support lambdas being used as visitors.
+
+[h4 Lambda visitors]
+
+You can also use a lambda as a visitor in some cases:
+
+```
+  strict_variant::variant<int, float> v;
+  v = 5;
+
+  // Prints 10.0
+  std::cout << strict_variant::apply_visitor([](double d) -> double { return d * 2; }, v) << std::endl;
+
+  v = 7.5f
+
+  // Prints 22.5
+  std::cout << strict_variant::apply_visitor([](double d) -> double { return d * 3; }, v) << std::endl;
+```
+
+[h4 Generic visitors]
+
+One of the nicest things about visitors is that they can use templates -- when
+you have a visitor with many types which should be handled similarly, this can
+save you much typing. It also means that a single visitor can often be equally
+useful for many different variants, which helps you to be very DRY.
+
+```
+struct formatter {
+  std::string operator()(const std::string & s) const { return s; }
+
+  template <typename T, typename = std::enable_if_t<std::is_integral<T>::value>>
+  std::string operator()(T t) const { return "[" + std::to_string(t) + "]"; }
+
+  template <typename T>
+  std::string operator()(const std::vector<T> & vec) const {
+    std::string result = "{ ";
+    for (int i = 0; i < vec.size(); ++i) {
+      if (i) { result += ", "; }
+      result += (*this)(vec[i]);
+    }
+    result += " }";
+    return result;
+  }
+};
+```
+
+This generic visitor is appropriate for a wide variety of variants:
+
+```
+  variant<int, double> v1;
+  variant<float, std::string, std::vector<int>> v2;
+  variant<long, std::vector<std::vector<std::string>>> v3;
+
+  apply_visitor(formatter{}, v1);
+  apply_visitor(formatter{}, v2);
+  apply_visitor(formatter{}, v3);
+```
+
+[h4 Polymorphic return type]
+
+A more elaborate use of the deduced return-type feature involves function
+objects that might return multiple different types depending on the arguments.
+
+```
+  TODO
+```
+
+This works as long as the returns can be reconciled in a fashion similar to `std::common_type`. [footnote Note that we don't actually use `std::common_type`: for one, that is C++14, for two, it wouldn't allow us to return references. We compromise by allowing the return of lvalue references but not rvalue references -- non-lvalue references will decay when returned by apply visitor.]
+
+One feature of `boost::variant` which we ['don't currently support] is ['delayed visitation]. For this, you will
+have to use a capturing lambda or some other sort of ad-hoc function object.
+
+Other interesting visitor styles:
+
+* In C++14, you can use generic lambdas as visitors also.
+* If you incorporate code into your project like that proposed in [@http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0051r1.pdf PR0051],
+  then you can glue multiple lambas together and use them as a visitor in one line:
+
+```
+  apply_visitor( overload( [](double d) -> std::string { return std::to_string(d); },
+                           [](std::string s) -> std::string { return s; } ),  v1 );
+```
+
+[h3 Multivisitation]
+
+`strict_variant` has full support for visiting 2 or more variants simultaneously, just as `boost::variant` does.
+
+However for this you must include `<strict_variant/multivisit.hpp>`.
+
+[h3 Assignment]
+
+Just like `boost::variant` and any other standard container, `strict_variant` can be moved, copied and assigned.
+
+However, like `boost::variant` it has some restrictions.
+
+`boost::variant` requires that all its constituent types satisfy
+the `Bounded Type` concept, which required that they are no-throw destructible, copy constructible or move constructible.
+
+`strict_variant` requires that its constituent types are no-throw destructible.
+
+Further, `strict_variant` is only assignable if the constituent types are all nothrow move constructible.
+
+Since that's not always possible for the types you may want to use it with, there are a few handy solutions.
+
+Suppose that our goal is code like this:
+
+```
+// A class with a throwing move
+class X {
+  std::string foo;
+
+public:
+  X ();
+  X (const X &);
+  X (X &&) = delete;
+};
+
+// A variant containing X
+int main() {
+  strict_variant::variant<int, X> v;
+  v = 5;
+  v = X();
+}
+
+```
+
+This code will fail to compile, because `v` cannot be assigned if `X` has a throwing move.
+We have a few possible remedies:
+
+# Use `recursive_wrapper` with types that have throwing moves.
+  ```
+  int main() {
+    strict_variant::variant<int, strict_variant::recursive_wrapper<X>> v;
+    v = 5;
+    v = X();
+  }
+  ```
+
+# Use `easy_variant` instead of `strict_variant`. It's the same, but it implicitly applies wrappers to its arguments with throwing moves.
+  ```
+  int main() {
+    strict_variant::easy_variant<int, X> v;
+    v = 5;
+    v = X();
+  }
+  ```
+
+# Don't use assignment, and use the `emplace` method instead.
+  ```
+  int main() {
+    strict_variant::variant<int, X> v;
+    v.emplace<int>(5);
+    v.emplace<X>();
+  }
+  ```
+
+[endsect]
