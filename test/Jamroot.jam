@@ -40,7 +40,7 @@ alias boost : : : : <include>$(BOOST_INCLUDE_DIR) ;
 ### Build tests
 
 GNU_FLAGS = "-Wall -Werror -Wextra -pedantic -std=c++11" ;
-FLAGS = <define>"STRICT_VARIANT_DEBUG" <toolset>gcc:<cxxflags>$(GNU_FLAGS) <toolset>clang:<cxxflags>$(GNU_FLAGS) <toolset>msvc:<warnings_as_errors>"off" ;
+FLAGS = <define>"STRICT_VARIANT_DEBUG" <toolset>gcc:<cxxflags>$(GNU_FLAGS) <toolset>clang:<cxxflags>$(GNU_FLAGS) <toolset>msvc:<warnings-as-errors>"off" ;
 
 exe variant : variant.cpp strict_variant test_harness : $(FLAGS) ;
 exe compare : compare.cpp strict_variant test_harness : $(FLAGS) ;
