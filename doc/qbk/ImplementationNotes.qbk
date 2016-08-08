@@ -50,8 +50,11 @@ purposes of copy or move construction of another variant, we call a function
 `detail::pierce_recursive_wrapper` which ensures that we pierce the wrapper and
 move the value rather than the wrapper. Essentially, the only time that we want
 to visit a variant and not pierce the wrapper, is when calling the destructor.
-When constructing the value that gets moved into *our* storage though, this should
-always have a wrapper if appropriate, regardless of what the visited value is.
+
+(Obviously, when constructing the value that gets moved into *our* storage though,
+we have to use exactly the type that was specified in the template parameters.
+This just won't always be the same as what the visited value is.)
+
 This ensures correctness also when we are using the "generalizing" ctors of
 `variant`.
 
@@ -161,7 +164,7 @@ complete examples.
     involved. (Same as when `strict_variant` has a throwing move.) Because, we have
     to use the value-move first, and can only use the pointer-move to move into storage.
 
-    A ['copy assignment] potentially throws when constructing the copy throws.]]]
+    A ['copy assignment] potentially throws when constructing a copy of one of the types can throw.]]]
 
 
 [endsect]
