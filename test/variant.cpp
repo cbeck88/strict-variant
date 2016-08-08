@@ -13,6 +13,16 @@
 
 namespace strict_variant {
 
+//////////////
+// MPL TEST //
+//////////////
+
+static_assert(mpl::conjunction<mpl::TypeList<>>::value, "");
+static_assert(mpl::conjunction<mpl::TypeList<std::integral_constant<bool, true>>>::value, "");
+static_assert(!mpl::conjunction<mpl::TypeList<std::integral_constant<bool, false>>>::value, "");
+static_assert(mpl::conjunction<mpl::TypeList<std::integral_constant<bool, true>, std::integral_constant<bool, true>>>::value, "");
+static_assert(!mpl::conjunction<mpl::TypeList<std::integral_constant<bool, false>, std::integral_constant<bool, true>>>::value, "");
+
 ////////////////////////////////
 // SAFELY_CONSTRUCTIBLE TESTS //
 ////////////////////////////////
@@ -191,7 +201,22 @@ static_assert(
   detail::allow_variant_construction<recursive_wrapper<std::string>, const std::string>::value,
   "failed a unit test");
 
-// Testing typlist
+// Test noexcept annotations
+
+struct some_visitor {
+  double operator()(int i) const noexcept { return i; }
+  double operator()(float f) const noexcept { return f; }
+};
+
+struct some_other_visitor {
+  double operator()(int i) const noexcept { return i; }
+  double operator()(float f) const noexcept(false) { return f; }
+};
+
+// TODO: apply_visitor is not noexcept correct right now... see variant.hpp for code comment
+// static_assert(noexcept(apply_visitor(some_visitor{}, std::declval<variant<int, float>>())), "Apply visitor noexcept annotation not working!");
+// static_assert(!noexcept(apply_visitor(some_other_visitor{}, std::declval<variant<int, float>>())), "Apply visitor noexcept annotation not working!");
+
 
 // Check that variant is resolving "ambiguous" constructions as expected
 UNIT_TEST(ambiguous_string) {

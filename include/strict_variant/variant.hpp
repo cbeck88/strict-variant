@@ -384,12 +384,17 @@ public:
   }
 
   // Friend apply_visitor
+
+  #define APPLY_VISITOR_UNEVALUATED_EXPR                                          \
+    std::declval<Visitable>().get_visitor_dispatch()(                             \
+      std::declval<Visitable>().which(),                                          \
+      std::forward<Visitable>(std::declval<Visitable>()).storage(),               \
+      std::forward<Visitor>(std::declval<Visitor>()))
+
+  // TODO: Why doesn't noexcept annotation work here? It causes ICE in gcc and clang
   template <typename Visitor, typename Visitable>
-  friend auto apply_visitor(Visitor &&, Visitable &&)
-    -> decltype(std::declval<Visitable>().get_visitor_dispatch()(
-      std::declval<Visitable>().which(),
-      std::forward<Visitable>(std::declval<Visitable>()).storage(),
-      std::forward<Visitor>(std::declval<Visitor>())));
+  friend auto apply_visitor(Visitor &&, Visitable &&) /*noexcept(noexcept(APPLY_VISITOR_UNEVALUATED_EXPR))*/
+    -> decltype(APPLY_VISITOR_UNEVALUATED_EXPR);
 
   // Implementation details for apply_visitor
 private:
@@ -411,14 +416,14 @@ private:
  */
 template <typename Visitor, typename Visitable>
 auto
-apply_visitor(Visitor && visitor, Visitable && visitable)
-  -> decltype(std::declval<Visitable>().get_visitor_dispatch()(
-    std::declval<Visitable>().which(), std::forward<Visitable>(std::declval<Visitable>()).storage(),
-    std::forward<Visitor>(std::declval<Visitor>()))) {
+apply_visitor(Visitor && visitor, Visitable && visitable) /*noexcept(noexcept(APPLY_VISITOR_UNEVALUATED_EXPR))*/
+  -> decltype(APPLY_VISITOR_UNEVALUATED_EXPR) {
   return visitable.get_visitor_dispatch()(visitable.which(),
                                           std::forward<Visitable>(visitable).storage(),
                                           std::forward<Visitor>(visitor));
 }
+
+#undef APPLY_VISITOR_UNEVALUATED_EXPR
 
 /***
  * strict_variant::get function (same semantics as boost::get with pointer type)

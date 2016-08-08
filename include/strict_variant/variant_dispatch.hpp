@@ -45,11 +45,12 @@ namespace detail {
  */
 
 /// Function which evaluates a visitor against a variant's internals
-/// Reinteprets' the "storage" pointer as a value of type T or const T,
+/// Reinteprets the "storage" as a value of type T or const T,
 /// then applies the visitor object.
 template <unsigned index, typename Internal, typename Storage, typename Visitor>
 auto
-visitor_caller(Storage && storage, Visitor && visitor)
+visitor_caller(Storage && storage, Visitor && visitor) noexcept(noexcept(std::forward<Visitor>(std::declval<Visitor>())(
+    std::forward<Storage>(std::declval<Storage>()).template get_value<index>(Internal()))))
   -> decltype(std::forward<Visitor>(std::declval<Visitor>())(
     std::forward<Storage>(std::declval<Storage>()).template get_value<index>(Internal()))) {
   return std::forward<Visitor>(visitor)(
@@ -62,6 +63,8 @@ struct visitor_caller_return_type {
   using type = decltype(
     visitor_caller<index, Internal, Storage>(std::forward<Storage>(std::declval<Storage>()),
                                              std::forward<Visitor>(std::declval<Visitor>())));
+  static constexpr bool noexcept_value = noexcept(std::forward<Visitor>(std::declval<Visitor>())(
+    std::forward<Storage>(std::declval<Storage>()).template get_value<index>(Internal())));
 };
 
 /// Helper which figures out the return type of multiple visitor calls
@@ -74,6 +77,11 @@ struct return_typer {
   template <unsigned index>
   struct helper {
     using type = typename visitor_caller_return_type<index, Internal, Storage, Visitor>::type;
+  };
+
+  template <unsigned index>
+  struct noexcept_prop {
+    using type = std::integral_constant<bool, visitor_caller_return_type<index, Internal, Storage, Visitor>::noexcept_value>;
   };
 };
 
@@ -162,8 +170,11 @@ struct visitor_dispatch {
 
   template <typename Storage, typename Visitor>
   auto operator()(const unsigned int which, Storage && storage,
-                  Visitor && visitor) -> typename mpl::
-    typelist_fwd<mpl::common_return_type_t,
+                  Visitor && visitor) noexcept(mpl::conjunction<
+                                                 typename mpl::ulist_map<return_typer<Internal, Storage, Visitor>::template noexcept_prop,
+                                                 mpl::count_t<num_types>>::type
+                                               >::value) 
+     -> typename mpl::typelist_fwd<mpl::common_return_type_t,
                  typename mpl::ulist_map<return_typer<Internal, Storage, Visitor>::template helper,
                                          mpl::count_t<num_types>>::type>::type {
     using return_t =

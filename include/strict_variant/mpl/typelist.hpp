@@ -128,5 +128,22 @@ struct typelist_fwd<F, TypeList<Ts...>> {
   using type = F<Ts...>;
 };
 
+/***
+ * conjunction metafunction
+ * Takes a typelist of `std::integral_constant<bool, b>` and returns their &&
+ */
+
+template <typename... TL>
+struct conjunction;
+
+template <>
+struct conjunction<TypeList<>> : std::true_type {};
+
+template <typename... Types>
+struct conjunction<TypeList<std::integral_constant<bool, true>, Types...>> : conjunction<TypeList<Types...>> {};
+
+template <typename... Types>
+struct conjunction<TypeList<std::integral_constant<bool, false>, Types...>> : std::false_type {};
+
 } // end namespace mpl
 } // end namespace strict_variant
