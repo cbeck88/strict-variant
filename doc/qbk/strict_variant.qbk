@@ -32,7 +32,7 @@
 
 [section:discussion Remarks]
 [include ImplementationNotes.qbk]
-[include PerformanceCharacteristics.qbk]
+[include Comparison.qbk]
 [include Benchmarks.qbk]
 [include FutureDirections.qbk]
 [endsect]
