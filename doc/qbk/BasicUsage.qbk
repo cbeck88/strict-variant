@@ -1,6 +1,6 @@
 [section Basic Usage]
 
-The "basic usage" of `strict_variant::variant` mirrors exactly the usage of
+The "basic usage" of `strict_variant::variant` mirrors that of
 `boost::variant`. If you are not familiar with `boost::variant`, I suggest
 you have a look at [@boost:/doc/html/variant/tutorial.html#variant.tutorial.basic their tutorial] first.
 
@@ -74,6 +74,18 @@ that was not the type of the variant.
   assert(!get<int>(&v));
   assert("bar" == *get<std::string>(&v));
 ```
+
+[note In `boost::variant` docs, you will also see a version of `get` which takes
+  a reference rather than a pointer, and returns a reference. E.g.
+
+  ```
+     int & foo = get<int>(v);
+  ```
+
+  This throws a `bad_variant_access` exception if `v` does not currently have type `int`.
+
+  `strict_variant` doesn't have that built-in, but it's trivial to implement it
+  yourself if you want it.]
 
 [h4 Visitors]
 

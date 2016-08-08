@@ -41,14 +41,21 @@ wrapper`.
 
 [h3 More general visitors]
 
-One thing which you'll note in `boost::variant` docs is that when a
-visitor should always derive from `boost::static_visitor`, or failing that,
+One thing which you'll note in `boost::variant` docs is that in `boost::variant`,
+a visitor should always be a structure and should derive from `boost::static_visitor`, or, failing that,
 explicitly define a typedef `result_type` which matches the return type of the
 function object.
 
+```
+struct formatter : boost::static_visitor<std::string> {
+  std::string operator()(const std::string & s) const { return s; }
+  std::string operator()(int i) const { return "[" + std::to_string(i) + "]"; }
+};
+```
+
 In `strict_variant`, this isn't necessary, the return type will be deduced.
 
-This is necessary to support lambdas being used as visitors.
+This is necessary to support lambdas being used as visitors, for instance.
 
 [h4 Lambda visitors]
 
@@ -128,7 +135,9 @@ Other interesting visitor styles:
 
 ```
   apply_visitor( overload( [](double d) -> std::string { return std::to_string(d); },
-                           [](std::string s) -> std::string { return s; } ),  v1 );
+                           [](std::string s) -> std::string { return s; }
+                         ),
+                 v1 );
 ```
 
 [h3 Multivisitation]
@@ -144,7 +153,7 @@ Just like `boost::variant` and any other standard container, `strict_variant` ca
 However, like `boost::variant` it has some restrictions.
 
 `boost::variant` requires that all its constituent types satisfy
-the `Bounded Type` concept, which required that they are no-throw destructible, copy constructible or move constructible.
+the `Bounded Type` concept, which required that they are no-throw destructible, and that they are copy constructible or move constructible.
 
 `strict_variant` requires that its constituent types are no-throw destructible.
 
@@ -167,7 +176,7 @@ public:
 
 // A variant containing X
 int main() {
-  strict_variant::variant<int, X> v;
+  variant<int, X> v;
   v = 5;
   v = X();
 }
@@ -180,7 +189,7 @@ We have a few possible remedies:
 # Use `recursive_wrapper` with types that have throwing moves.
   ```
   int main() {
-    strict_variant::variant<int, strict_variant::recursive_wrapper<X>> v;
+    variant<int, recursive_wrapper<X>> v;
     v = 5;
     v = X();
   }
@@ -189,7 +198,7 @@ We have a few possible remedies:
 # Use `easy_variant` instead of `strict_variant`. It's the same, but it implicitly applies wrappers to its arguments with throwing moves.
   ```
   int main() {
-    strict_variant::easy_variant<int, X> v;
+    easy_variant<int, X> v;
     v = 5;
     v = X();
   }
@@ -198,7 +207,7 @@ We have a few possible remedies:
 # Don't use assignment, and use the `emplace` method instead.
   ```
   int main() {
-    strict_variant::variant<int, X> v;
+    variant<int, X> v;
     v.emplace<int>(5);
     v.emplace<X>();
   }

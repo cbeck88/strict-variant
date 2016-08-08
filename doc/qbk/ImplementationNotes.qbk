@@ -35,17 +35,17 @@ container" -- that's the sort of explanation that only a compiler would be
 satisfied with.
 
 (Granted, in some applications, no one plans to visit a variant that has been
-moved from, and if they could avoid a dynamic allocation, they would prefer that
-it gets left in some illegal/empty state. We might implement some sort of
-configuration option to allow for this optimization, but doesn't exist now and
-I don't think it should be the default.)
+moved from, and if they could avoid a dynamic allocation, they would prefer the
+pointer-move even if the variant gets left in a precarious state.
+We might implement some sort of configuration option to allow for this
+optimization, but doesn't exist now and I don't think it should be the default.)
 
 With this in mind, how should `strict_variant::recursive_wrapper`'s move ctor
 actually be implemented? Should we use tag-dispatch to differentiate the two
 options?
 
 The strategy that we've adopted is, `strict_variant::recursive_wrapper`'s move
-ctor is the pointer move. But in most cases, when visiting a variant, even for
+ctor is the pointer-move. But in most cases, when visiting a variant, even for
 purposes of copy or move construction of another variant, we call a function
 `detail::pierce_recursive_wrapper` which ensures that we pierce the wrapper and
 move the value rather than the wrapper. Essentially, the only time that we want
