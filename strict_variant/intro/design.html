@@ -443,13 +443,16 @@
         <span><a name="strict_variant.intro.design.safe_conversions"></a></span><a class="link" href="design.html#strict_variant.intro.design.safe_conversions">Safe
         Conversions</a>
       </h5>
+<p>
+        When assigning or constructing a variant,
+      </p>
 <div class="itemizedlist"><ul class="itemizedlist" type="disc">
 <li class="listitem">
             Implicit conversions are not permitted between any two of the following
             classes:
             <div class="itemizedlist"><ul class="itemizedlist" type="circle">
 <li class="listitem">
-                  Integral types (<code class="computeroutput"><span class="keyword">short</span></code>,
+                  Integer types (<code class="computeroutput"><span class="keyword">short</span></code>,
                   <code class="computeroutput"><span class="keyword">int</span></code>, <code class="computeroutput"><span class="keyword">long</span></code>, <code class="computeroutput"><span class="keyword">long</span>
                   <span class="keyword">long</span></code>, and unsigned variations)
                 </li>
@@ -473,25 +476,12 @@
 </ul></div>
           </li>
 <li class="listitem">
-            If an integral or floating point conversion <span class="emphasis"><em>could</em></span>
-            be narrowing on some conforming implementation of C++, then it is not
-            safe. (So, <code class="computeroutput"><span class="keyword">long</span> <span class="keyword">long</span></code>
-            cannot be converted to <code class="computeroutput"><span class="keyword">long</span></code>
-            and <code class="computeroutput"><span class="keyword">long</span></code> cannot be converted
-            to <code class="computeroutput"><span class="keyword">int</span></code>, even if you are
-            on a 32-bit machine and they have the same size for you, because it could
-            be narrowing on a 64-bit machine.)
-          </li>
-<li class="listitem">
-            Signed can be promoted to unsigned, but the reverse is not allowed (since
-            it is implementation-defined). This cannot be combined with widening.
-          </li>
-<li class="listitem">
-            Conversions like <code class="computeroutput"><span class="keyword">char</span> <span class="special">*</span></code>
-            to <code class="computeroutput"><span class="keyword">const</span> <span class="keyword">char</span>
-            <span class="special">*</span></code> are permitted, and standard
-            conversions like array-to-pointer are permitted, but otherwise no pointer
-            conversions are permitted.
+            If a conversion <span class="emphasis"><em>could</em></span> be narrowing on some conforming
+            implementation of C++, then it is not safe. (So, <code class="computeroutput"><span class="keyword">long</span>
+            <span class="keyword">long</span></code> cannot be converted to <code class="computeroutput"><span class="keyword">long</span></code> and <code class="computeroutput"><span class="keyword">long</span></code>
+            cannot be converted to <code class="computeroutput"><span class="keyword">int</span></code>,
+            even if you are on a 32-bit machine and they have the same size for you,
+            because it could be narrowing on a 64-bit machine.)
           </li>
 </ul></div>
 <p>
@@ -579,7 +569,8 @@
 </td></tr>
 </table></div>
 <p>
-        The actual test is performed by a type trait, <code class="computeroutput"><span class="identifier">strict_variant</span><span class="special">::</span><span class="identifier">safely_constructible</span></code>,
+        The actual test is performed by <a class="link" href="../reference/safely_constructible.html" title="Type Trait safely_constructible">a
+        type trait</a>, <code class="computeroutput"><span class="identifier">strict_variant</span><span class="special">::</span><span class="identifier">safely_constructible</span></code>,
         which refines <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">is_constructible</span></code>. You can make tests against
         that if you want to e.g. make static assertions that certain conversions
         are or aren't permitted.
@@ -623,9 +614,7 @@
         if there are multiple integral types, it prioritizes them by rank. If a "safe
         conversion" is possible using types of a multiple ranks, only those
         of smallest rank are introduced into overload resolution, and the larger
-        ones are not considered. In addition, <code class="computeroutput"><span class="keyword">signed</span></code>
-        types are considered to have higher priority than their <code class="computeroutput"><span class="keyword">unsigned</span></code>
-        counterparts.
+        ones are not considered.
       </p>
 <p>
         These rules allow us to resolve any ties when converting from fundamental
@@ -635,6 +624,17 @@
         the winner of these ties could still be ambiguous with a user-defined type
         which is also a member of the variant.)
       </p>
+<div class="note"><table border="0" summary="Note">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="../../images/note.png"></td>
+<th align="left">Note</th>
+</tr>
+<tr><td align="left" valign="top"><p>
+          Here "rank" refers to "conversion rank" defined by
+          the standard. The actual sizes of the types on your implementation don't
+          matter here.
+        </p></td></tr>
+</table></div>
 <h5>
 <a name="strict_variant.intro.design.h11"></a>
         <span><a name="strict_variant.intro.design.emplace"></a></span><a class="link" href="design.html#strict_variant.intro.design.emplace">Emplace</a>

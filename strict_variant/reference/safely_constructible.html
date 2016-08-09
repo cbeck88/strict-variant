@@ -1,0 +1,158 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<title>Type Trait safely_constructible</title>
+<link rel="stylesheet" href="../../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="../../index.html" title="Chapter&#160;1.&#160;Strict Variant 0.0">
+<link rel="up" href="../reference.html" title="Reference">
+<link rel="prev" href="class_template_recursive_wrapper.html" title="Class template recursive_wrapper">
+<link rel="next" href="includes.html" title="Forward-Facing Includes">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<div class="spirit-nav">
+<a accesskey="p" href="class_template_recursive_wrapper.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../reference.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="includes.html"><img src="../../images/next.png" alt="Next"></a>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="strict_variant.reference.safely_constructible"></a><a class="link" href="safely_constructible.html" title="Type Trait safely_constructible">Type Trait
+      <code class="computeroutput"><span class="identifier">safely_constructible</span></code></a>
+</h3></div></div></div>
+<p>
+        The <code class="computeroutput"><span class="identifier">safely_constructible</span></code>
+        type trait is a refinement of <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">is_constructible</span></code>,
+        but which has special behavior for fundamental types, and forbids certain
+        conversions.
+      </p>
+<p>
+        This trait is used to modify overload resolution in the <code class="computeroutput"><span class="identifier">variant</span><span class="special">(</span><span class="identifier">T</span><span class="special">&amp;&amp;)</span></code>
+        constructor. "Unsafe" conversions are eliminated using SFINAE,
+        and don't participate in overload resolution. This also affects what happens
+        when assigning an arbitrary value to a <code class="computeroutput"><span class="identifier">variant</span></code>.
+      </p>
+<h4>
+<a name="strict_variant.reference.safely_constructible.h0"></a>
+        <span><a name="strict_variant.reference.safely_constructible.definition"></a></span><a class="link" href="safely_constructible.html#strict_variant.reference.safely_constructible.definition">Definition</a>
+      </h4>
+<div class="itemizedlist"><ul class="itemizedlist" type="disc">
+<li class="listitem">
+            Implicit conversions are not permitted between any two of the following
+            classes:
+            <div class="itemizedlist"><ul class="itemizedlist" type="circle">
+<li class="listitem">
+                  Integer types (<code class="computeroutput"><span class="keyword">short</span></code>,
+                  <code class="computeroutput"><span class="keyword">int</span></code>, <code class="computeroutput"><span class="keyword">long</span></code>, <code class="computeroutput"><span class="keyword">long</span>
+                  <span class="keyword">long</span></code>, and unsigned variations)
+                </li>
+<li class="listitem">
+                  Floating point types (<code class="computeroutput"><span class="keyword">float</span></code>,
+                  <code class="computeroutput"><span class="keyword">double</span></code>, <code class="computeroutput"><span class="keyword">long</span> <span class="keyword">double</span></code>)
+                </li>
+<li class="listitem">
+                  Character types (<code class="computeroutput"><span class="keyword">char</span></code>,
+                  <code class="computeroutput"><span class="keyword">char16_t</span></code>, <code class="computeroutput"><span class="keyword">char32_t</span></code>, and unsigned variations)
+                </li>
+<li class="listitem">
+                  Pointer types
+                </li>
+<li class="listitem">
+                  <code class="computeroutput"><span class="keyword">bool</span></code>
+                </li>
+<li class="listitem">
+                  <code class="computeroutput"><span class="keyword">wchar_t</span></code>
+                </li>
+</ul></div>
+          </li>
+<li class="listitem">
+            If a conversion <span class="emphasis"><em>could</em></span> be narrowing on some conforming
+            implementation of C++, then it is not safe. (So, <code class="computeroutput"><span class="keyword">long</span>
+            <span class="keyword">long</span></code> cannot be converted to <code class="computeroutput"><span class="keyword">long</span></code> and <code class="computeroutput"><span class="keyword">long</span></code>
+            cannot be converted to <code class="computeroutput"><span class="keyword">int</span></code>,
+            even if you are on a 32-bit machine and they have the same size for you,
+            because it could be narrowing on a 64-bit machine.)
+          </li>
+<li class="listitem">
+            Signed can be promoted to unsigned, but the reverse is not allowed (since
+            it is implementation-defined). This cannot be combined with widening.
+          </li>
+<li class="listitem">
+            Conversions like <code class="computeroutput"><span class="keyword">char</span> <span class="special">*</span></code>
+            to <code class="computeroutput"><span class="keyword">const</span> <span class="keyword">char</span>
+            <span class="special">*</span></code> are permitted, and standard
+            conversions like array-to-pointer are permitted, but otherwise no pointer
+            conversions are permitted.
+          </li>
+</ul></div>
+<p>
+        The rationale for "signed-to-unsigned cannot be combined with widening"
+        is simply that, some programmers are surprised to learn that this function
+      </p>
+<pre class="programlisting"><span class="keyword">unsigned</span> <span class="keyword">long</span> <span class="identifier">f</span><span class="special">(</span><span class="keyword">int</span> <span class="identifier">x</span><span class="special">)</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">x</span><span class="special">;</span> <span class="special">}</span>
+</pre>
+<p>
+        doesn't necessarily give the same numerical results as this function
+      </p>
+<pre class="programlisting"><span class="keyword">unsigned</span> <span class="keyword">long</span> <span class="identifier">f</span><span class="special">(</span><span class="keyword">int</span> <span class="identifier">x</span><span class="special">)</span> <span class="special">{</span> <span class="keyword">return</span> <span class="keyword">static_cast</span><span class="special">&lt;</span><span class="keyword">unsigned</span> <span class="keyword">int</span><span class="special">&gt;(</span><span class="identifier">x</span><span class="special">);</span> <span class="special">}</span>
+</pre>
+<p>
+        even on the same machine.
+      </p>
+<p>
+        (Consider when <code class="computeroutput"><span class="identifier">x</span> <span class="special">=</span>
+        <span class="special">-</span><span class="number">1</span></code>.
+        The former may return the <code class="computeroutput"><span class="keyword">unsigned</span>
+        <span class="keyword">long</span></code> max, while the latter may return
+        the <code class="computeroutput"><span class="keyword">unsigned</span> <span class="keyword">int</span></code>
+        max, which promotes without change to an <code class="computeroutput"><span class="keyword">unsigned</span>
+        <span class="keyword">long</span></code> value.)
+      </p>
+<p>
+        In other words, promotion and signed-to-unsigned conversions do not commute
+        in the <a href="https://en.wikipedia.org/wiki/Commutative_diagram" target="_top">mathematical
+        sense</a>.
+      </p>
+<p>
+        It seems better for the programmer to spell out exactly what they want to
+        happen, when there is both a signed-to-unsigned and a promotion step.
+      </p>
+<h4>
+<a name="strict_variant.reference.safely_constructible.h1"></a>
+        <span><a name="strict_variant.reference.safely_constructible.examples"></a></span><a class="link" href="safely_constructible.html#strict_variant.reference.safely_constructible.examples">Examples</a>
+      </h4>
+<pre class="programlisting"><span class="keyword">static_assert</span><span class="special">(</span><span class="identifier">safely_constructible</span><span class="special">&lt;</span><span class="keyword">unsigned</span> <span class="keyword">char</span><span class="special">,</span> <span class="keyword">char</span><span class="special">&gt;::</span><span class="identifier">value</span><span class="special">,</span> <span class="string">""</span><span class="special">);</span>
+<span class="keyword">static_assert</span><span class="special">(!</span><span class="identifier">safely_constructible</span><span class="special">&lt;</span><span class="keyword">char</span><span class="special">,</span> <span class="keyword">unsigned</span> <span class="keyword">char</span><span class="special">&gt;::</span><span class="identifier">value</span><span class="special">,</span> <span class="string">""</span><span class="special">);</span>
+
+<span class="keyword">static_assert</span><span class="special">(</span><span class="identifier">safely_constructible</span><span class="special">&lt;</span><span class="keyword">unsigned</span> <span class="keyword">int</span><span class="special">,</span> <span class="keyword">int</span><span class="special">&gt;::</span><span class="identifier">value</span><span class="special">,</span> <span class="string">""</span><span class="special">);</span>
+<span class="keyword">static_assert</span><span class="special">(!</span><span class="identifier">safely_constructible</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">,</span> <span class="keyword">char</span><span class="special">&gt;::</span><span class="identifier">value</span><span class="special">,</span> <span class="string">""</span><span class="special">);</span>
+<span class="keyword">static_assert</span><span class="special">(!</span><span class="identifier">safely_constructible</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">,</span> <span class="keyword">bool</span><span class="special">&gt;::</span><span class="identifier">value</span><span class="special">,</span> <span class="string">""</span><span class="special">);</span>
+<span class="keyword">static_assert</span><span class="special">(!</span><span class="identifier">safely_constructible</span><span class="special">&lt;</span><span class="keyword">char</span><span class="special">,</span> <span class="keyword">bool</span><span class="special">&gt;::</span><span class="identifier">value</span><span class="special">,</span> <span class="string">""</span><span class="special">);</span>
+
+<span class="keyword">static_assert</span><span class="special">(</span><span class="identifier">safely_constructible</span><span class="special">&lt;</span><span class="keyword">double</span><span class="special">,</span> <span class="keyword">float</span><span class="special">&gt;::</span><span class="identifier">value</span><span class="special">,</span> <span class="string">""</span><span class="special">);</span>
+<span class="keyword">static_assert</span><span class="special">(!</span><span class="identifier">safely_constructible</span><span class="special">&lt;</span><span class="keyword">float</span><span class="special">,</span> <span class="keyword">double</span><span class="special">&gt;::</span><span class="identifier">value</span><span class="special">,</span> <span class="string">""</span><span class="special">);</span>
+<span class="keyword">static_assert</span><span class="special">(!</span><span class="identifier">safely_constructible</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">,</span> <span class="keyword">double</span><span class="special">&gt;::</span><span class="identifier">value</span><span class="special">,</span> <span class="string">""</span><span class="special">);</span>
+<span class="keyword">static_assert</span><span class="special">(!</span><span class="identifier">safely_constructible</span><span class="special">&lt;</span><span class="keyword">double</span><span class="special">,</span> <span class="keyword">int</span><span class="special">&gt;::</span><span class="identifier">value</span><span class="special">,</span> <span class="string">""</span><span class="special">);</span>
+
+<span class="keyword">static_assert</span><span class="special">(!</span><span class="identifier">safely_constructible</span><span class="special">&lt;</span><span class="keyword">bool</span><span class="special">,</span> <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*&gt;::</span><span class="identifier">value</span><span class="special">,</span> <span class="string">""</span><span class="special">);</span>
+<span class="keyword">static_assert</span><span class="special">(!</span><span class="identifier">safely_constructible</span><span class="special">&lt;</span><span class="keyword">const</span> <span class="keyword">void</span> <span class="special">*,</span> <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*&gt;::</span><span class="identifier">value</span><span class="special">,</span> <span class="string">""</span><span class="special">);</span>
+
+<span class="keyword">static_assert</span><span class="special">(</span><span class="identifier">safely_constructible</span><span class="special">&lt;</span><span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*,</span> <span class="keyword">char</span> <span class="special">*&gt;::</span><span class="identifier">value</span><span class="special">,</span> <span class="string">""</span><span class="special">);</span>
+<span class="keyword">static_assert</span><span class="special">(!</span><span class="identifier">safely_constructible</span><span class="special">&lt;</span><span class="keyword">char</span> <span class="special">*,</span> <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*&gt;::</span><span class="identifier">value</span><span class="special">,</span> <span class="string">""</span><span class="special">);</span>
+
+<span class="keyword">static_assert</span><span class="special">(</span><span class="identifier">safely_constructible</span><span class="special">&lt;</span><span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*,</span> <span class="keyword">decltype</span><span class="special">(</span><span class="string">"foo"</span><span class="special">)&gt;::</span><span class="identifier">value</span><span class="special">,</span> <span class="string">""</span><span class="special">);</span>
+<span class="keyword">static_assert</span><span class="special">(!</span><span class="identifier">safely_constructible</span><span class="special">&lt;</span><span class="keyword">char</span> <span class="special">*,</span> <span class="keyword">decltype</span><span class="special">(</span><span class="string">"foo"</span><span class="special">)&gt;::</span><span class="identifier">value</span><span class="special">,</span> <span class="string">""</span><span class="special">);</span>
+</pre>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright &#169; 2016 Chris Beck<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="class_template_recursive_wrapper.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../reference.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="includes.html"><img src="../../images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>

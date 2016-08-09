@@ -151,7 +151,8 @@
               If each contained type is nothrow moveable, then <code class="computeroutput"><span class="identifier">strict_variant</span></code>
               is also. Since <code class="computeroutput"><span class="identifier">easy_variant</span></code>
               puts each type with a throwing move inside a <code class="computeroutput"><span class="identifier">recursive_wrapper</span></code>
-              which is nothrow moveable, then it is always nothrow moveable.
+              which is nothrow moveable, <code class="computeroutput"><span class="identifier">easy_variant</span></code>
+              is always nothrow moveable.
             </p></dd>
 <dt><span class="term">A2</span></dt>
 <dd>
@@ -189,22 +190,13 @@
               like instructed!
             </p>
 <p>
-              This means that actually, in that code from the tutorial, where we
-              represent an XML node using <code class="computeroutput"><span class="identifier">recursive_wrapper</span></code>,
+              This means that actually, in <a class="link" href="../tutorial/basic.html" title="Basic Usage">that
+              code from the tutorial</a>, where we represent an XML node using
+              <code class="computeroutput"><span class="identifier">recursive_wrapper</span></code>,
               we're actually on the slow track in that <code class="computeroutput"><span class="identifier">vector</span></code>,
               aren't we? So we'll implicitly get tons of copies of child xml nodes
               when parsing an xml tree and the vector has to resize, won't we?
             </p>
-<pre class="programlisting"><span class="keyword">using</span> <span class="identifier">xml_attribute</span> <span class="special">=</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">pair</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">&gt;;</span>
-<span class="keyword">struct</span> <span class="identifier">xml_node</span><span class="special">;</span>
-
-<span class="keyword">using</span> <span class="identifier">xml_variant</span> <span class="special">=</span> <span class="identifier">variant</span><span class="special">&lt;</span><span class="identifier">xml_attribute</span><span class="special">,</span> <span class="identifier">recursive_wrapper</span><span class="special">&lt;</span><span class="identifier">xml_node</span><span class="special">&gt;&gt;;</span>
-
-<span class="keyword">struct</span> <span class="identifier">xml_node</span> <span class="special">{</span>
-  <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">name</span><span class="special">;</span>
-  <span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="identifier">xml_variant</span><span class="special">&gt;</span> <span class="identifier">body</span><span class="special">;</span>
-<span class="special">};</span>
-</pre>
 </dd>
 <dt><span class="term">A2</span></dt>
 <dd>
@@ -253,6 +245,12 @@
               won't be copyable. But it's pretty simple to roll your own quick <code class="computeroutput"><span class="identifier">unique_ptr</span></code> that rectifies that. Who
               knows, we might even do that for you in the next release...
             </p>
+<p>
+              Hopefully, this at least convinces you that <code class="computeroutput"><span class="identifier">strict_variant</span></code>
+              is a flexible and useful low-level component, and that you can easily
+              configure it like this to get the semantics that you need without introducing
+              unnecessary overhead.
+            </p>
 </dd>
 </dl>
 </div>
@@ -267,21 +265,32 @@
 <dt><span class="term">A</span></dt>
 <dd>
 <p>
-              <code class="computeroutput"><span class="identifier">strict_variant</span></code> is assignable
-              when all of its types are nothrow move constructible, in addition to
-              the usual requirements. <code class="computeroutput"><span class="identifier">easy_variant</span></code>
-              is always assignable.
+              <code class="computeroutput"><span class="identifier">strict_variant</span></code> is copy
+              assignable when all of its types are assignable, copy constructible,
+              and nothrow move constructible. It is <code class="computeroutput"><span class="keyword">noexcept</span></code>
+              copy assignable if each type's copy assignment and copy construction
+              is <code class="computeroutput"><span class="keyword">noexcept</span></code>. <code class="computeroutput"><span class="identifier">easy_variant</span></code> is assignable if each
+              type is copy constructible and assignable. Since copying a <code class="computeroutput"><span class="identifier">recursive_wrapper</span></code> involves a dynamic
+              allocation, <code class="computeroutput"><span class="identifier">easy_variant</span></code>'s
+              copy assignment can throw if <code class="computeroutput"><span class="identifier">recursive_wrapper</span></code>
+              gets involved.
             </p>
 <p>
-              A <span class="emphasis"><em>move assignment</em></span> potentially throws exactly when
-              <code class="computeroutput"><span class="identifier">recursive_wrapper</span></code> is
-              involved. (Same as when <code class="computeroutput"><span class="identifier">strict_variant</span></code>
+              <code class="computeroutput"><span class="identifier">strict_variant</span></code> is move
+              assignable when all of its types are move assignable and nothrow move
+              constructible. It is <code class="computeroutput"><span class="keyword">noexcept</span></code>
+              move assignable if each type's move assignment is <code class="computeroutput"><span class="keyword">noexcept</span></code>,
+              AND if none is <code class="computeroutput"><span class="identifier">recursive_wrapper</span></code>.
+              (Similar to when <code class="computeroutput"><span class="identifier">strict_variant</span></code>
               has a throwing move.) Because, we have to use the value-move first,
               and can only use the pointer-move to move into storage.
             </p>
 <p>
-              A <span class="emphasis"><em>copy assignment</em></span> potentially throws when constructing
-              a copy of one of the types can throw.
+              <code class="computeroutput"><span class="identifier">easy_variant</span></code> is move
+              assignable as long as every template parameter is move assignable and
+              move constructible. It is nothrow move assignable as long as all of
+              the types are nothrow move assignable and nothrow move constructible
+              -- none of them should actually end up in a <code class="computeroutput"><span class="identifier">recursive_wrapper</span></code>.
             </p>
 </dd>
 </dl>
