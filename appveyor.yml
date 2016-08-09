@@ -27,7 +27,19 @@ install:
       If($true) {
         Add-Type -assembly "system.io.compression.filesystem"
         Write-Host "Downloading boost..."
-        (new-object net.webclient).DownloadFile("https://sourceforge.net/projects/boost/files/boost/1.60.0/boost_1_60_0.zip", "C:\projects\boost_1_60_0.zip")
+
+        [int]$trials = 0
+        do {
+            try {
+                $trials +=1
+                (new-object net.webclient).DownloadFile("https://sourceforge.net/projects/boost/files/boost/1.60.0/boost_1_60_0.zip", "C:\projects\boost_1_60_0.zip")
+                break
+            } catch [System.Net.WebException] {
+                write-host "Problem downloading boost:\n" $_.Exception.Message
+            }
+        }
+        while ($trials -lt 3)
+
         Write-Host "Extracting boost..."
         [io.compression.zipfile]::ExtractToDirectory("C:\projects\boost_1_60_0.zip", "C:\projects\")
         Set-Location "C:\projects\boost_1_60_0"
