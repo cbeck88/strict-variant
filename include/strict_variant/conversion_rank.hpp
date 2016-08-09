@@ -6,15 +6,14 @@
 #pragma once
 
 /***
- * Some metafunctions that support mpl::safely_constructible metafunction.
+ * Some metafunctions that support safely_constructible type_trait
  *
  * Permits to classify all fundamental types
      integral, character, wide_char, bool, floating point
  * and assign numeric ranks to them which are *portable*.
  *
  * These ranks should be the same on any standards-conforming implementation of
- C++,
- * if not, then it is a bug in this header.
+ * C++, if not, it is a bug in this header.
  */
 
 #include <type_traits>

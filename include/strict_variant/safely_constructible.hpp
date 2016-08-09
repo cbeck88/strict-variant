@@ -10,7 +10,6 @@
 #include <type_traits>
 
 namespace strict_variant {
-namespace mpl {
 
 /***
  * Metafunction `safely_constructible`:
@@ -65,7 +64,7 @@ namespace mpl {
 // removing reference.
 template <typename T>
 struct is_numeric {
-  using T2 = remove_reference_t<decay_t<T>>;
+  using T2 = mpl::remove_reference_t<mpl::decay_t<T>>;
   static constexpr bool value = std::is_integral<T2>::value || std::is_floating_point<T2>::value;
 };
 
@@ -73,7 +72,7 @@ struct is_numeric {
 // removing ref and CV
 template <typename T>
 struct is_ptr {
-  using T2 = remove_cv_t<remove_reference_t<decay_t<T>>>;
+  using T2 = mpl::remove_cv_t<mpl::remove_reference_t<mpl::decay_t<T>>>;
   static constexpr bool value = std::is_pointer<T2>::value;
 };
 
@@ -86,18 +85,19 @@ struct safely_constructible {
 
 // If both are numeric, then remove references and cv and pass to safe_by_rank
 template <typename A, typename B>
-struct safely_constructible<A, B, enable_if_t<is_numeric<A>::value && is_numeric<B>::value>>
-  : public safe_by_rank<remove_cv_t<remove_reference_t<A>>, remove_cv_t<remove_reference_t<B>>> {};
+struct safely_constructible<A, B, mpl::enable_if_t<is_numeric<A>::value && is_numeric<B>::value>>
+  : public mpl::safe_by_rank<mpl::remove_cv_t<mpl::remove_reference_t<A>>,
+                             mpl::remove_cv_t<mpl::remove_reference_t<B>>> {};
 
 // If both are pointer, then check if they are the same modulo CV / reference,
 // after decay of B.
 template <typename A, typename B>
-struct safely_constructible<A, B, enable_if_t<is_ptr<A>::value && is_ptr<B>::value>> {
-  using A2 = remove_reference_t<remove_cv_t<A>>;
-  using B2 = remove_reference_t<remove_cv_t<decay_t<B>>>;
+struct safely_constructible<A, B, mpl::enable_if_t<is_ptr<A>::value && is_ptr<B>::value>> {
+  using A2 = mpl::remove_reference_t<mpl::remove_cv_t<A>>;
+  using B2 = mpl::remove_reference_t<mpl::remove_cv_t<mpl::decay_t<B>>>;
   static constexpr bool value =
-    (std::is_same<A2, B2>::value
-     || std::is_same<remove_const_t<remove_pointer_t<A2>>, remove_pointer_t<B2>>::value)
+    (std::is_same<A2, B2>::value || std::is_same<mpl::remove_const_t<mpl::remove_pointer_t<A2>>,
+                                                 mpl::remove_pointer_t<B2>>::value)
     && std::is_constructible<A, B>::value;
   static constexpr int priority = 1;
 };
@@ -106,11 +106,10 @@ struct safely_constructible<A, B, enable_if_t<is_ptr<A>::value && is_ptr<B>::val
 // reference to pointer,
 // it is forbidden.
 template <typename A, typename B>
-struct safely_constructible<A, B, enable_if_t<(is_numeric<A>::value && is_ptr<B>::value)
-                                              || (is_ptr<A>::value && is_numeric<B>::value)>> {
+struct safely_constructible<A, B, mpl::enable_if_t<(is_numeric<A>::value && is_ptr<B>::value)
+                                                   || (is_ptr<A>::value && is_numeric<B>::value)>> {
   static constexpr bool value = false;
   static constexpr int priority = 0;
 };
 
-} // end namespace mpl
 } // end namespace strict_variant

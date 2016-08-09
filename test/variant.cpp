@@ -32,7 +32,6 @@ static_assert(!mpl::conjunction<mpl::TypeList<std::integral_constant<bool, false
 ////////////////////////////////
 
 namespace {
-using namespace mpl;
 
 static_assert(safely_constructible<bool, bool>::value, "failed a unit test");
 static_assert(!safely_constructible<bool, int>::value, "failed a unit test");
@@ -133,11 +132,13 @@ static_assert(!safely_constructible<char *, const char * const>::value, "failed 
 struct _dummy_t_1 {};
 struct _dummy_t_2 {};
 
-static_assert(std::is_same<_dummy_t_1, Index_At<TypeList<_dummy_t_1, _dummy_t_2>, 0>>::value,
-              "unit test failed");
+static_assert(
+  std::is_same<_dummy_t_1, mpl::Index_At<mpl::TypeList<_dummy_t_1, _dummy_t_2>, 0>>::value,
+  "unit test failed");
 
-static_assert(std::is_same<_dummy_t_2, Index_At<TypeList<_dummy_t_1, _dummy_t_2>, 1>>::value,
-              "unit test failed");
+static_assert(
+  std::is_same<_dummy_t_2, mpl::Index_At<mpl::TypeList<_dummy_t_1, _dummy_t_2>, 1>>::value,
+  "unit test failed");
 
 /////////////////////////
 // VARIANT TYPE TRAITS //

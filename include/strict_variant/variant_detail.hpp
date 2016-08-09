@@ -86,7 +86,7 @@ struct proper_subvariant {
  *   incomplete types, when using recursive wrapper.
  */
 template <typename A, typename B>
-struct allow_variant_construction : mpl::safely_constructible<A, B> {};
+struct allow_variant_construction : safely_constructible<A, B> {};
 
 // By default, recursive wrapper construction is NOT allowed, unless expressly
 // allowed below,
@@ -96,43 +96,7 @@ struct allow_variant_construction : mpl::safely_constructible<A, B> {};
 // If we are being assigned *from* a recursive wrapper, it means we are
 template <typename T, typename U>
 struct allow_variant_construction<strict_variant::recursive_wrapper<T>, U>
-  : mpl::safely_constructible<T, U> {};
-
-/*
-template <typename T, typename U>
-struct allow_variant_construction<strict_variant::recursive_wrapper<T>,
-strict_variant::recursive_wrapper<U>> :
-  mpl::safely_constructible<T, U> {};
-
-template <typename T, typename U>
-struct allow_variant_construction<strict_variant::recursive_wrapper<T>,
-strict_variant::recursive_wrapper<U> &> :
-  mpl::safely_constructible<T, U &> {};
-
-template <typename T, typename U>
-struct allow_variant_construction<strict_variant::recursive_wrapper<T>,
-strict_variant::recursive_wrapper<U> &&> :
-  mpl::safely_constructible<T, U &&> {};
-
-template <typename T, typename U>
-struct allow_variant_construction<strict_variant::recursive_wrapper<T>,
-strict_variant::recursive_wrapper<U> const &> :
-  mpl::safely_constructible<T, U const &> {};
-
-template <typename T, typename U>
-struct allow_variant_construction<strict_variant::recursive_wrapper<T>,
-strict_variant::recursive_wrapper<T>> : {
-  static constexpr value = true;
-  static constexpr priority = mpl::priority<5>;
-};
-
-template <typename T, typename U>
-struct allow_variant_construction<strict_variant::recursive_wrapper<T>,
-strict_variant::recursive_wrapper<T> &&> : {
-  static constexpr value = true;
-  static constexpr priority = mpl::priority<5>;
-};
-*/
+  : safely_constructible<T, U> {};
 
 /****
  * NOEXCEPT TRAITS
