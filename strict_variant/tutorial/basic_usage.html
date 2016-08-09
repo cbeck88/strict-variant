@@ -64,7 +64,7 @@
 <p>
         You can also initialize it using one of its values:
       </p>
-<pre class="programlisting"><span class="identifier">variant</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">&gt;</span> <span class="identifier">v</span><span class="special">{</span><span class="string">"foo"</span><span class="special">};</span>
+<pre class="programlisting"><span class="identifier">variant</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">&gt;</span> <span class="identifier">u</span><span class="special">{</span><span class="string">"foo"</span><span class="special">};</span>
 </pre>
 <p>
         Intuitively, you can think of <code class="computeroutput"><span class="identifier">v</span></code>
@@ -144,7 +144,7 @@
       </h5>
 <p>
         <code class="computeroutput"><span class="identifier">get</span></code> is fine for small cases,
-        but for larger / more sophisticated cases, a better way is to use <code class="computeroutput"><span class="identifier">apply_visitor</span></code>.
+        but for larger / more sophisticated cases, a better way to access a <code class="computeroutput"><span class="identifier">variant</span></code> is to use <code class="computeroutput"><span class="identifier">apply_visitor</span></code>.
       </p>
 <p>
         A <span class="bold"><strong>visitor</strong></span> is a "callable" C++
@@ -152,8 +152,8 @@
         as a parameter.
       </p>
 <p>
-        Here's an example of a function object, which maps either a <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span></code>
-        or an <code class="computeroutput"><span class="keyword">int</span></code> to a <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span></code>.
+        Here's an example of a function object, which maps an <code class="computeroutput"><span class="keyword">int</span></code>
+        or a string to a string.
       </p>
 <pre class="programlisting"><span class="keyword">struct</span> <span class="identifier">formatter</span> <span class="special">{</span>
   <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="keyword">operator</span><span class="special">()(</span><span class="keyword">const</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="special">&amp;</span> <span class="identifier">s</span><span class="special">)</span> <span class="keyword">const</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">s</span><span class="special">;</span> <span class="special">}</span>
@@ -161,8 +161,9 @@
 <span class="special">};</span>
 </pre>
 <p>
-        when calling <code class="computeroutput"><span class="identifier">apply_visitor</span></code>,
-        the visitor comes first, and the variant second:
+        When calling <code class="computeroutput"><span class="identifier">apply_visitor</span></code>,
+        the visitor comes first, and the variant second: <code class="computeroutput"><span class="identifier">apply_visitor</span></code>
+        returns whatever the visitor returns.
       </p>
 <pre class="programlisting"><span class="identifier">v</span> <span class="special">=</span> <span class="number">5</span><span class="special">;</span>
 <span class="identifier">assert</span><span class="special">(</span><span class="string">"[5]"</span> <span class="special">==</span> <span class="identifier">apply_visitor</span><span class="special">(</span><span class="identifier">formatter</span><span class="special">{},</span> <span class="identifier">v</span><span class="special">));</span>
@@ -183,13 +184,14 @@
 <p>
         If your code looks like this:
       </p>
-<pre class="programlisting"><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">format_variant</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">variant</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">,</span> <span class="keyword">int</span><span class="special">&gt;</span> <span class="special">&amp;</span> <span class="identifier">v</span><span class="special">)</span> <span class="special">{</span>
+<pre class="programlisting"><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span>
+<span class="identifier">format_variant</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">variant</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">,</span> <span class="keyword">int</span><span class="special">&gt;</span> <span class="special">&amp;</span> <span class="identifier">v</span><span class="special">)</span> <span class="special">{</span>
   <span class="keyword">if</span> <span class="special">(</span><span class="keyword">const</span> <span class="keyword">auto</span> <span class="special">*</span> <span class="identifier">i</span> <span class="special">=</span> <span class="identifier">get</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">&gt;(&amp;</span><span class="identifier">v</span><span class="special">))</span> <span class="special">{</span>
     <span class="keyword">return</span> <span class="string">"["</span> <span class="special">+</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">to_string</span><span class="special">(*</span><span class="identifier">i</span><span class="special">)</span> <span class="special">+</span> <span class="string">"]"</span><span class="special">;</span>
   <span class="special">}</span> <span class="keyword">else</span> <span class="keyword">if</span> <span class="special">(</span><span class="keyword">const</span> <span class="keyword">auto</span> <span class="special">*</span> <span class="identifier">str</span> <span class="special">=</span> <span class="identifier">get</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">&gt;(&amp;</span><span class="identifier">v</span><span class="special">))</span> <span class="special">{</span>
     <span class="keyword">return</span> <span class="special">*</span><span class="identifier">str</span><span class="special">;</span>
   <span class="special">}</span> <span class="keyword">else</span> <span class="special">{</span>
-    <span class="keyword">throw</span> <span class="string">"Unsupported type!"</span><span class="special">;</span>
+    <span class="identifier">assert</span><span class="special">(</span><span class="keyword">false</span> <span class="special">&amp;&amp;</span> <span class="string">"Unsupported type!"</span><span class="special">);</span>
   <span class="special">}</span>
 <span class="special">}</span>
 </pre>
@@ -225,26 +227,32 @@
       </p>
 <pre class="programlisting"><span class="keyword">struct</span> <span class="identifier">xml_node</span> <span class="special">{</span>
   <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">name</span><span class="special">;</span>
-  <span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="identifier">variant</span><span class="special">&lt;</span><span class="identifier">xml_attribute</span><span class="special">,</span> <span class="identifier">xml_node</span><span class="special">&gt;&gt;</span> <span class="identifier">body</span><span class="special">;</span>
+  <span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="identifier">xml_attribute</span><span class="special">&gt;</span> <span class="identifier">attributes</span><span class="special">;</span>
+  <span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="identifier">variant</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">,</span> <span class="identifier">xml_node</span><span class="special">&gt;&gt;</span> <span class="identifier">body</span><span class="special">;</span> <span class="comment">// ERROR</span>
 <span class="special">};</span>
 </pre>
 <p>
         The trouble with this is that <code class="computeroutput"><span class="identifier">xml_node</span></code>
-        is incomplete at the time that it is used in the class body of <code class="computeroutput"><span class="identifier">xml_node</span></code>, so it won't actually work.
+        is incomplete at the time that it is used in the class body of <code class="computeroutput"><span class="identifier">xml_node</span></code>, so it won't actually work. (<code class="computeroutput"><span class="identifier">variant</span></code> really needs to know the size of
+        anything that it is supposed to contain.)
       </p>
 <p>
         The class template <code class="computeroutput"><span class="identifier">recursive_wrapper</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span></code>
         can be used to surmount this difficulty. The argument to <code class="computeroutput"><span class="identifier">recursive_wrapper</span></code>
         can be an <span class="emphasis"><em>incomplete type</em></span> and it can still be used in
         a <code class="computeroutput"><span class="identifier">variant</span></code> without a problem.
+        (<code class="computeroutput"><span class="identifier">recursive_wrapper</span></code> works
+        by allocating the object on the heap instead -- it only actually contains
+        a pointer.)
       </p>
 <pre class="programlisting"><span class="keyword">using</span> <span class="identifier">xml_attribute</span> <span class="special">=</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">pair</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">&gt;;</span>
 <span class="keyword">struct</span> <span class="identifier">xml_node</span><span class="special">;</span>
 
-<span class="keyword">using</span> <span class="identifier">xml_variant</span> <span class="special">=</span> <span class="identifier">variant</span><span class="special">&lt;</span><span class="identifier">xml_attribute</span><span class="special">,</span> <span class="identifier">recursive_wrapper</span><span class="special">&lt;</span><span class="identifier">xml_node</span><span class="special">&gt;&gt;;</span>
+<span class="keyword">using</span> <span class="identifier">xml_variant</span> <span class="special">=</span> <span class="identifier">variant</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">,</span> <span class="identifier">recursive_wrapper</span><span class="special">&lt;</span><span class="identifier">xml_node</span><span class="special">&gt;&gt;;</span>
 
 <span class="keyword">struct</span> <span class="identifier">xml_node</span> <span class="special">{</span>
   <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">name</span><span class="special">;</span>
+  <span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="identifier">xml_attribute</span><span class="special">&gt;</span> <span class="identifier">attributes</span><span class="special">;</span>
   <span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="identifier">xml_variant</span><span class="special">&gt;</span> <span class="identifier">body</span><span class="special">;</span>
 <span class="special">};</span>
 </pre>

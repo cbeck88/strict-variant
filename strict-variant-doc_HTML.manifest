@@ -6,8 +6,8 @@ strict_variant/tutorial.html
 strict_variant/tutorial/basic_usage.html
 strict_variant/tutorial/advanced_usage.html
 strict_variant/reference.html
-strict_variant/reference/restrictions.html
-strict_variant/reference/synopsis.html
+strict_variant/reference/class_template_variant.html
+strict_variant/reference/class_template_recursive_wrapper.html
 strict_variant/reference/includes.html
 strict_variant/reference/configuration.html
 strict_variant/reference/compiler_compatibility.html

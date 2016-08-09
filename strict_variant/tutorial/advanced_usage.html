@@ -35,9 +35,8 @@
 <p>
         for example, in an initializer list, it looks like this:
       </p>
-<pre class="programlisting"><span class="identifier">my_struct</span><span class="special">()</span>
+<pre class="programlisting"><span class="identifier">my_struct</span><span class="special">::</span><span class="identifier">my_struct</span><span class="special">()</span>
   <span class="special">:</span> <span class="identifier">v</span><span class="special">(</span><span class="identifier">emplace_tag</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">&gt;{},</span> <span class="string">"foo"</span><span class="special">)</span>
-  <span class="special">,</span> <span class="special">...</span>
 <span class="special">{}</span>
 </pre>
 <h4>

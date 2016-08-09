@@ -1,0 +1,732 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<title>Class template variant</title>
+<link rel="stylesheet" href="../../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="../../index.html" title="Chapter&#160;1.&#160;Strict Variant 0.0">
+<link rel="up" href="../reference.html" title="Reference">
+<link rel="prev" href="../reference.html" title="Reference">
+<link rel="next" href="class_template_recursive_wrapper.html" title="Class template recursive_wrapper">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<div class="spirit-nav">
+<a accesskey="p" href="../reference.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../reference.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="class_template_recursive_wrapper.html"><img src="../../images/next.png" alt="Next"></a>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="strict_variant.reference.class_template_variant"></a><a class="link" href="class_template_variant.html" title="Class template variant">Class
+      template <code class="computeroutput"><span class="identifier">variant</span></code></a>
+</h3></div></div></div>
+<p>
+        A type-safe discriminated union container.
+      </p>
+<p>
+        Its definition, and some ancillary function templates, are brought in by
+        <code class="computeroutput"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">strict_variant</span><span class="special">/</span><span class="identifier">variant</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span></code>.
+      </p>
+<p>
+        (Declarations only are brought in by <code class="computeroutput"><span class="special">&lt;</span><span class="identifier">strict_variant</span><span class="special">/</span><span class="identifier">variant_fwd</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span></code>.)
+      </p>
+<h4>
+<a name="strict_variant.reference.class_template_variant.h0"></a>
+        <span><a name="strict_variant.reference.class_template_variant.synopsis"></a></span><a class="link" href="class_template_variant.html#strict_variant.reference.class_template_variant.synopsis">Synopsis</a>
+      </h4>
+<pre class="programlisting"><span class="keyword">namespace</span> <span class="identifier">strict_variant</span> <span class="special">{</span>
+
+  <span class="comment">// Used in tag dispatch</span>
+  <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
+  <span class="keyword">struct</span> <span class="identifier">emplace_tag</span> <span class="special">{};</span>
+
+  <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">First</span><span class="special">,</span> <span class="keyword">typename</span><span class="special">...</span> <span class="identifier">Types</span><span class="special">&gt;</span>
+  <span class="keyword">class</span> <span class="identifier">variant</span> <span class="special">{</span>
+
+    <span class="identifier">variant</span><span class="special">();</span>
+
+    <span class="comment">// Special member functions</span>
+    <span class="identifier">variant</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">variant</span> <span class="special">&amp;);</span>
+    <span class="identifier">variant</span><span class="special">(</span><span class="identifier">variant</span> <span class="special">&amp;&amp;);</span>
+    <span class="special">~</span><span class="identifier">variant</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
+
+    <span class="comment">// Only available if all input types are no-throw move constructible</span>
+    <span class="identifier">variant</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span><span class="identifier">variant</span> <span class="special">&amp;&amp;);</span>
+    <span class="identifier">variant</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span><span class="keyword">const</span> <span class="identifier">variant</span> <span class="special">&amp;);</span>
+
+    <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
+    <span class="identifier">variant</span><span class="special">(</span><span class="identifier">T</span> <span class="special">&amp;&amp;);</span>
+
+    <span class="comment">// Constructs the variant from a "subvariant"</span>
+    <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span><span class="special">...</span> <span class="identifier">OTypes</span><span class="special">&gt;</span>
+    <span class="identifier">variant</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">variant</span><span class="special">&lt;</span><span class="identifier">Otypes</span><span class="special">...&gt;</span> <span class="special">&amp;);</span>
+
+    <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span><span class="special">...</span> <span class="identifier">OTypes</span><span class="special">&gt;</span>
+    <span class="identifier">variant</span><span class="special">(</span><span class="identifier">variant</span><span class="special">&lt;</span><span class="identifier">Otypes</span><span class="special">...&gt;</span> <span class="special">&amp;&amp;);</span>
+
+    <span class="comment">// Emplace ctor</span>
+    <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">,</span> <span class="keyword">typename</span><span class="special">...</span> <span class="identifier">Args</span><span class="special">&gt;</span>
+    <span class="keyword">explicit</span> <span class="identifier">variant</span><span class="special">(</span><span class="identifier">emplace_tag</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;,</span> <span class="identifier">Args</span> <span class="special">&amp;&amp;</span> <span class="special">...</span> <span class="identifier">args</span><span class="special">);</span>
+
+    <span class="comment">// Emplace operation</span>
+    <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">,</span> <span class="keyword">typename</span><span class="special">...</span> <span class="identifier">Args</span><span class="special">&gt;</span>
+    <span class="keyword">void</span> <span class="identifier">emplace</span><span class="special">(</span><span class="identifier">Args</span> <span class="special">&amp;&amp;...</span> <span class="identifier">args</span><span class="special">);</span>
+
+    <span class="comment">// Reports the runtime type.</span>
+    <span class="keyword">int</span> <span class="identifier">which</span><span class="special">()</span> <span class="keyword">const</span><span class="special">;</span>
+
+    <span class="comment">// Access the contained value</span>
+    <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
+    <span class="identifier">T</span> <span class="special">*</span> <span class="identifier">get</span><span class="special">();</span>
+
+    <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
+    <span class="keyword">const</span> <span class="identifier">T</span> <span class="special">*</span> <span class="identifier">get</span><span class="special">()</span> <span class="keyword">const</span><span class="special">;</span>
+
+    <span class="keyword">template</span> <span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">index</span><span class="special">&gt;</span>
+    <span class="keyword">auto</span> <span class="special">*</span> <span class="identifier">get</span><span class="special">();</span>
+
+    <span class="keyword">template</span> <span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">index</span><span class="special">&gt;</span>
+    <span class="keyword">const</span> <span class="keyword">auto</span> <span class="special">*</span> <span class="identifier">get</span><span class="special">()</span> <span class="keyword">const</span><span class="special">;</span>
+
+    <span class="comment">// Test for equality.</span>
+    <span class="keyword">bool</span> <span class="keyword">operator</span> <span class="special">==</span> <span class="special">(</span><span class="keyword">const</span> <span class="identifier">variant</span> <span class="special">&amp;)</span> <span class="keyword">const</span><span class="special">;</span>
+    <span class="keyword">bool</span> <span class="keyword">operator</span> <span class="special">!=</span> <span class="special">(</span><span class="keyword">const</span> <span class="identifier">variant</span> <span class="special">&amp;)</span> <span class="keyword">const</span><span class="special">;</span>
+  <span class="special">};</span>
+
+  <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">,</span> <span class="keyword">typename</span> <span class="special">...</span> <span class="identifier">Types</span><span class="special">&gt;</span>
+  <span class="identifier">T</span> <span class="special">*</span> <span class="identifier">get</span><span class="special">(</span><span class="identifier">variant</span><span class="special">&lt;</span><span class="identifier">Types</span><span class="special">...&gt;</span> <span class="special">*</span> <span class="identifier">v</span><span class="special">);</span>
+
+  <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">,</span> <span class="keyword">typename</span> <span class="special">...</span> <span class="identifier">Types</span><span class="special">&gt;</span>
+  <span class="keyword">const</span> <span class="identifier">T</span> <span class="special">*</span> <span class="identifier">get</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">variant</span><span class="special">&lt;</span><span class="identifier">Types</span><span class="special">...&gt;</span> <span class="special">*</span> <span class="identifier">v</span><span class="special">);</span>
+
+  <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">,</span> <span class="keyword">typename</span> <span class="special">...</span> <span class="identifier">Types</span><span class="special">&gt;</span>
+  <span class="identifier">T</span> <span class="special">&amp;</span> <span class="identifier">get_or_default</span><span class="special">(</span><span class="identifier">variant</span><span class="special">&lt;</span><span class="identifier">Types</span><span class="special">...&gt;</span> <span class="special">&amp;</span> <span class="identifier">v</span><span class="special">,</span> <span class="identifier">T</span> <span class="identifier">def</span> <span class="special">=</span> <span class="special">{});</span>
+
+  <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">Visitor</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Variant</span><span class="special">&gt;</span>
+  <span class="keyword">void</span> <span class="identifier">apply_visitor</span><span class="special">(</span><span class="identifier">Visitor</span> <span class="special">&amp;&amp;</span> <span class="identifier">visitor</span><span class="special">,</span> <span class="identifier">Variant</span> <span class="special">&amp;&amp;</span> <span class="identifier">var</span><span class="special">);</span>
+
+  <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span><span class="special">...</span> <span class="identifier">Types</span><span class="special">&gt;</span>
+  <span class="keyword">using</span> <span class="identifier">easy_variant</span><span class="special">;</span>
+
+<span class="special">}</span> <span class="comment">// end namespace strict_variant</span>
+</pre>
+<h4>
+<a name="strict_variant.reference.class_template_variant.h1"></a>
+        <span><a name="strict_variant.reference.class_template_variant.description"></a></span><a class="link" href="class_template_variant.html#strict_variant.reference.class_template_variant.description">Description</a>
+      </h4>
+<p>
+        <code class="computeroutput"><span class="identifier">variant</span></code> is the core class
+        of the <code class="computeroutput"><span class="identifier">strict_variant</span></code> library.
+        It controls the storage in which the value is contained, and provides an
+        interface for accessing the value and changing the value.
+      </p>
+<h5>
+<a name="strict_variant.reference.class_template_variant.h2"></a>
+        <span><a name="strict_variant.reference.class_template_variant.notes"></a></span><a class="link" href="class_template_variant.html#strict_variant.reference.class_template_variant.notes">Notes</a>
+      </h5>
+<p>
+        The <code class="computeroutput"><span class="identifier">strict_variant</span><span class="special">::</span><span class="identifier">variant</span></code> is in many ways similar to <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code>, which strongly inspired this.
+      </p>
+<p>
+        (However, this interface is exception-free. If you want to have analogues
+        of the throwing functions in <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code>
+        you'll have to write them, which is pretty easy to do on top of the exception-free
+        interface.)
+      </p>
+<p>
+        The template arguments to <code class="computeroutput"><span class="identifier">variant</span></code>
+        obey a few hard restrictions:
+      </p>
+<div class="orderedlist"><ol class="orderedlist" type="1">
+<li class="listitem">
+            Must be <code class="computeroutput"><span class="identifier">nothrow_destructible</span></code>.
+            This is enforced by <code class="computeroutput"><span class="keyword">static_assert</span></code>.
+          </li>
+<li class="listitem">
+            Must not be a reference type. This is enforced by <code class="computeroutput"><span class="keyword">static_assert</span></code>.
+            Use <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">reference_wrapper</span></code> if you need this.
+          </li>
+<li class="listitem">
+            Must be complete at point of instantiation of the <code class="computeroutput"><span class="identifier">variant</span></code>.
+          </li>
+</ol></div>
+<p>
+        Additionally, the properties of the template arguments determine the properties
+        of the resulting variant.
+      </p>
+<div class="itemizedlist"><ul class="itemizedlist" type="disc">
+<li class="listitem">
+            If the <code class="computeroutput"><span class="identifier">First</span></code> type of
+            the parameter list is <code class="computeroutput"><span class="identifier">DefaultConstructible</span></code>,
+            then <code class="computeroutput"><span class="identifier">variant</span></code> is also.
+            Otherwise it isn't.
+          </li>
+<li class="listitem">
+            If each type is <code class="computeroutput"><span class="identifier">CopyConstructible</span></code>,
+            then <code class="computeroutput"><span class="identifier">variant</span></code> is <code class="computeroutput"><span class="identifier">CopyConstructible</span></code>.
+          </li>
+<li class="listitem">
+            If each type is <code class="computeroutput"><span class="identifier">MoveConstructible</span></code>,
+            then <code class="computeroutput"><span class="identifier">variant</span></code> is <code class="computeroutput"><span class="identifier">MoveConstructible</span></code>.
+          </li>
+<li class="listitem">
+            If each type is <code class="computeroutput"><span class="identifier">Assignable</span></code>
+            and <code class="computeroutput"><span class="identifier">CopyConstructible</span></code>
+            and <code class="computeroutput"><span class="identifier">nothrow_move_constructible</span></code>,
+            then <code class="computeroutput"><span class="identifier">variant</span></code> is <code class="computeroutput"><span class="identifier">Assignable</span></code>.
+          </li>
+<li class="listitem">
+            If each type is <code class="computeroutput"><span class="identifier">MoveAssignable</span></code>
+            and <code class="computeroutput"><span class="identifier">nothrow_move_constructible</span></code>,
+            then <code class="computeroutput"><span class="identifier">variant</span></code> is <code class="computeroutput"><span class="identifier">MoveAssignable</span></code>.
+          </li>
+</ul></div>
+<p>
+        Other properties of <code class="computeroutput"><span class="identifier">variant</span></code>:
+      </p>
+<div class="itemizedlist"><ul class="itemizedlist" type="disc">
+<li class="listitem">
+            If each type is <code class="computeroutput"><span class="identifier">EqualityComparable</span></code>,
+            then <code class="computeroutput"><span class="identifier">variant</span></code> is <code class="computeroutput"><span class="identifier">EqualityComparable</span></code>.
+          </li>
+<li class="listitem">
+            If each type is <code class="computeroutput"><span class="identifier">LessThanComparable</span></code>,
+            then a comparator object, <code class="computeroutput"><span class="identifier">VariantComparator</span></code>,
+            suitable for <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">map</span></code> or <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">set</span></code>,
+            may be obtained from <code class="computeroutput"><span class="preprocessor">#include</span>
+            <span class="special">&lt;</span><span class="identifier">strict_variant</span><span class="special">/</span><span class="identifier">variant_compare</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span></code>.
+          </li>
+<li class="listitem">
+            If each type is <code class="computeroutput"><span class="identifier">OutputStreamable</span></code>,
+            then <code class="computeroutput"><span class="identifier">variant</span></code> is <code class="computeroutput"><span class="identifier">OutputStreamable</span></code>, if the header <code class="computeroutput"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">strict_variant</span><span class="special">/</span><span class="identifier">variant_stream_ops</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span></code>
+            is included.
+          </li>
+<li class="listitem">
+            If each type is <code class="computeroutput"><span class="identifier">Hashable</span></code>,
+            then <code class="computeroutput"><span class="identifier">variant</span></code> is <code class="computeroutput"><span class="identifier">Hashable</span></code>, if the header <code class="computeroutput"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">strict_variant</span><span class="special">/</span><span class="identifier">variant_hash</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span></code>
+            is included.
+          </li>
+</ul></div>
+<h5>
+<a name="strict_variant.reference.class_template_variant.h3"></a>
+        <span><a name="strict_variant.reference.class_template_variant.member_functions"></a></span><a class="link" href="class_template_variant.html#strict_variant.reference.class_template_variant.member_functions">Member
+        Functions</a>
+      </h5>
+<div class="variablelist">
+<p class="title"><b>Constructors</b></p>
+<dl>
+<dt><span class="term"><code class="computeroutput"><span class="identifier">variant</span><span class="special">()</span></code></span></dt>
+<dd>
+<p>
+              Attempts to default construct the <code class="computeroutput"><span class="identifier">First</span></code>
+              type.
+            </p>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Requires</span></dt>
+<dd><p>
+                    <code class="computeroutput"><span class="identifier">First</span></code> is <code class="computeroutput"><span class="identifier">DefaultConstructible</span></code>.
+                  </p></dd>
+<dt><span class="term">Throws</span></dt>
+<dd><p>
+                    If <code class="computeroutput"><span class="identifier">First</span><span class="special">()</span></code>
+                    does.
+                  </p></dd>
+</dl>
+</div>
+</dd>
+<dt><span class="term"><code class="computeroutput"><span class="identifier">variant</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">variant</span>
+          <span class="special">&amp;)</span></code></span></dt>
+<dd>
+<p>
+              Copy constructs a variant.
+            </p>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Requires</span></dt>
+<dd><p>
+                    Each type <code class="computeroutput"><span class="identifier">First</span><span class="special">,</span> <span class="identifier">Types</span><span class="special">...</span></code> is <code class="computeroutput"><span class="identifier">CopyConstructible</span></code>.
+                  </p></dd>
+<dt><span class="term">Throws</span></dt>
+<dd><p>
+                    If any of the copy constructors does.
+                  </p></dd>
+</dl>
+</div>
+</dd>
+<dt><span class="term"><code class="computeroutput"><span class="identifier">variant</span><span class="special">(</span><span class="identifier">variant</span> <span class="special">&amp;&amp;)</span></code></span></dt>
+<dd>
+<p>
+              Move constructs a variant.
+            </p>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Requires</span></dt>
+<dd><p>
+                    Each type <code class="computeroutput"><span class="identifier">First</span><span class="special">,</span> <span class="identifier">Types</span><span class="special">...</span></code> is <code class="computeroutput"><span class="identifier">MoveConstructible</span></code>.
+                  </p></dd>
+<dt><span class="term">Throws</span></dt>
+<dd><p>
+                    If any of the moves does, or if any type is <code class="computeroutput"><span class="identifier">recursive_wrapper</span></code>.
+                  </p></dd>
+</dl>
+</div>
+</dd>
+<dt><span class="term"><code class="computeroutput"><span class="identifier">variant</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">variant</span><span class="special">&lt;</span><span class="identifier">OFirst</span><span class="special">,</span> <span class="identifier">OTypes</span><span class="special">...&gt;</span> <span class="special">&amp;)</span></code></span></dt>
+<dd>
+<p>
+              Generalizing constructor.
+            </p>
+<p>
+              Copy constructs a variant from another variant on strictly fewer types.
+            </p>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Requires</span></dt>
+<dd><p>
+                    Each type <code class="computeroutput"><span class="identifier">OFirst</span><span class="special">,</span> <span class="identifier">OTypes</span><span class="special">...</span></code> is template parameter of this
+                    <code class="computeroutput"><span class="identifier">variant</span></code> also,
+                    modulo <code class="computeroutput"><span class="keyword">const</span></code> and
+                    <code class="computeroutput"><span class="identifier">recursive_wrapper</span></code>.
+                  </p></dd>
+<dt><span class="term">Throws</span></dt>
+<dd><p>
+                    If the copy constructor of the passed variant may throw.
+                  </p></dd>
+</dl>
+</div>
+</dd>
+<dt><span class="term"><code class="computeroutput"><span class="identifier">variant</span><span class="special">(</span><span class="identifier">variant</span><span class="special">&lt;</span><span class="identifier">OFirst</span><span class="special">,</span> <span class="identifier">OTypes</span><span class="special">...&gt;</span>
+          <span class="special">&amp;&amp;)</span></code></span></dt>
+<dd>
+<p>
+              Generalizing constructor.
+            </p>
+<p>
+              Move constructs a variant from another variant on strictly fewer types.
+            </p>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Requires</span></dt>
+<dd><p>
+                    Each type <code class="computeroutput"><span class="identifier">OFirst</span><span class="special">,</span> <span class="identifier">OTypes</span><span class="special">...</span></code> is template parameter of this
+                    <code class="computeroutput"><span class="identifier">variant</span></code> also,
+                    modulo <code class="computeroutput"><span class="keyword">const</span></code> and
+                    <code class="computeroutput"><span class="identifier">recursive_wrapper</span></code>.
+                  </p></dd>
+<dt><span class="term">Throws</span></dt>
+<dd><p>
+                    If the move constructor of the passed variant may throw.
+                  </p></dd>
+</dl>
+</div>
+</dd>
+<dt><span class="term"><code class="computeroutput"><span class="identifier">variant</span><span class="special">(</span><span class="identifier">T</span> <span class="special">&amp;&amp;)</span></code></span></dt>
+<dd>
+<p>
+              Construct from a forwarding reference.
+            </p>
+<p>
+              Attempts to convert <code class="computeroutput"><span class="identifier">T</span></code>
+              to one of the template parameters of this variant.
+            </p>
+<p>
+              This is resolved using overload resolution.
+            </p>
+<p>
+              However, the overload resolution process is modified using SFINAE,
+              when the <code class="computeroutput"><span class="identifier">variant</span></code> contains
+              <span class="emphasis"><em>fundamental types</em></span>.
+            </p>
+<div class="itemizedlist"><ul class="itemizedlist" type="disc">
+<li class="listitem">
+                  Only <span class="emphasis"><em>safe conversions</em></span> of fundamental types
+                  are permitted. Conversions which are not safe do not participate
+                  in overload resolution. (See <code class="computeroutput"><span class="identifier">strict_variant</span><span class="special">::</span><span class="identifier">safely_constructible</span></code>
+                  type trait.)
+                </li>
+<li class="listitem">
+                  If multiple <span class="emphasis"><em>safe conversions</em></span> to fundamental
+                  types are possible, and some are of the same class but with higher
+                  rank than others, those of higher rank are not permitted and do
+                  not participate in overload resolution.
+                </li>
+</ul></div>
+</dd>
+<dt><span class="term"><code class="computeroutput"><span class="identifier">variant</span><span class="special">(</span><span class="identifier">emplace_tag</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;,</span> <span class="identifier">Args</span> <span class="special">&amp;&amp;</span>
+          <span class="special">...</span> <span class="identifier">args</span><span class="special">)</span></code></span></dt>
+<dd>
+<p class="simpara">
+              Emplace-constructs a variant.
+            </p>
+<p class="simpara">
+              Constructs a value of type <code class="computeroutput"><span class="identifier">T</span></code>
+              in the storage. Any additional arguments <code class="computeroutput"><span class="identifier">args</span></code>
+              are forwarded to <code class="computeroutput"><span class="identifier">T</span></code>'s
+              constructor.
+            </p>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Requires</span></dt>
+<dd><p>
+                    <code class="computeroutput"><span class="identifier">T</span></code> is one of the
+                    template parameter of this <code class="computeroutput"><span class="identifier">variant</span></code>,
+                    modulo <code class="computeroutput"><span class="keyword">const</span></code> and
+                    <code class="computeroutput"><span class="identifier">recursive_wrapper</span></code>.
+                  </p></dd>
+<dt><span class="term">Throws</span></dt>
+<dd><p>
+                    If the selected constructor may throw.
+                  </p></dd>
+</dl>
+</div>
+</dd>
+</dl>
+</div>
+<div class="variablelist">
+<p class="title"><b>Assignment</b></p>
+<dl>
+<dt><span class="term"><code class="computeroutput"><span class="identifier">variant</span> <span class="special">&amp;</span>
+          <span class="keyword">operator</span><span class="special">=(</span><span class="keyword">const</span> <span class="identifier">variant</span>
+          <span class="special">&amp;)</span></code></span></dt>
+<dd>
+<p>
+              Copy-assigns a variant.
+            </p>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Requires</span></dt>
+<dd><p>
+                    Each type <code class="computeroutput"><span class="identifier">First</span><span class="special">,</span> <span class="identifier">Types</span><span class="special">...</span></code> is <code class="computeroutput"><span class="identifier">Assignable</span></code>,
+                    <code class="computeroutput"><span class="identifier">CopyConstructible</span></code>,
+                    and <code class="computeroutput"><span class="identifier">nothrow_move_constructible</span></code>.
+                  </p></dd>
+<dt><span class="term">Throws</span></dt>
+<dd><p>
+                    If copy consturction or copy assignment throws.
+                  </p></dd>
+</dl>
+</div>
+</dd>
+<dt><span class="term"><code class="computeroutput"><span class="identifier">variant</span> <span class="special">&amp;</span>
+          <span class="keyword">operator</span><span class="special">=(</span><span class="identifier">variant</span> <span class="special">&amp;&amp;)</span></code></span></dt>
+<dd>
+<p>
+              Move-assigns a variant.
+            </p>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Requires</span></dt>
+<dd><p>
+                    Each type <code class="computeroutput"><span class="identifier">First</span><span class="special">,</span> <span class="identifier">Types</span><span class="special">...</span></code> is <code class="computeroutput"><span class="identifier">MoveAssignable</span></code>
+                    and <code class="computeroutput"><span class="identifier">nothrow_move_constructible</span></code>.
+                  </p></dd>
+<dt><span class="term">Throws</span></dt>
+<dd><p>
+                    If the engaged type is <code class="computeroutput"><span class="identifier">recursive_wrapper</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span></code>, this may throw if a dynamic
+                    allocation fails or if move construction of <code class="computeroutput"><span class="identifier">T</span></code>
+                    fails. If the type has a throwing move assignment, then this
+                    may throw such exceptions. Otherwise this call is <code class="computeroutput"><span class="keyword">noexcept</span></code>.
+                  </p></dd>
+</dl>
+</div>
+</dd>
+<dt><span class="term"><code class="computeroutput"><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">,</span> <span class="keyword">typename</span> <span class="special">...</span> <span class="identifier">Args</span><span class="special">&gt;</span> <span class="keyword">void</span> <span class="identifier">emplace</span><span class="special">(</span><span class="identifier">Args</span> <span class="special">&amp;&amp;</span>
+          <span class="special">...</span> <span class="identifier">args</span><span class="special">)</span></code></span></dt>
+<dd>
+<p>
+              Emplaces a value of type <code class="computeroutput"><span class="identifier">T</span></code>
+              into the variant.
+            </p>
+<p>
+              Force the variant to a particular type and value.
+            </p>
+<p>
+              The user explicitly specifies the desired type as template parameter,
+              which must be one of the variant types, modulo const, recursive wrapper.
+            </p>
+<p>
+              There are actually two implementations of emplace, depending on whether
+              the invoked ctor is <code class="computeroutput"><span class="keyword">noexcept</span></code>.
+              If it is not, then a move is used for strong exception-safety.
+            </p>
+<p>
+              <code class="computeroutput"><span class="identifier">emplace</span></code> may be used
+              to resolve ambiguity in assignment, or to put a value in the container
+              which is not <code class="computeroutput"><span class="identifier">nothrow_move_constructible</span></code>.
+            </p>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Requires</span></dt>
+<dd><p>
+                    <span class="emphasis"><em>Either</em></span> the invoked constructor, <span class="emphasis"><em>or</em></span>
+                    the move constructor of <code class="computeroutput"><span class="identifier">T</span></code>,
+                    must be <code class="computeroutput"><span class="keyword">noexcept</span></code>
+                    to use <code class="computeroutput"><span class="identifier">emplace</span></code>.
+                  </p></dd>
+<dt><span class="term">Throws</span></dt>
+<dd><p>
+                    If the invoked constructor throws.
+                  </p></dd>
+</dl>
+</div>
+</dd>
+</dl>
+</div>
+<div class="variablelist">
+<p class="title"><b>Destructor</b></p>
+<dl>
+<dt><span class="term">`~variant() noexcept</span></dt>
+<dd><p>
+              Destroys the contained value. Never throws.
+            </p></dd>
+</dl>
+</div>
+<div class="variablelist">
+<p class="title"><b>Accessors</b></p>
+<dl>
+<dt><span class="term">int which() const noexcept</span></dt>
+<dd>
+<p>
+              Returns the <code class="computeroutput"><span class="identifier">which</span></code> indicator
+              value.
+            </p>
+<p>
+              The <code class="computeroutput"><span class="identifier">which</span></code> value is
+              an index into the list <code class="computeroutput"><span class="identifier">First</span><span class="special">,</span> <span class="identifier">Types</span><span class="special">...</span></code> of template parameters, indicating
+              the currently contained type.
+            </p>
+</dd>
+<dt><span class="term"><code class="computeroutput"><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span> <span class="identifier">T</span> <span class="special">*</span> <span class="identifier">get</span><span class="special">()</span> <span class="keyword">noexcept</span></code></span></dt>
+<dd><p>
+              Returns a pointer to the current value if <code class="computeroutput"><span class="identifier">T</span></code>
+              is the type of the currently contained value. (Ignoring <code class="computeroutput"><span class="keyword">const</span></code> qualifier and <code class="computeroutput"><span class="identifier">recursive_wrapper</span></code>.)
+              Returns <code class="computeroutput"><span class="keyword">nullptr</span></code> otherwise.
+            </p></dd>
+<dt><span class="term"><code class="computeroutput"><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span> <span class="keyword">const</span> <span class="identifier">T</span> <span class="special">*</span> <span class="identifier">get</span><span class="special">()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span></code></span></dt>
+<dd><p>
+              Returns a pointer to the current value if <code class="computeroutput"><span class="identifier">T</span></code>
+              is the type of the currently contained value. (Ignoring <code class="computeroutput"><span class="keyword">const</span></code> qualifier and <code class="computeroutput"><span class="identifier">recursive_wrapper</span></code>.)
+              Returns <code class="computeroutput"><span class="keyword">nullptr</span></code> otherwise.
+            </p></dd>
+<dt><span class="term"><code class="computeroutput"><span class="keyword">template</span> <span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">index</span><span class="special">&gt;</span> <span class="keyword">auto</span> <span class="special">*</span> <span class="identifier">get</span><span class="special">()</span> <span class="keyword">noexcept</span></code></span></dt>
+<dd>
+<p>
+              Returns a pointer to the current value if <code class="computeroutput"><span class="identifier">which</span><span class="special">()</span> <span class="special">==</span> <span class="identifier">index</span></code>. Returns <code class="computeroutput"><span class="keyword">nullptr</span></code>
+              otherwise.
+            </p>
+<p>
+              (Unwraps any <code class="computeroutput"><span class="identifier">recursive_wrapper</span></code>.)
+            </p>
+</dd>
+<dt><span class="term"><code class="computeroutput"><span class="keyword">template</span> <span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">index</span><span class="special">&gt;</span> <span class="keyword">const</span> <span class="keyword">auto</span> <span class="special">*</span> <span class="identifier">get</span><span class="special">()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span></code></span></dt>
+<dd>
+<p>
+              Returns a pointer to the current value if <code class="computeroutput"><span class="identifier">which</span><span class="special">()</span> <span class="special">==</span> <span class="identifier">index</span></code>. Returns <code class="computeroutput"><span class="keyword">nullptr</span></code>
+              otherwise.
+            </p>
+<p>
+              (Unwraps any <code class="computeroutput"><span class="identifier">recursive_wrapper</span></code>.)
+            </p>
+</dd>
+</dl>
+</div>
+<div class="variablelist">
+<p class="title"><b>Operators</b></p>
+<dl>
+<dt><span class="term">bool operator ==(const variant &amp; other) const</span></dt>
+<dd>
+<p>
+              Checks if <code class="computeroutput"><span class="identifier">which</span><span class="special">()</span>
+              <span class="special">==</span> <span class="identifier">other</span><span class="special">.</span><span class="identifier">which</span><span class="special">()</span></code>. Then checks if the contained values
+              compare equal using <code class="computeroutput"><span class="keyword">operator</span>
+              <span class="special">==</span></code>.
+            </p>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Requires</span></dt>
+<dd><p>
+                    Each type <code class="computeroutput"><span class="identifier">First</span><span class="special">,</span> <span class="identifier">Types</span><span class="special">...</span></code> is <code class="computeroutput"><span class="identifier">EqualityComparable</span></code>.
+                  </p></dd>
+<dt><span class="term">Throws</span></dt>
+<dd><p>
+                    If equality-comparison can throw.
+                  </p></dd>
+</dl>
+</div>
+</dd>
+<dt><span class="term">bool operator !=(const variant &amp;) const</span></dt>
+<dd><p>
+              Returns the negation of <code class="computeroutput"><span class="keyword">operator</span>
+              <span class="special">==</span></code>.
+            </p></dd>
+</dl>
+</div>
+<h5>
+<a name="strict_variant.reference.class_template_variant.h4"></a>
+        <span><a name="strict_variant.reference.class_template_variant.template_functions"></a></span><a class="link" href="class_template_variant.html#strict_variant.reference.class_template_variant.template_functions">Template
+        Functions</a>
+      </h5>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term"><code class="computeroutput"><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span> <span class="identifier">T</span> <span class="special">*</span> <span class="identifier">get</span><span class="special">(</span><span class="identifier">variant</span> <span class="special">*)</span></code></span></dt>
+<dd></dd>
+<dt><span class="term"><code class="computeroutput"><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span> <span class="keyword">const</span> <span class="identifier">T</span> <span class="special">*</span> <span class="identifier">get</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">variant</span>
+          <span class="special">*)</span></code></span></dt>
+<dd></dd>
+<dt><span class="term"><code class="computeroutput"><span class="keyword">template</span> <span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">index</span><span class="special">&gt;</span> <span class="keyword">auto</span> <span class="special">*</span> <span class="identifier">get</span><span class="special">(</span><span class="identifier">variant</span> <span class="special">*)</span></code></span></dt>
+<dd></dd>
+<dt><span class="term"><code class="computeroutput"><span class="keyword">template</span> <span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">index</span><span class="special">&gt;</span> <span class="keyword">const</span> <span class="keyword">auto</span> <span class="special">*</span> <span class="identifier">get</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">variant</span>
+          <span class="special">*)</span></code></span></dt>
+<dd><p>
+              Equivalent to <code class="computeroutput"><span class="identifier">variant</span><span class="special">::</span><span class="identifier">get</span></code>
+              member function.
+            </p></dd>
+<dt><span class="term"><code class="computeroutput"><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span> <span class="identifier">T</span> <span class="special">&amp;</span> <span class="identifier">get_or_default</span><span class="special">(</span><span class="identifier">variant</span> <span class="special">*</span> <span class="identifier">v</span><span class="special">,</span>
+          <span class="identifier">T</span> <span class="identifier">def</span>
+          <span class="special">=</span> <span class="special">{})</span></code></span></dt>
+<dd>
+<p>
+              Returns a reference to the stored value. If it does not currently have
+              the indicated type, then the argument <code class="computeroutput"><span class="identifier">def</span></code>
+              is emplaced into the variant, and a reference to that value, within
+              the variant, is returned.
+            </p>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Requires</span></dt>
+<dd><p>
+                    <code class="computeroutput"><span class="identifier">T</span></code> is one of the
+                    variant template parameters, modulo <code class="computeroutput"><span class="keyword">const</span></code>
+                    and <code class="computeroutput"><span class="identifier">recursive_wrapper</span></code>.
+                  </p></dd>
+<dt><span class="term">Throws</span></dt>
+<dd><p>
+                    Only if <code class="computeroutput"><span class="identifier">v</span><span class="special">-&gt;</span><span class="identifier">emplace</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">move</span><span class="special">(</span><span class="identifier">def</span><span class="special">))</span></code>
+                    throws.
+                  </p></dd>
+</dl>
+</div>
+</dd>
+<dt><span class="term"><code class="computeroutput"><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">Visitor</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Variant</span><span class="special">&gt;</span>
+          <span class="keyword">auto</span> <span class="identifier">apply_visitor</span><span class="special">(</span><span class="identifier">Visitor</span> <span class="special">&amp;&amp;</span> <span class="identifier">visitor</span><span class="special">,</span> <span class="identifier">Variant</span> <span class="special">&amp;&amp;</span> <span class="identifier">variant</span><span class="special">)</span></code></span></dt>
+<dd>
+<p>
+              Applies <code class="computeroutput"><span class="identifier">visitor</span></code> to
+              the value contained in <code class="computeroutput"><span class="identifier">variant</span></code>.
+            </p>
+<p>
+              This call is equivalent to the expression <code class="computeroutput"><span class="identifier">visitor</span><span class="special">(</span><span class="identifier">value</span><span class="special">)</span></code>, where <code class="computeroutput"><span class="identifier">visitor</span></code>
+              and <code class="computeroutput"><span class="identifier">value</span></code> have value-category
+              corresponding to the arguments <code class="computeroutput"><span class="identifier">visitor</span></code>
+              and <code class="computeroutput"><span class="identifier">variant</span></code>, and <code class="computeroutput"><span class="identifier">value</span></code> has the run-time type of the
+              value currently contained in <code class="computeroutput"><span class="identifier">variant</span></code>.
+            </p>
+<p>
+              The return value is the result of that call.
+            </p>
+<p>
+              If <code class="computeroutput"><span class="identifier">visitor</span></code> returns
+              different types when different types from the <code class="computeroutput"><span class="identifier">variant</span></code>
+              are passed, the result type is a common base if one can be found. Otherwise
+              the call is ill-formed.
+            </p>
+<p>
+              It is not possible to return an rvalue-reference -- <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">decay</span></code>
+              will be applied. However it is possible to return an lvalue-reference.
+            </p>
+</dd>
+<dt><span class="term"><code class="computeroutput"><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">Visitor</span><span class="special">,</span> <span class="keyword">typename</span><span class="special">...</span> <span class="identifier">Variants</span><span class="special">&gt;</span> <span class="keyword">auto</span> <span class="identifier">apply_visitor</span><span class="special">(</span><span class="identifier">Visitor</span> <span class="special">&amp;&amp;</span>
+          <span class="identifier">visitor</span><span class="special">,</span>
+          <span class="identifier">Variant</span> <span class="special">&amp;&amp;</span>
+          <span class="special">...</span> <span class="identifier">variants</span><span class="special">)</span></code></span></dt>
+<dd>
+<p>
+              Applies <code class="computeroutput"><span class="identifier">visitor</span></code> simultaneously
+              to each of the values contained in <code class="computeroutput"><span class="identifier">variants</span></code>.
+            </p>
+<p>
+              This call is equivalent to <code class="computeroutput"><span class="identifier">visitor</span><span class="special">(</span><span class="identifier">value1</span><span class="special">,</span> <span class="identifier">value2</span><span class="special">,</span> <span class="special">...)</span></code>.
+            </p>
+<p>
+              This extended form is called <span class="bold"><strong>multivisitation</strong></span>.
+            </p>
+<p>
+              To use it, you must include an extra header <code class="computeroutput"><span class="special">&lt;</span><span class="identifier">strict_variant</span><span class="special">/</span><span class="identifier">multivisit</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span></code>.
+            </p>
+</dd>
+</dl>
+</div>
+<h5>
+<a name="strict_variant.reference.class_template_variant.h5"></a>
+        <span><a name="strict_variant.reference.class_template_variant.template_aliases"></a></span><a class="link" href="class_template_variant.html#strict_variant.reference.class_template_variant.template_aliases">Template
+        Aliases</a>
+      </h5>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term"><code class="computeroutput"><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span><span class="special">...</span> <span class="identifier">Types</span><span class="special">&gt;</span> <span class="keyword">using</span> <span class="identifier">easy_variant</span></code></span></dt>
+<dd>
+<p>
+              Template alias <code class="computeroutput"><span class="identifier">easy_variant</span></code>
+              is defined in terms of strict_variant.
+            </p>
+<p>
+              The purpose of <code class="computeroutput"><span class="identifier">easy_variant</span></code>
+              is to try to make a version of <code class="computeroutput"><span class="identifier">strict_variant</span></code>
+              which is more forgiving in regards to throwing moves.
+            </p>
+<p>
+              If one of the types in the list has a throwing move, it gets implicitly
+              wrapped in <code class="computeroutput"><span class="identifier">recursive_wrapper</span></code>,
+              so that <code class="computeroutput"><span class="identifier">strict_variant</span></code>
+              can generate an assignment operator.
+            </p>
+<p>
+              Example implementation:
+            </p>
+<pre class="programlisting"><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span><span class="special">...</span> <span class="identifier">Ts</span><span class="special">&gt;</span>
+<span class="keyword">using</span> <span class="identifier">easy_variant</span> <span class="special">=</span> <span class="identifier">variant</span><span class="special">&lt;</span><span class="identifier">wrap_if_throwing_move_t</span><span class="special">&lt;</span><span class="identifier">Ts</span><span class="special">&gt;...&gt;;</span>
+</pre>
+<p>
+              where <code class="computeroutput"><span class="identifier">wrap_if_throwing_move_t</span></code>
+              is defined:
+            </p>
+<pre class="programlisting"><span class="keyword">struct</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">,</span> <span class="keyword">typename</span> <span class="special">=</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">enable_if_t</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">is_nothrow_destructible</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;::</span><span class="identifier">value</span> <span class="special">&amp;&amp;</span> <span class="special">!</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">is_reference</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;::</span><span class="identifier">value</span><span class="special">&gt;&gt;</span>
+<span class="keyword">struct</span> <span class="identifier">wrap_if_throwing_move</span> <span class="special">{</span>
+  <span class="keyword">using</span> <span class="identifier">type</span> <span class="special">=</span> <span class="keyword">typename</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">conditional</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">is_nothrow_move_constructible</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;::</span><span class="identifier">value</span><span class="special">,</span>
+                                         <span class="identifier">T</span><span class="special">,</span>
+                                         <span class="identifier">recursive_wrapper</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;&gt;::</span><span class="identifier">type</span><span class="special">;</span>
+<span class="special">};</span>
+
+<span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
+<span class="keyword">using</span> <span class="identifier">wrap_if_throwing_move_t</span> <span class="special">=</span> <span class="keyword">typename</span> <span class="identifier">wrap_if_throwing_move</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;::</span><span class="identifier">type</span><span class="special">;</span>
+</pre>
+</dd>
+</dl>
+</div>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright &#169; 2016 Chris Beck<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="../reference.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../reference.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="class_template_recursive_wrapper.html"><img src="../../images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>
