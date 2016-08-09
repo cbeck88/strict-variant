@@ -38,6 +38,8 @@ even on the same machine.
 
 (Consider when `x = -1`. The former may return the `unsigned long` max, while the latter may return the `unsigned int` max, which promotes without change to an `unsigned long` value.)
 
+In other words, promotion and signed-to-unsigned conversions do not commute in the [@https://en.wikipedia.org/wiki/Commutative_diagram mathematical sense].
+
 It seems better for the programmer to spell out exactly what they want to happen, when there is both a signed-to-unsigned and a promotion step.
 
 [h3 Examples]
@@ -56,11 +58,14 @@ It seems better for the programmer to spell out exactly what they want to happen
   static_assert(!safely_constructible<int, double>::value, "");
   static_assert(!safely_constructible<double, int>::value, "");
 
-  static_assert(safely_constructible<const char *, decltype("foo")>::value, "");
-  static_assert(!safely_constructible<char *, decltype("foo")>::value, "");
+  static_assert(!safely_constructible<bool, const char *>::value, "");
+  static_assert(!safely_constructible<const void *, const char *>::value, "");
 
   static_assert(safely_constructible<const char *, char *>::value, "");
   static_assert(!safely_constructible<char *, const char *>::value, "");
+
+  static_assert(safely_constructible<const char *, decltype("foo")>::value, "");
+  static_assert(!safely_constructible<char *, decltype("foo")>::value, "");
 ```
 
 [endsect]
