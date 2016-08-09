@@ -347,8 +347,7 @@ Other properties of `variant`:
 
 [variablelist
 
-[[`template <typename... Types>
-   using easy_variant`]
+[[`template <typename... Types> easy_variant`]
  [
    Template alias `easy_variant` is defined in terms of strict_variant.
 
