@@ -408,7 +408,7 @@
                   </p></dd>
 <dt><span class="term">Throws</span></dt>
 <dd><p>
-                    If copy consturction or copy assignment throws.
+                    If copy construction or copy assignment throws.
                   </p></dd>
 </dl>
 </div>
@@ -448,13 +448,14 @@
               Force the variant to a particular type and value.
             </p>
 <p>
-              The user explicitly specifies the desired type as template parameter,
-              which must be one of the variant types, modulo const, recursive wrapper.
+              The user explicitly specifies the desired type as template parameter.
             </p>
 <p>
-              There are actually two implementations of emplace, depending on whether
-              the invoked ctor is <code class="computeroutput"><span class="keyword">noexcept</span></code>.
-              If it is not, then a move is used for strong exception-safety.
+              There are actually two implementations of <code class="computeroutput"><span class="identifier">emplace</span></code>,
+              depending on whether the invoked ctor is <code class="computeroutput"><span class="keyword">noexcept</span></code>.
+              If it is, construction takes in place directly in the storage. If it
+              is not, construction takes place on the stack, and the value is moved
+              into storage. (For strong exception-safety.)
             </p>
 <p>
               <code class="computeroutput"><span class="identifier">emplace</span></code> may be used
@@ -466,14 +467,16 @@
 <dl>
 <dt><span class="term">Requires</span></dt>
 <dd><p>
-                    <span class="emphasis"><em>Either</em></span> the invoked constructor, <span class="emphasis"><em>or</em></span>
+                    <code class="computeroutput"><span class="identifier">T</span></code> must be a member
+                    of the variant, modulo <code class="computeroutput"><span class="keyword">const</span></code>
+                    and <code class="computeroutput"><span class="identifier">recursive_wrapper</span></code>,
+                    and <span class="emphasis"><em>either</em></span> the invoked constructor, <span class="emphasis"><em>or</em></span>
                     the move constructor of <code class="computeroutput"><span class="identifier">T</span></code>,
-                    must be <code class="computeroutput"><span class="keyword">noexcept</span></code>
-                    to use <code class="computeroutput"><span class="identifier">emplace</span></code>.
+                    must be <code class="computeroutput"><span class="keyword">noexcept</span></code>.
                   </p></dd>
 <dt><span class="term">Throws</span></dt>
 <dd><p>
-                    If the invoked constructor throws.
+                    Only if the invoked constructor throws.
                   </p></dd>
 </dl>
 </div>
@@ -675,7 +678,7 @@
 <div class="variablelist">
 <p class="title"><b></b></p>
 <dl>
-<dt><span class="term"><code class="computeroutput"><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span><span class="special">...</span> <span class="identifier">Types</span><span class="special">&gt;</span> <span class="keyword">using</span> <span class="identifier">easy_variant</span></code></span></dt>
+<dt><span class="term"><code class="computeroutput"><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span><span class="special">...</span> <span class="identifier">Types</span><span class="special">&gt;</span> <span class="identifier">easy_variant</span></code></span></dt>
 <dd>
 <p>
               Template alias <code class="computeroutput"><span class="identifier">easy_variant</span></code>
