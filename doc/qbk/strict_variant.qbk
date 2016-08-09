@@ -30,10 +30,10 @@
 [include ClassRecursiveWrapper.qbk]
 [include Includes.qbk]
 [include Configuration.qbk]
-[include Compatibility.qbk]
 [endsect]
 
 [section:remarks Remarks]
+[include Compatibility.qbk]
 [include ImplementationNotes.qbk]
 [include Comparison.qbk]
 [include Benchmarks.qbk]

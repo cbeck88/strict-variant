@@ -99,7 +99,7 @@ The `strict_variant::variant` is in many ways similar to `boost::variant`, which
 (However, this interface is exception-free. If you want to have
 analogues of the throwing functions in `boost::variant` you'll have to write them, which is pretty easy to do on top of the exception-free interface.)
 
-The template arguments to `variant` obey a few hard restrictions:
+The template arguments to `variant` are subject to a few hard restrictions:
 
 # Must be `nothrow_destructible`. This is enforced by `static_assert`.
 # Must not be a reference type. This is enforced by `static_assert`. Use `std::reference_wrapper` if you need this.
