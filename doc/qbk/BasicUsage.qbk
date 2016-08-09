@@ -1,4 +1,4 @@
-[section Basic Usage]
+[section:basic Basic Usage]
 
 The "basic usage" of `strict_variant::variant` mirrors that of
 `boost::variant`. If you are not familiar with `boost::variant`, I suggest

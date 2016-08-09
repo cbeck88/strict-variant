@@ -89,7 +89,7 @@ complete examples.
   [[A][
     If each contained type is nothrow moveable, then `strict_variant` is also.
     Since `easy_variant` puts each type with a throwing move inside a `recursive_wrapper`
-    which is nothrow moveable, then it is always nothrow moveable.
+    which is nothrow moveable, `easy_variant` is always nothrow moveable.
   ]]
   [[A2][
     *WRONG*.
@@ -110,21 +110,10 @@ complete examples.
     for `strict_variant`, but then `strict_variant` turns around and gives me a throwing move when
     I don't succeed -- even when I use `easy_variant` like instructed!
 
-    This means that actually, in that code from the tutorial, where we represent an XML node using
+    This means that actually, in [link strict_variant.tutorial.basic that code from the tutorial], where we represent an XML node using
     `recursive_wrapper`, we're actually on the slow track in that `vector`, aren't we? So we'll implicitly
     get tons of copies of child xml nodes when parsing an xml tree and the vector has to resize, won't we?
-
-    ```
-    using xml_attribute = std::pair<std::string, std::string>;
-    struct xml_node;
-    
-    using xml_variant = variant<xml_attribute, recursive_wrapper<xml_node>>;
-    
-    struct xml_node {
-      std::string name;
-      std::vector<xml_variant> body;
-    };
-    ```]]
+    ]]
   [[A2][
     Yes. I agree that this is unfortunate.
 
@@ -151,6 +140,9 @@ complete examples.
     The main drawback at that point is that, `unique_ptr` is not copyable, so your `strict_variant` won't be copyable.
     But it's pretty simple to roll your own quick `unique_ptr` that rectifies that. Who knows, we might even do that
     for you in the next release...
+
+    Hopefully, this at least convinces you that `strict_variant` is a flexible and useful low-level component, and that
+    you can easily configure it like this to get the semantics that you need without introducing unnecessary overhead.
     ]]]
 
 [variablelist
@@ -158,14 +150,18 @@ complete examples.
     When is `strict_variant` nothrow assignable? `easy_variant`?
   ]]
   [[A][
-    `strict_variant` is assignable when all of its types are nothrow move constructible,
-    in addition to the usual requirements. `easy_variant` is always assignable.
+    `strict_variant` is copy assignable when all of its types are assignable, copy constructible, and nothrow move constructible.
+    It is `noexcept` copy assignable if each type's copy assignment and copy construction is `noexcept`.
+    `easy_variant` is assignable if each type is copy constructible and assignable. Since copying a `recursive_wrapper` involves a dynamic allocation,
+    `easy_variant`'s copy assignment can throw if `recursive_wrapper` gets involved.
 
-    A ['move assignment] potentially throws exactly when `recursive_wrapper` is
-    involved. (Same as when `strict_variant` has a throwing move.) Because, we have
+    `strict_variant` is move assignable when all of its types are move assignable and nothrow move constructible.
+    It is `noexcept` move assignable if each type's move assignment is `noexcept`, AND if none is `recursive_wrapper`.
+    (Similar to when `strict_variant` has a throwing move.) Because, we have
     to use the value-move first, and can only use the pointer-move to move into storage.
 
-    A ['copy assignment] potentially throws when constructing a copy of one of the types can throw.]]]
-
+    `easy_variant` is move assignable as long as every template parameter is move assignable and move constructible. It is nothrow move assignable as long as
+    all of the types are nothrow move assignable and nothrow move constructible -- none of them should actually end up in a `recursive_wrapper`.
+    ]]]
 
 [endsect]
