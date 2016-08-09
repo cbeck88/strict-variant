@@ -240,8 +240,7 @@ Other properties of `variant`:
 
 [[`template <typename T>
   T * get() noexcept`]
- [ Returns a pointer to the current value if `T` is the type of the currently contained value. (Ignoring `const` qualifier and `recursive_wrapper`.)
-   Returns `nullptr` otherwise. ]]
+ []]
 
 [[`template <typename T>
   const T * get() const noexcept`]
@@ -250,11 +249,7 @@ Other properties of `variant`:
 
 [[`template <std::size_t index>
   auto * get() noexcept`]
- [ Returns a pointer to the current value if `which() == index`.
-   Returns `nullptr` otherwise.
-
-   (Unwraps any `recursive_wrapper`.)
- ]]
+ []]
 
 [[`template <std::size_t index>
   const auto * get() const noexcept`]
