@@ -114,7 +114,7 @@ struct safe_by_rank {
   static constexpr bool value =
     same_class && (same_sign ? (ra >= rb) : (sign_to_unsign && ra == rb));
 
-  static constexpr int priority = 2 * (5 - ra) + sa;
+  static constexpr int priority = (5 - ra);
 };
 
 // Technically, the standard specifies that `char, signed char, unsigned char`
@@ -131,10 +131,10 @@ struct safe_by_rank {
 template <>
 struct safe_by_rank<unsigned char, signed char> {
   static constexpr bool value = true;
-  static constexpr int priority = 9;
+  static constexpr int priority = 4;
 };
 
-static constexpr int priority_max = 10;
+static constexpr int priority_max = 5;
 
 } // end namespace mpl
 } // end namespace strict_variant
