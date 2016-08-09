@@ -7,7 +7,7 @@
 Do you use `boost::variant` or one of the many open-source C++11 implementations of a "tagged union" or variant type
 in your C++ projects?
 
-Do you get annoyed that code like this may compile, without any warning or error message?
+Do you dislike that code like this may compile, without any warning or error message?
 
 ```c++
   boost::variant<std::string, int> v;  
@@ -15,7 +15,7 @@ Do you get annoyed that code like this may compile, without any warning or error
   v = true;  
 ```
 
-Do you get annoyed that code like this may compile on some machines, but not others?
+Do you dislike that code like this may compile on some machines, but not others?
 
 ```c++
   boost::variant<long, unsigned int> v;  

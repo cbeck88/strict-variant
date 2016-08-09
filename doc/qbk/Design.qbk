@@ -288,8 +288,10 @@ types are involved.
 
 [h4 Safe Conversions]
 
+When assigning or constructing a variant,
+
 * Implicit conversions are not permitted between any two of the following classes:  
-  * Integral types (`short`, `int`, `long`, `long long`, and unsigned variations)
+  * Integer types (`short`, `int`, `long`, `long long`, and unsigned variations)
   * Floating point types (`float`, `double`, `long double`)
   * Character types (`char`, `char16_t`, `char32_t`, and unsigned variations)
   * Pointer types
@@ -354,7 +356,7 @@ if your type is constructible from `unsigned long long`, we can't prevent the co
 when assigning from an `int` using SFINAE so far as I know. (And it's not clear that
 that would be desirable anyways.) ]
 
-The actual test is performed by a type trait, `strict_variant::safely_constructible`,
+The actual test is performed by [link strict_variant.reference.safely_constructible a type trait], `strict_variant::safely_constructible`,
 which refines `std::is_constructible`. You can make tests against that if you want to e.g.
 make static assertions that certain conversions are or aren't permitted.
 
@@ -386,12 +388,12 @@ Therefore, when an assignment is made to `strict_variant`, if there are multiple
 integral types, it prioritizes them by rank. If a "safe conversion" is possible
 using types of a multiple ranks, only those of smallest rank are introduced into
 overload resolution, and the larger ones are not considered.
-In addition, `signed` types are considered to have higher priority than their
-`unsigned` counterparts.
 
 These rules allow us to resolve any ties when converting from fundamental types
 to signed or unsigned integral types `short, int, long, long long`, signed or unsigned character types,
 and floating point types. (Note that the winner of these ties could still be ambiguous with a user-defined type which is also a member of the variant.)
+
+[note Here "rank" refers to "conversion rank" defined by the standard. The actual sizes of the types on your implementation don't matter here.]
 
 [h4 Emplace]
 
