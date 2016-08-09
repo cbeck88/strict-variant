@@ -133,7 +133,7 @@
       </p>
 <p>
         The template arguments to <code class="computeroutput"><span class="identifier">variant</span></code>
-        obey a few hard restrictions:
+        are subject to a few hard restrictions:
       </p>
 <div class="orderedlist"><ol class="orderedlist" type="1">
 <li class="listitem">
@@ -508,11 +508,7 @@
             </p>
 </dd>
 <dt><span class="term"><code class="computeroutput"><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span> <span class="identifier">T</span> <span class="special">*</span> <span class="identifier">get</span><span class="special">()</span> <span class="keyword">noexcept</span></code></span></dt>
-<dd><p>
-              Returns a pointer to the current value if <code class="computeroutput"><span class="identifier">T</span></code>
-              is the type of the currently contained value. (Ignoring <code class="computeroutput"><span class="keyword">const</span></code> qualifier and <code class="computeroutput"><span class="identifier">recursive_wrapper</span></code>.)
-              Returns <code class="computeroutput"><span class="keyword">nullptr</span></code> otherwise.
-            </p></dd>
+<dd></dd>
 <dt><span class="term"><code class="computeroutput"><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span> <span class="keyword">const</span> <span class="identifier">T</span> <span class="special">*</span> <span class="identifier">get</span><span class="special">()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span></code></span></dt>
 <dd><p>
               Returns a pointer to the current value if <code class="computeroutput"><span class="identifier">T</span></code>
@@ -520,15 +516,7 @@
               Returns <code class="computeroutput"><span class="keyword">nullptr</span></code> otherwise.
             </p></dd>
 <dt><span class="term"><code class="computeroutput"><span class="keyword">template</span> <span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">index</span><span class="special">&gt;</span> <span class="keyword">auto</span> <span class="special">*</span> <span class="identifier">get</span><span class="special">()</span> <span class="keyword">noexcept</span></code></span></dt>
-<dd>
-<p>
-              Returns a pointer to the current value if <code class="computeroutput"><span class="identifier">which</span><span class="special">()</span> <span class="special">==</span> <span class="identifier">index</span></code>. Returns <code class="computeroutput"><span class="keyword">nullptr</span></code>
-              otherwise.
-            </p>
-<p>
-              (Unwraps any <code class="computeroutput"><span class="identifier">recursive_wrapper</span></code>.)
-            </p>
-</dd>
+<dd></dd>
 <dt><span class="term"><code class="computeroutput"><span class="keyword">template</span> <span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">index</span><span class="special">&gt;</span> <span class="keyword">const</span> <span class="keyword">auto</span> <span class="special">*</span> <span class="identifier">get</span><span class="special">()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span></code></span></dt>
 <dd>
 <p>
