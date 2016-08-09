@@ -120,5 +120,3 @@ TODO
 ====
 
 - `noexcept` correctness for `apply_visitor`?
-- Improve docu w.r.t. class template synopses
-- Use quickbook `import` directives for tutorial code
