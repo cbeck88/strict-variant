@@ -366,7 +366,8 @@ public:
 
   // get with integer index
   template <std::size_t idx>
-  auto get() noexcept -> decltype(&static_cast<storage_t*>(nullptr)->template get_value<idx>(detail::false_{})) {
+  auto get() noexcept
+    -> decltype(&static_cast<storage_t *>(nullptr)->template get_value<idx>(detail::false_{})) {
     if (idx == m_which) {
       return &m_storage.template get_value<idx>(detail::false_{});
     } else {
@@ -375,7 +376,8 @@ public:
   }
 
   template <std::size_t idx>
-  auto get() const noexcept -> decltype(&static_cast<const storage_t*>(nullptr)->template get_value<idx>(detail::false_{})) {
+  auto get() const noexcept -> decltype(
+    &static_cast<const storage_t *>(nullptr)->template get_value<idx>(detail::false_{})) {
     if (idx == m_which) {
       return &m_storage.template get_value<idx>(detail::false_{});
     } else {
@@ -383,17 +385,18 @@ public:
     }
   }
 
-  // Friend apply_visitor
+// Friend apply_visitor
 
-  #define APPLY_VISITOR_UNEVALUATED_EXPR                                          \
-    std::declval<Visitable>().get_visitor_dispatch()(                             \
-      std::declval<Visitable>().which(),                                          \
-      std::forward<Visitable>(std::declval<Visitable>()).storage(),               \
-      std::forward<Visitor>(std::declval<Visitor>()))
+#define APPLY_VISITOR_UNEVALUATED_EXPR                                                             \
+  std::declval<Visitable>().get_visitor_dispatch()(                                                \
+    std::declval<Visitable>().which(),                                                             \
+    std::forward<Visitable>(std::declval<Visitable>()).storage(),                                  \
+    std::forward<Visitor>(std::declval<Visitor>()))
 
   // TODO: Why doesn't noexcept annotation work here? It causes ICE in gcc and clang
   template <typename Visitor, typename Visitable>
-  friend auto apply_visitor(Visitor &&, Visitable &&) /*noexcept(noexcept(APPLY_VISITOR_UNEVALUATED_EXPR))*/
+  friend auto apply_visitor(Visitor &&,
+                            Visitable &&) /*noexcept(noexcept(APPLY_VISITOR_UNEVALUATED_EXPR))*/
     -> decltype(APPLY_VISITOR_UNEVALUATED_EXPR);
 
   // Implementation details for apply_visitor
@@ -416,7 +419,8 @@ private:
  */
 template <typename Visitor, typename Visitable>
 auto
-apply_visitor(Visitor && visitor, Visitable && visitable) /*noexcept(noexcept(APPLY_VISITOR_UNEVALUATED_EXPR))*/
+apply_visitor(Visitor && visitor,
+              Visitable && visitable) /*noexcept(noexcept(APPLY_VISITOR_UNEVALUATED_EXPR))*/
   -> decltype(APPLY_VISITOR_UNEVALUATED_EXPR) {
   return visitable.get_visitor_dispatch()(visitable.which(),
                                           std::forward<Visitable>(visitable).storage(),
@@ -443,16 +447,17 @@ get(const variant<Types...> * var) noexcept {
 // Using integer index
 template <std::size_t idx, typename... Types>
 auto
-get(variant<Types...> * var) noexcept -> decltype(static_cast<variant<Types...>*>(nullptr)->template get<idx>()) {
+get(variant<Types...> * var) noexcept
+  -> decltype(static_cast<variant<Types...> *>(nullptr)->template get<idx>()) {
   return var->template get<idx>();
 }
 
 template <std::size_t idx, typename... Types>
 auto
-get(const variant<Types...> * var) noexcept -> decltype(static_cast<const variant<Types...>*>(nullptr)->template get<idx>()) {
+get(const variant<Types...> * var) noexcept
+  -> decltype(static_cast<const variant<Types...> *>(nullptr)->template get<idx>()) {
   return var->template get<idx>();
 }
-
 
 /// If a variant has type T, then get a reference to it,
 /// otherwise, create a new T default value in the variant

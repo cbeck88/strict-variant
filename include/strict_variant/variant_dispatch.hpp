@@ -49,7 +49,8 @@ namespace detail {
 /// then applies the visitor object.
 template <unsigned index, typename Internal, typename Storage, typename Visitor>
 auto
-visitor_caller(Storage && storage, Visitor && visitor) noexcept(noexcept(std::forward<Visitor>(std::declval<Visitor>())(
+visitor_caller(Storage && storage, Visitor && visitor) noexcept(
+  noexcept(std::forward<Visitor>(std::declval<Visitor>())(
     std::forward<Storage>(std::declval<Storage>()).template get_value<index>(Internal()))))
   -> decltype(std::forward<Visitor>(std::declval<Visitor>())(
     std::forward<Storage>(std::declval<Storage>()).template get_value<index>(Internal()))) {
@@ -81,7 +82,8 @@ struct return_typer {
 
   template <unsigned index>
   struct noexcept_prop {
-    using type = std::integral_constant<bool, visitor_caller_return_type<index, Internal, Storage, Visitor>::noexcept_value>;
+    using type = std::integral_constant<bool, visitor_caller_return_type<index, Internal, Storage,
+                                                                         Visitor>::noexcept_value>;
   };
 };
 
@@ -169,12 +171,11 @@ struct visitor_dispatch {
   // static constexpr unsigned int switch_point = 4;
 
   template <typename Storage, typename Visitor>
-  auto operator()(const unsigned int which, Storage && storage,
-                  Visitor && visitor) noexcept(mpl::conjunction<
-                                                 typename mpl::ulist_map<return_typer<Internal, Storage, Visitor>::template noexcept_prop,
-                                                 mpl::count_t<num_types>>::type
-                                               >::value) 
-     -> typename mpl::typelist_fwd<mpl::common_return_type_t,
+  auto operator()(const unsigned int which, Storage && storage, Visitor && visitor) noexcept(
+    mpl::conjunction<
+      typename mpl::ulist_map<return_typer<Internal, Storage, Visitor>::template noexcept_prop,
+                              mpl::count_t<num_types>>::type>::value) -> typename mpl::
+    typelist_fwd<mpl::common_return_type_t,
                  typename mpl::ulist_map<return_typer<Internal, Storage, Visitor>::template helper,
                                          mpl::count_t<num_types>>::type>::type {
     using return_t =

@@ -1,61 +1,63 @@
-#include <strict_variant/variant.hpp>
 #include <cassert>
+#include <strict_variant/variant.hpp>
 #include <string>
 #include <vector>
 
 using namespace strict_variant;
 
-void test_one() {
+void
+test_one() {
 
-//[ strict_variant_tutorial_basic
-/*`
-[note In this example code, we will be implicitly `using namespace strict_variant;`.
+  //[ strict_variant_tutorial_basic
+  /*`
+  [note In this example code, we will be implicitly `using namespace strict_variant;`.
 
-      I don't recommend doing this in your actual project, it's just for clarity in the tutorial.]
+        I don't recommend doing this in your actual project, it's just for clarity in the tutorial.]
 
-A `variant` is a special kind of container that contains ['one] value, which may
-be of several possible types. To create a variant, each of the types is passed
-as a template parameter. Any number of types may be specified, up to the implementation-specific limits on template complexity.
-*/
+  A `variant` is a special kind of container that contains ['one] value, which may
+  be of several possible types. To create a variant, each of the types is passed
+  as a template parameter. Any number of types may be specified, up to the implementation-specific
+  limits on template complexity.
+  */
 
   variant<int, std::string> v;
 
-/*`
-This code example declares a variant over the types `int` and `std::string`.  
+  /*`
+  This code example declares a variant over the types `int` and `std::string`.
 
-At all times, `v` will contain either an `int` or ` std::string`.
-If `v` is default constructed, it will attempt to default construct the first
-type in the list. If that type cannot be default constructed, then `variant`
- is not default constructible either.
+  At all times, `v` will contain either an `int` or ` std::string`.
+  If `v` is default constructed, it will attempt to default construct the first
+  type in the list. If that type cannot be default constructed, then `variant`
+   is not default constructible either.
 
-You can also initialize it using one of its values:
-*/
+  You can also initialize it using one of its values:
+  */
 
   variant<int, std::string> u{"foo"};
 
-/*`
-Intuitively, you can think of `v` as a type-safe union. It has size and 
-layout similar to the class:
-*/
+  /*`
+  Intuitively, you can think of `v` as a type-safe union. It has size and
+  layout similar to the class:
+  */
 
-/*=
+  /*=
 
-class my_tagged_union;
-  union {
-    std::string s;
-    int i;
+  class my_tagged_union;
+    union {
+      std::string s;
+      int i;
+    };
+    int which;
   };
-  int which;
-};
-*/
+  */
 
-/*`
-where `which` is `0` or `1` depending on which member of the union is currently
-engaged. A `variant` is better than this because it is smart and
-handles the implementation details of `which`, when to call destructors, etc., for you.
+  /*`
+  where `which` is `0` or `1` depending on which member of the union is currently
+  engaged. A `variant` is better than this because it is smart and
+  handles the implementation details of `which`, when to call destructors, etc., for you.
 
-You can change the value held by a variant simply by assigning to it:
-*/
+  You can change the value held by a variant simply by assigning to it:
+  */
 
   v = 5;
   v = 6;
@@ -63,12 +65,12 @@ You can change the value held by a variant simply by assigning to it:
   v = "foo";
   v = "bar";
 
-/*`
-The value can be recovered using the `get` function. `get` has syntax similar to
-a pointer cast -- it takes a pointer to a variant, and as a template parameter,
-the desired type. It then returns a pointer to the type, which is `nullptr` if
-that was not the type of the variant.
-*/
+  /*`
+  The value can be recovered using the `get` function. `get` has syntax similar to
+  a pointer cast -- it takes a pointer to a variant, and as a template parameter,
+  the desired type. It then returns a pointer to the type, which is `nullptr` if
+  that was not the type of the variant.
+  */
 
   v = 5;
   v = 6;
@@ -82,21 +84,21 @@ that was not the type of the variant.
   assert(!get<int>(&v));
   assert("bar" == *get<std::string>(&v));
 
-/*`
-[note In `boost::variant` docs, you will also see a version of `get` which takes
-  a reference rather than a pointer, and returns a reference. E.g.
+  /*`
+  [note In `boost::variant` docs, you will also see a version of `get` which takes
+    a reference rather than a pointer, and returns a reference. E.g.
 
-  ```
-     int & foo = get<int>(v);
-  ```
+    ```
+       int & foo = get<int>(v);
+    ```
 
-  This throws a `bad_variant_access` exception if `v` does not currently have type `int`.
+    This throws a `bad_variant_access` exception if `v` does not currently have type `int`.
 
-  `strict_variant` doesn't have that built-in, but it's trivial to implement it
-  yourself if you want it.]
-*/
+    `strict_variant` doesn't have that built-in, but it's trivial to implement it
+    yourself if you want it.]
+  */
 
-//<-
+  //<-
 }
 //->
 
@@ -120,14 +122,15 @@ struct formatter {
 //` When calling `apply_visitor`, the visitor comes first, and the variant second:
 //` `apply_visitor` returns whatever the visitor returns.
 //<-
-void test_two(variant<int, std::string> v = {}) {
-//->
+void
+test_two(variant<int, std::string> v = {}) {
+  //->
   v = 5;
   assert("[5]" == apply_visitor(formatter{}, v));
 
   v = "baz";
   assert("baz" == apply_visitor(formatter{}, v));
-//<-
+  //<-
 }
 //->
 
@@ -141,7 +144,8 @@ you need to add another type to the variant, having already written much code.
 If your code looks like this:
 */
 
-std::string format_variant(const variant<std::string, int> & v) {
+std::string
+format_variant(const variant<std::string, int> & v) {
   if (const auto * i = get<int>(&v)) {
     return "[" + std::to_string(*i) + "]";
   } else if (const auto * str = get<std::string>(&v)) {
@@ -205,9 +209,12 @@ struct xml_node {
 };
 
 /*`
-See also `boost::spirit` tutorial for an [@boost:/libs/spirit/doc/html/spirit/qi/tutorials/mini_xml___asts_.html#spirit.qi.tutorials.mini_xml___asts_.the_structures extended example] using `boost::variant`.
+See also `boost::spirit` tutorial for an
+[@boost:/libs/spirit/doc/html/spirit/qi/tutorials/mini_xml___asts_.html#spirit.qi.tutorials.mini_xml___asts_.the_structures
+extended example] using `boost::variant`.
 
-`recursive_wrapper<T>` is, from the user's point of view, the same in `strict_variant` as it is in `boost::variant`.
+`recursive_wrapper<T>` is, from the user's point of view, the same in `strict_variant` as it is in
+`boost::variant`.
 
 There are several ways to define an xml-tree data structure like this -- you can
 have a look also at `boost::property_tree` for instance. But using a `variant` like
@@ -224,11 +231,12 @@ Another way to assign a value to a `variant` is to use the `emplace` function.
 */
 
 //<-
-void test_three(variant<int, std::string> v = {}) {
-//->
+void
+test_three(variant<int, std::string> v = {}) {
+  //->
   v.emplace<int>(5);
   v.emplace<int>(6);
-//<-
+  //<-
 }
 //->
 
@@ -245,7 +253,8 @@ tutorial. But a few of them are:
 
 //]
 
-int main() {
+int
+main() {
   test_one();
   test_two();
   test_three();

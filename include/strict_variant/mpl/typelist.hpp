@@ -140,7 +140,8 @@ template <>
 struct conjunction<TypeList<>> : std::true_type {};
 
 template <typename... Types>
-struct conjunction<TypeList<std::integral_constant<bool, true>, Types...>> : conjunction<TypeList<Types...>> {};
+struct conjunction<TypeList<std::integral_constant<bool, true>, Types...>>
+  : conjunction<TypeList<Types...>> {};
 
 template <typename... Types>
 struct conjunction<TypeList<std::integral_constant<bool, false>, Types...>> : std::false_type {};
