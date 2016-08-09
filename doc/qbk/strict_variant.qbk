@@ -26,8 +26,8 @@
 [endsect]
 
 [section:reference Reference]
-[include Restrictions.qbk]
-[include Synopsis.qbk]
+[include ClassVariant.qbk]
+[include ClassRecursiveWrapper.qbk]
 [include Includes.qbk]
 [include Configuration.qbk]
 [include Compatibility.qbk]

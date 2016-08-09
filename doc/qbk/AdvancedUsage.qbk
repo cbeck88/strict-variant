@@ -15,9 +15,8 @@ variant::variant(emplace_tag<T>, args...)
 for example, in an initializer list, it looks like this:
 
 ```
-my_struct()
+my_struct::my_struct()
   : v(emplace_tag<std::string>{}, "foo")
-  , ...
 {}
 ```
 
