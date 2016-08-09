@@ -1,4 +1,4 @@
-[section Design]
+[section:design Design]
 
 In recent years, C++ developers have become very interested in heterogenous
 containers -- containers that can contain an value which might be of several

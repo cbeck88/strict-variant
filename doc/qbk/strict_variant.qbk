@@ -15,7 +15,7 @@
 
 [import ../../test/tutorial_basic.cpp]
 
-[section:introdution Introduction]
+[section:intro Introduction]
 [include Motivation.qbk]
 [include Design.qbk]
 [endsect]
