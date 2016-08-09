@@ -295,11 +295,9 @@ types are involved.
   * Pointer types
   * `bool`
   * `wchar_t`
-* If an integral or floating point conversion ['could] be narrowing on some conforming implementation of C++, then it is not safe.  
+* If a conversion ['could] be narrowing on some conforming implementation of C++, then it is not safe.  
   (So, `long long` cannot be converted to `long` and `long` cannot be converted to `int`,
   even if you are on a 32-bit machine and they have the same size for you, because it could be narrowing on a 64-bit machine.)
-* Signed can be promoted to unsigned, but the reverse is not allowed (since it is implementation-defined). This cannot be combined with widening.
-* Conversions like `char *` to `const char *` are permitted, and standard conversions like array-to-pointer are permitted, but otherwise no pointer conversions are permitted.
 
 So for instance,
 

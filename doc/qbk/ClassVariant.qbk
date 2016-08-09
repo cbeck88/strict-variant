@@ -174,8 +174,25 @@ Other properties of `variant`:
    `variant` contains ['fundamental types].
 
    [itemized_list
-     [Only ['safe conversions] of fundamental types are permitted. Conversions which are not safe do not participate in overload resolution. (See `strict_variant::safely_constructible` type trait.)]
-     [If multiple ['safe conversions] to fundamental types are possible, and some are of the same class but with higher rank than others, those of higher rank are not permitted and do not participate in overload resolution.]]
+     [Only ['safe conversions] of fundamental types are permitted. Conversions which are not [link strict_variant.reference.safely_constructible safe] do not participate in overload resolution. (See `strict_variant::safely_constructible`.)]
+     [If multiple ['safe conversions] to fundamental types are possible, only those of the lowest rank are permitted. Those of higher rank do not participate in overload resolution.]]
+
+   It turns out that when assigning a fundamental type to a variant, if there are fundamental types in the variant also, these rules break any ties among the fundamental types.
+
+   For instance:
+
+   ```
+     variant<int, long> v{10};                    // Selects `int`, it is lower rank.
+     variant<long, long long> v{10};              // Selects `long`, it is lower rank.
+     variant<long, unsigned int> v{10};           // Selects `unsigned int`, it is lower rank.
+     variant<long long, unsigned long> v{10};     // Selects `long long`, because `int -> unsigned long` is considered unsafe.
+     variant<int, unsigned int> v{10};            // Selects `int`, it has a better conversion (overload resolution)
+
+     variant<unsigned int, unsigned long> v{10u}; // Selects `unsigned int`, it is lower rank.
+     variant<long, unsigned long long> v{10u};    // Selects `unsigned long long`, because `unsigned -> signed` is considered unsafe.
+   ```
+
+   Overload resolution might still be ambiguous with other, user-defined types in the variant.
   ]]
 
 [[`variant(emplace_tag<T>, Args && ... args)`]

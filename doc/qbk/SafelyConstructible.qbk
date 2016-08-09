@@ -1,0 +1,66 @@
+[section:safely_constructible Type Trait `safely_constructible`]
+
+The `safely_constructible` type trait is a refinement of `std::is_constructible`,
+but which has special behavior for fundamental types, and forbids certain conversions.
+
+This trait is used to modify overload resolution in the `variant(T&&)` constructor.
+"Unsafe" conversions are eliminated using SFINAE, and don't participate in overload resolution.
+This also affects what happens when assigning an arbitrary value to a `variant`.
+
+[h3 Definition]
+
+* Implicit conversions are not permitted between any two of the following classes:  
+  * Integer types (`short`, `int`, `long`, `long long`, and unsigned variations)
+  * Floating point types (`float`, `double`, `long double`)
+  * Character types (`char`, `char16_t`, `char32_t`, and unsigned variations)
+  * Pointer types
+  * `bool`
+  * `wchar_t`
+* If a conversion ['could] be narrowing on some conforming implementation of C++, then it is not safe.  
+  (So, `long long` cannot be converted to `long` and `long` cannot be converted to `int`,
+  even if you are on a 32-bit machine and they have the same size for you, because it could be narrowing on a 64-bit machine.)
+* Signed can be promoted to unsigned, but the reverse is not allowed (since it is implementation-defined). This cannot be combined with widening.
+* Conversions like `char *` to `const char *` are permitted, and standard conversions like array-to-pointer are permitted, but otherwise no pointer conversions are permitted.
+
+The rationale for "signed-to-unsigned cannot be combined with widening" is simply that, some programmers are surprised to learn that this function
+
+```
+unsigned long f(int x) { return x; }
+```
+
+doesn't necessarily give the same numerical results as this function
+
+```
+unsigned long f(int x) { return static_cast<unsigned int>(x); }
+```
+
+even on the same machine.
+
+(Consider when `x = -1`. The former may return the `unsigned long` max, while the latter may return the `unsigned int` max, which promotes without change to an `unsigned long` value.)
+
+It seems better for the programmer to spell out exactly what they want to happen, when there is both a signed-to-unsigned and a promotion step.
+
+[h3 Examples]
+
+```
+  static_assert(safely_constructible<unsigned char, char>::value, "");
+  static_assert(!safely_constructible<char, unsigned char>::value, "");
+ 
+  static_assert(safely_constructible<unsigned int, int>::value, "");
+  static_assert(!safely_constructible<int, char>::value, "");
+  static_assert(!safely_constructible<int, bool>::value, "");
+  static_assert(!safely_constructible<char, bool>::value, "");
+
+  static_assert(safely_constructible<double, float>::value, "");
+  static_assert(!safely_constructible<float, double>::value, "");
+  static_assert(!safely_constructible<int, double>::value, "");
+  static_assert(!safely_constructible<double, int>::value, "");
+
+  static_assert(safely_constructible<const char *, decltype("foo")>::value, "");
+  static_assert(!safely_constructible<char *, decltype("foo")>::value, "");
+
+  static_assert(safely_constructible<const char *, char *>::value, "");
+  static_assert(!safely_constructible<char *, const char *>::value, "");
+```
+
+[endsect]

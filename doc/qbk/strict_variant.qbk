@@ -28,6 +28,7 @@
 [section:reference Reference]
 [include ClassVariant.qbk]
 [include ClassRecursiveWrapper.qbk]
+[include SafelyConstructible.qbk]
 [include Includes.qbk]
 [include Configuration.qbk]
 [endsect]
