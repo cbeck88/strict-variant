@@ -67,7 +67,8 @@ assignment takes place. [footnote C.f. Eric Friedman, Itay Maman. Online `boost:
 
 In many scenarios, this is a great solution -- the storage overhead is at most
 the size of a pointer. However, if your object is
-expensive or impossible to copy, then this won't work so well for you.
+expensive or impossible to copy, then this won't work so well for you. [footnote Note that if `boost::variant` is compiled with rvalue reference support, then this copy can be replaced with a move, which may be a big improvement.
+For an in-depth analysis see also [link strict_variant.remarks.comparison Comparison section].]
 
 [h4 `std::variant` approach]
 
@@ -151,7 +152,7 @@ From the user's point of view, this design results in a very familiar feel:
 * `strict_variant` doesn't actually come with any of its own exception types,
   and doesn't do any explicit `try`, `catch`, or `throw`. You don't have to
   add new exception types to your mental checklist when you use it, and it is
-  very easy to use in applications that are compiled with `-fnoexceptions` and
+  very easy to use in applications that are compiled with `-fno-exceptions` and
   / or `-fno-rtti`.
 
 Of course, this implementation pays a cost when we try to access one of the
@@ -393,7 +394,7 @@ These rules allow us to resolve any ties when converting from fundamental types
 to signed or unsigned integral types `short, int, long, long long`, signed or unsigned character types,
 and floating point types. (Note that the winner of these ties could still be ambiguous with a user-defined type which is also a member of the variant.)
 
-[note Here "rank" refers to "conversion rank" defined by the standard. The actual sizes of the types on your implementation don't matter here.]
+[note Here "rank" refers to a fixed integer defined by the library for each type, consistent with the conversion rank defined by the standard. The actual sizes of the types on your implementation don't matter here.]
 
 [h4 Emplace]
 

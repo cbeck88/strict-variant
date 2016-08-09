@@ -18,6 +18,7 @@ namespace strict_variant {
   template <typename First, typename... Types>
   class variant {
 
+    // Default constructs `First()`.
     variant();
 
     // Special member functions
@@ -179,20 +180,29 @@ Other properties of `variant`:
 
    It turns out that when assigning a fundamental type to a variant, if there are fundamental types in the variant also, these rules break any ties among the fundamental types.
 
-   For instance:
+   Here are some examples that show how ties will be broken when assigning some fundamental types.
+
+   [variablelist When assigning
+      [[`float`][ The permitted conversions, in order of priority, are `float`, `double`, `long double`.]]
+      [[`double`][ The permitted conversions, in order of priority, are `double`, `long double`.]]
+      [[`unsigned int`][ The permitted conversions, in order of priority, are `unsigned int`, `unsigned long`, `unsigned long long`.]]
+      [[`signed int`][ The permitted conversions, in order of priority, are `signed int`, `unsigned int`, `signed long`, `signed long long`.]]
+      [[`char`][ The permitted conversions, in order of priority, are `char`, `unsigned char`.]]]
+
+   Here are some concrete annotated examples:
 
    ```
      variant<int, long> v{10};                    // Selects `int`, it is lower rank.
      variant<long, long long> v{10};              // Selects `long`, it is lower rank.
+     variant<int, unsigned int> v{10};            // Selects `int`, it has a better conversion (identity)
      variant<long, unsigned int> v{10};           // Selects `unsigned int`, it is lower rank.
      variant<long long, unsigned long> v{10};     // Selects `long long`, because `int -> unsigned long` is considered unsafe.
-     variant<int, unsigned int> v{10};            // Selects `int`, it has a better conversion (overload resolution)
 
      variant<unsigned int, unsigned long> v{10u}; // Selects `unsigned int`, it is lower rank.
      variant<long, unsigned long long> v{10u};    // Selects `unsigned long long`, because `unsigned -> signed` is considered unsafe.
    ```
 
-   Overload resolution might still be ambiguous with other, user-defined types in the variant.
+   Even when ties among fundamental types are broken, overload resolution might still be ambiguous with other, user-defined types in the variant.
   ]]
 
 [[`variant(emplace_tag<T>, Args && ... args)`]
