@@ -307,6 +307,88 @@
             explicitly select the type that you want to put in the container.
           </li>
 </ol></div>
+<h5>
+<a name="strict_variant.tutorial.basic.h3"></a>
+        <span><a name="strict_variant.tutorial.basic.conclusion"></a></span><a class="link" href="basic.html#strict_variant.tutorial.basic.conclusion">Conclusion</a>
+      </h5>
+<p>
+        That should be enough to get you moving for most uses of <code class="computeroutput"><span class="identifier">variant</span></code>.
+        If you want to see more advanced uses of <code class="computeroutput"><span class="identifier">variant</span></code>,
+        using lambda function visitors, etc., see the Advanced Usage page.
+      </p>
+<p>
+        As a final remark, let me suggest another way of looking at <code class="computeroutput"><span class="identifier">variant</span></code>.
+      </p>
+<p>
+        Ostensibly, <code class="computeroutput"><span class="identifier">variant</span></code> is just
+        a standard container, like <code class="computeroutput"><span class="identifier">vector</span></code>,
+        <code class="computeroutput"><span class="identifier">set</span></code>, or <code class="computeroutput"><span class="identifier">optional</span></code>.
+      </p>
+<p>
+        But another way of thinking about <code class="computeroutput"><span class="identifier">variant</span></code>
+        is that it is a simple and efficient way of achieving runtime polymorphism.
+      </p>
+<p>
+        Every student of C++ learns about inheritance, virtual inheritance, virtual
+        dispatch, and so on. And about how to achieve runtime polymorphism by creating
+        an interface base class, and making multiple classes that derive from / implement
+        the interface.
+      </p>
+<p>
+        Another way to get runtime polymorphism is, simply use a <code class="computeroutput"><span class="identifier">variant</span></code>
+        where you would have used the base class, and use visitors to get polymorphism
+        based on the runtime type.
+      </p>
+<p>
+        Using a <code class="computeroutput"><span class="identifier">variant</span></code> is attractive
+        because:
+      </p>
+<div class="orderedlist"><ol class="orderedlist" type="1">
+<li class="listitem">
+            Inheritance creates tight-coupling -- a change to one of the objects
+            may necessitate a change in the interface, and then to all of the objects.
+            Objects held in a <code class="computeroutput"><span class="identifier">variant</span></code>
+            don't need to be related at all.
+          </li>
+<li class="listitem">
+            Usually, inheritance leads to a design where you manipulate pointers
+            to the base class, and end up allocating everything on the heap. With
+            <code class="computeroutput"><span class="identifier">variant</span></code>, the objects
+            can be allocated on the stack, which can make a huge performance difference
+            in some cases.
+          </li>
+<li class="listitem">
+            Dispatching a visitor to a <code class="computeroutput"><span class="identifier">variant</span></code>
+            is very simple and transparent to the compiler. At the time that it compiles
+            the code, it knows all of the different types that the variant could
+            be holding, and it just has to select the right function to call based
+            on the <code class="computeroutput"><span class="identifier">which</span></code> value. With
+            inheritance, the compiler often can't actually know all the possible
+            types until every compilation unit has been compiled, because any compilation
+            unit can declare a new class which inherits from the base class. So virtual
+            dispatch is usually opaque to the optimizer, while with a variant, dispatch
+            can potentially be inlined. This can sometimes be alleviated by link-time-optimizations
+            and devirtualization optimizations, but not always.
+          </li>
+<li class="listitem">
+            Variants can be used even in very restrictive software environments.
+            Virtual dispatch ultimately relies on C++ vtables and RTTI. A variant
+            will work even in a project which is compiled with <code class="computeroutput"><span class="special">-</span><span class="identifier">fno</span><span class="special">-</span><span class="identifier">rtti</span></code>. Essentially, the <code class="computeroutput"><span class="keyword">int</span> <span class="identifier">which</span></code>
+            value plays the role that the <code class="computeroutput"><span class="identifier">vptr</span></code>
+            and RTTI play.
+          </li>
+<li class="listitem">
+            Sometimes, the same <code class="computeroutput"><span class="identifier">visitor</span></code>
+            can be used with multiple different variants. This allows code reuse
+            in cases where with an inheritance-based solution you might have needed
+            to duplicate code.
+          </li>
+</ol></div>
+<p>
+        Sometimes inheritance is really what you want and need, but in other cases,
+        <code class="computeroutput"><span class="identifier">variant</span></code> is a good alternative,
+        and a good tool for your modern C++ toolkit.
+      </p>
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
 <td align="left"></td>
