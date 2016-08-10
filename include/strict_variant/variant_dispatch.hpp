@@ -49,13 +49,13 @@ namespace detail {
 /// then applies the visitor object.
 template <unsigned index, typename Internal, typename Storage, typename Visitor>
 auto
-visitor_caller(Storage && storage, Visitor && visitor) noexcept(
-  noexcept(std::forward<Visitor>(std::declval<Visitor>())(
-    std::forward<Storage>(std::declval<Storage>()).template get_value<index>(Internal()))))
-  -> decltype(std::forward<Visitor>(std::declval<Visitor>())(
-    std::forward<Storage>(std::declval<Storage>()).template get_value<index>(Internal()))) {
-  return std::forward<Visitor>(visitor)(
-    std::forward<Storage>(storage).template get_value<index>(Internal()));
+visitor_caller(Storage && s, Visitor && v) noexcept(
+  noexcept(std::forward<Visitor>(v)(
+    std::forward<Storage>(s).template get_value<index>(Internal()))))
+  -> decltype(std::forward<Visitor>(v)(
+    std::forward<Storage>(s).template get_value<index>(Internal()))) {
+  return std::forward<Visitor>(v)(
+    std::forward<Storage>(s).template get_value<index>(Internal()));
 }
 
 /// Trait which figures out what the return type of visitor caller is
