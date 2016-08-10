@@ -78,7 +78,8 @@ struct return_typer {
 
   template <unsigned index>
   struct noexcept_prop {
-    using type = std::integral_constant<bool, noexcept(RESULT_EXPR)>;
+    static constexpr bool value = noexcept(RESULT_EXPR);
+    using type = std::integral_constant<bool, value>;
   };
 
 #undef RESULT_EXPR
