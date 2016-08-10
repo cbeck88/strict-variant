@@ -403,7 +403,9 @@ private:
   storage_t && storage() && { return std::move(m_storage); }
   const storage_t & storage() const & { return m_storage; }
 
-  detail::visitor_dispatch<detail::false_, 1 + sizeof...(Types)> get_visitor_dispatch() const {
+  using dispatcher_t = detail::visitor_dispatch<detail::false_, 1 + sizeof...(Types)>;
+
+  dispatcher_t get_visitor_dispatch() const {
     return {};
   }
 };
