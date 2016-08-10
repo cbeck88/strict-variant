@@ -167,19 +167,27 @@ template <typename Internal, size_t num_types>
 struct visitor_dispatch {
   // static constexpr unsigned int switch_point = 4;
 
+  // Helper which figures out return type and noexcept status, for given storage and visitor
   template <typename Storage, typename Visitor>
-  auto operator()(const unsigned int which, Storage && storage, Visitor && visitor) noexcept(
-    mpl::conjunction<
+  struct call_helper {
+    static constexpr bool noexcept_value = mpl::conjunction<
       typename mpl::ulist_map<return_typer<Internal, Storage, Visitor>::template noexcept_prop,
-                              mpl::count_t<num_types>>::type>::value) -> typename mpl::
-    typelist_fwd<mpl::common_return_type_t,
-                 typename mpl::ulist_map<return_typer<Internal, Storage, Visitor>::template helper,
-                                         mpl::count_t<num_types>>::type>::type {
-    using return_t =
+                              mpl::count_t<num_types>>::type>::value;
+
+    using return_type =
       typename mpl::typelist_fwd<mpl::common_return_type_t,
                                  typename mpl::ulist_map<return_typer<Internal, Storage,
                                                                       Visitor>::template helper,
                                                          mpl::count_t<num_types>>::type>::type;
+  };
+
+  // Invoke the actual dispatcher
+  template <typename Storage, typename Visitor>
+  auto operator()(const unsigned int which, Storage && storage,
+                  Visitor && visitor) noexcept(call_helper<Storage, Visitor>::noexcept_value) ->
+    typename call_helper<Storage, Visitor>::return_type {
+
+    using return_t = typename call_helper<Storage, Visitor>::return_type;
 
     // using chosen_dispatch_t = jumptable_dispatch<return_t, Internal, mpl::count_t<num_types>>;
 
