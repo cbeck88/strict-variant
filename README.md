@@ -119,4 +119,5 @@ Licensing and Distribution
 TODO
 ====
 
+- implement `swappable`
 - `noexcept` correctness for `apply_visitor`?
