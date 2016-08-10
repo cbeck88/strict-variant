@@ -165,7 +165,7 @@ private:
   struct init_helper {
     using target_type = unwrap_type_t<typename storage_t::template value_t<idx>>;
 
-    using trait = typename safely_constructible<target_type, T>;
+    using trait = safely_constructible<target_type, T>;
 
     static constexpr bool safe_value = trait::value;
     static constexpr int priority = trait::priority;
@@ -176,10 +176,15 @@ private:
   // valid_property
   template <int p>
   struct valid_at {
-    template <typename U>
+    template <typename U, typename = mpl::enable_if_t<U::is_numeric_value>>
     struct prop {
       static constexpr bool value = U::safe_value && p <= U::priority;
     };
+    template <typename U, typename = mpl::enable_if_t<!U::is_numeric_value>>
+    struct prop {
+      static constexpr bool value = U::safe_value;
+    };
+
   };
 
   // Initializer base is (possibly) a function object
