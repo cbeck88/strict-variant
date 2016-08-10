@@ -193,7 +193,7 @@ private:
 
     template <typename V>
     void operator()(V && v, target_type val) noexcept(noexcept(
-      std::forward<V>(std::declval<V>()).template initialize<idx>(std::declval<target_type>()))) {
+      std::forward<V>(v).template initialize<idx>(std::move(val)))) {
       std::forward<V>(v).template initialize<idx>(std::move(val));
     }
   };
