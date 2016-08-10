@@ -60,8 +60,8 @@ namespace strict_variant {
  */
 
 // Helper metafunction, which checks if a given type is integral or floating
-// point after decay and
-// removing reference.
+// point after decay and removing reference.
+// Very similar (but not the same) as std::is_arithmetic
 template <typename T>
 struct is_numeric {
   using T2 = mpl::remove_reference_t<mpl::decay_t<T>>;
@@ -102,8 +102,7 @@ struct safely_constructible<A, B, mpl::enable_if_t<is_ptr<A>::value && is_ptr<B>
   static constexpr int priority = 1;
 };
 
-// If one is numeric or reference to numeric, and the other is pointer or
-// reference to pointer,
+// If one is numeric and the other is pointer, after decay and remove reference,
 // it is forbidden.
 template <typename A, typename B>
 struct safely_constructible<A, B, mpl::enable_if_t<(is_numeric<A>::value && is_ptr<B>::value)
