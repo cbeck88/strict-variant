@@ -32,42 +32,7 @@ This is necessary to support lambdas being used as visitors, for instance.
 
 [h4 Generic visitors]
 
-One of the nicest things about visitors is that they can use templates -- when
-you have a visitor with many types which should be handled similarly, this can
-save you much typing. It also means that a single visitor can often be equally
-useful for many different variants, which helps you to be very DRY.
-
-```
-struct formatter {
-  std::string operator()(const std::string & s) const { return s; }
-
-  template <typename T, typename = std::enable_if_t<std::is_integral<T>::value>>
-  std::string operator()(T t) const { return "[" + std::to_string(t) + "]"; }
-
-  template <typename T>
-  std::string operator()(const std::vector<T> & vec) const {
-    std::string result = "{ ";
-    for (int i = 0; i < vec.size(); ++i) {
-      if (i) { result += ", "; }
-      result += (*this)(vec[i]);
-    }
-    result += " }";
-    return result;
-  }
-};
-```
-
-This generic visitor is appropriate for a wide variety of variants:
-
-```
-  variant<int, double> v1;
-  variant<float, std::string, std::vector<int>> v2;
-  variant<long, std::vector<std::vector<std::string>>> v3;
-
-  apply_visitor(formatter{}, v1);
-  apply_visitor(formatter{}, v2);
-  apply_visitor(formatter{}, v3);
-```
+[strict_variant_tutorial_generic_visitor]
 
 [h4 Polymorphic return type]
 

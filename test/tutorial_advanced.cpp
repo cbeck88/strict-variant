@@ -65,10 +65,10 @@ void test_two() {
 }
 //->
 
-
+//]
 
 void test_three() {
-//[ strict_variant_lambda_visitor
+//[ strict_variant_tutorial_lambda_visitor
   //` You can also use a lambda as a visitor in some cases:
 
   strict_variant::variant<int, float> v;
@@ -84,9 +84,54 @@ void test_three() {
 //]
 }
 
+//[ strict_variant_tutorial_generic_visitor
+
+/*`
+One of the nicest things about visitors is that they can use templates -- when
+you have a visitor with many types which should be handled similarly, this can
+save you much typing. It also means that a single visitor can often be equally
+useful for many different variants, which helps you to be very DRY.
+*/
+
+struct formatter {
+  std::string operator()(const std::string & s) const { return s; }
+
+  template <typename T, typename = typename std::enable_if<std::is_arithmetic<T>::value>::type>
+  std::string operator()(T t) const { return "[" + std::to_string(t) + "]"; }
+
+  template <typename T>
+  std::string operator()(const std::vector<T> & vec) const {
+    std::string result = "{ ";
+    for (unsigned int i = 0; i < vec.size(); ++i) {
+      if (i) { result += ", "; }
+      result += (*this)(vec[i]);
+    }
+    result += " }";
+    return result;
+  }
+};
+
+//` This generic visitor is appropriate for a wide variety of variants:
+
+//<-
+void test_four() {
+//->
+  variant<int, double> v1;
+  variant<float, std::string, std::vector<int>> v2;
+  variant<long, std::vector<std::vector<std::string>>> v3;
+
+  apply_visitor(formatter{}, v1);
+  apply_visitor(formatter{}, v2);
+  apply_visitor(formatter{}, v3);
+//]
+
+}
+
+
 int
 main() {
   test_one();
   test_two();
   test_three();
+  test_four();
 }
