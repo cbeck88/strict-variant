@@ -128,10 +128,81 @@ void test_four() {
 }
 
 
+//[ strict_variant_tutorial_throwing_assignment_goal_code
+
+// A class with a throwing move
+class X {
+  std::string foo;
+  std::string bar;
+
+public:
+  X () noexcept;
+  X (const X &) noexcept(false);
+
+  X & operator=(const X &) noexcept(false);
+};
+
+// A variant containing X
+void goal() {
+  variant<int, X> v;
+//=  v = 5;
+//=  v = X();  // Error: No assignment if X has a throwing move!
+}
+
+//]
+
+X::X() noexcept = default;
+X::X(const X&) noexcept(false) {}
+X & X::operator=(const X&) noexcept(false) { return *this; }
+
+namespace fix1 {
+
+//[ strict_variant_tutorial_throwing_assignment_fix1
+//` Use a `recursive_wrapper`.
+void goal() {
+  variant<int, recursive_wrapper<X>> v;
+  v = 5;
+  v = X();
+}
+//]
+
+} // end namespace fix1
+
+namespace fix2 {
+
+//[ strict_variant_tutorial_throwing_assignment_fix2
+//` Use `easy_variant` instead. It's the same, but it implicitly applies wrappers to value types with a throwing move.
+void goal() {
+  easy_variant<int, X> v;
+  v = 5;
+  v = X();
+}
+//]
+
+} // end namespace fix2
+
+namespace fix3 {
+
+//[ strict_variant_tutorial_throwing_assignment_fix3
+//` Use `emplace` instead of assignment. This works even if `X` is not copyable or moveable.
+void goal() {
+  variant<int, X> v;
+  v.emplace<int>(5);
+  v.emplace<X>();
+}
+//]
+
+} // end namespace fix3
+
+
 int
 main() {
   test_one();
   test_two();
   test_three();
   test_four();
+  goal();
+  fix1::goal();
+  fix2::goal();
+  fix3::goal();
 }

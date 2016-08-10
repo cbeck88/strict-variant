@@ -67,71 +67,32 @@ have to use a capturing lambda or some other sort of ad-hoc function object.
 
 However for this you must include `<strict_variant/multivisit.hpp>`.
 
-[h3 Assignment]
+[h3 Throwing Assignment]
 
 Just like `boost::variant` and any other standard container, `strict_variant` can be moved, copied and assigned.
 
 However, like `boost::variant` it has some restrictions.
+[itemized_list
+  [ Each type must be `nothrow-destructible` ]
+  [ Each type must be copy or move-constructible ]]
 
-`boost::variant` requires that all its constituent types satisfy
-the `Bounded Type` concept, which required that they are no-throw destructible, and that they are copy constructible or move constructible.
+`strict_variant` also requires that its types are `nothrow_destructible`.
 
-`strict_variant` requires that its constituent types are no-throw destructible.
-
-Further, `strict_variant` is only assignable if the constituent types are all nothrow move constructible.
+However, `strict_variant` is different in that it can only be assignable if each type
+is assignable AND each type is `nothrow_move_constructible`. If this doesn't happen,
+compilation will fail with a `static_assert`.
 
 Since that's not always possible for the types you may want to use it with, there are a few handy solutions.
 
 Suppose that our goal is code like this:
 
-```
-// A class with a throwing move
-class X {
-  std::string foo;
-
-public:
-  X ();
-  X (const X &);
-  X (X &&) = delete;
-};
-
-// A variant containing X
-int main() {
-  variant<int, X> v;
-  v = 5;
-  v = X();
-}
-
-```
+[strict_variant_tutorial_throwing_assignment_goal_code]
 
 This code will fail to compile, because `v` cannot be assigned if `X` has a throwing move.
 We have a few possible remedies:
 
-# Use `recursive_wrapper` with types that have throwing moves.
-  ```
-  int main() {
-    variant<int, recursive_wrapper<X>> v;
-    v = 5;
-    v = X();
-  }
-  ```
-
-# Use `easy_variant` instead of `strict_variant`. It's the same, but it implicitly applies wrappers to its arguments with throwing moves.
-  ```
-  int main() {
-    easy_variant<int, X> v;
-    v = 5;
-    v = X();
-  }
-  ```
-
-# Don't use assignment, and use the `emplace` method instead.
-  ```
-  int main() {
-    variant<int, X> v;
-    v.emplace<int>(5);
-    v.emplace<X>();
-  }
-  ```
+# [strict_variant_tutorial_throwing_assignment_fix1]
+# [strict_variant_tutorial_throwing_assignment_fix2]
+# [strict_variant_tutorial_throwing_assignment_fix3]
 
 [endsect]
