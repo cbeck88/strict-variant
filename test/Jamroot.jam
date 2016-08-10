@@ -67,5 +67,6 @@ GNU_FLAGS = "$(GNU_FLAGS) -fno-exceptions -fno-rtti" ;
 FLAGS = <define>"STRICT_VARIANT_DEBUG" <toolset>gcc:<cxxflags>$(GNU_FLAGS) <toolset>clang:<cxxflags>$(GNU_FLAGS) ;
 
 exe tutorial_basic  : tutorial_basic.cpp strict_variant : $(FLAGS) ;
+exe tutorial_advanced  : tutorial_advanced.cpp strict_variant : $(FLAGS) ;
 
-install install-example : tutorial_basic : $(INSTALL_LOC) ;
+install install-example : tutorial_basic tutorial_advanced : $(INSTALL_LOC) ;

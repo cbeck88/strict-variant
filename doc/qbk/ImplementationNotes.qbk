@@ -61,7 +61,8 @@ we want to visit a `variant` and not pierce the wrapper, is when calling the des
 
 (Obviously, when constructing the value that gets moved into *our* storage though,
 we have to use exactly the type that was specified in the template parameters.
-This just won't always be the same as what the visited value is.)
+This just won't always be the same as what the visited value is, even when copy
+or move constructing.)
 
 If we move ['after] piercing the wrapper, that performs a value move, and when
 we want to perform a pointer move, we move without piercing the wrapper.

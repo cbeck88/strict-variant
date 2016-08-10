@@ -2,45 +2,11 @@
 
 [h3 Emplace constructor]
 
-In some cases, you might want to use `emplace` to initialize a variant to a
-specific type explicitly. For instance it might be in an initializer list, and
-it's not an option to use the `emplace` method.
-
-The emplace constructor is selected using tag dispatch:
-
-```
-variant::variant(emplace_tag<T>, args...)
-```
-
-for example, in an initializer list, it looks like this:
-
-```
-my_struct::my_struct()
-  : v(emplace_tag<std::string>{}, "foo")
-{}
-```
+[strict_variant_tutorial_emplace_ctor]
 
 [h3 Generalizing constructor]
 
-A variant can be converted to a variant over strictly more types. This is called
-the "generalizing" constructor. This was also supported by `boost::variant`.
-
-```
-  variant<int, double> v;
-  variant<int, double, std::string> v2{v};
-```
-
-This constructor also allows reordering the types, and adding or removing `recursive_wrapper`.
-
-```
-  variant<int, double> v;
-  variant<double, int> v2{v};
-
-  variant<recursive_wrapper<int>, double> v3;
-  v3 = v;
-  v2 = v3;
-  v = v2;
-```
+[strict_variant_tutorial_generalizing_ctor]
 
 [h3 More general visitors]
 
@@ -62,20 +28,7 @@ This is necessary to support lambdas being used as visitors, for instance.
 
 [h4 Lambda visitors]
 
-You can also use a lambda as a visitor in some cases:
-
-```
-  strict_variant::variant<int, float> v;
-  v = 5;
-
-  // Prints 10.0
-  std::cout << strict_variant::apply_visitor([](double d) -> double { return d * 2; }, v) << std::endl;
-
-  v = 7.5f
-
-  // Prints 22.5
-  std::cout << strict_variant::apply_visitor([](double d) -> double { return d * 3; }, v) << std::endl;
-```
+[strict_variant_tutorial_lambda_visitor]
 
 [h4 Generic visitors]
 
