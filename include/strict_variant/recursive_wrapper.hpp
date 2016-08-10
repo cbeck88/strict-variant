@@ -69,9 +69,7 @@ public:
   }
 
   recursive_wrapper & operator=(const recursive_wrapper & rhs) {
-    if (this != &rhs) {
-      this->assign(rhs.get());
-    }
+    if (this != &rhs) { this->assign(rhs.get()); }
     return *this;
   }
 
