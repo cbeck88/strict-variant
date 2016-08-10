@@ -394,7 +394,8 @@ public:
 
   // TODO: Why doesn't noexcept annotation work here? It causes ICE in gcc and clang
   template <typename Visitor, typename Visitable>
-  friend auto apply_visitor(Visitor && visitor, Visitable && visitable)
+  friend auto apply_visitor(Visitor && visitor,
+                            Visitable && visitable) /* noexcept(noexcept(APPLY_VISITOR_BODY)) */
     -> decltype(APPLY_VISITOR_BODY);
 
   // Implementation details for apply_visitor
