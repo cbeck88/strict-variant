@@ -47,26 +47,17 @@ namespace detail {
 /// Function which evaluates a visitor against a variant's internals
 /// Reinteprets the "storage" as a value of type T or const T,
 /// then applies the visitor object.
+#define RESULT_EXPR                                                                                \
+  std::forward<Visitor>(v)(std::forward<Storage>(s).template get_value<index>(Internal()))
+
 template <unsigned index, typename Internal, typename Storage, typename Visitor>
 auto
-visitor_caller(Storage && s, Visitor && v) noexcept(
-  noexcept(std::forward<Visitor>(v)(
-    std::forward<Storage>(s).template get_value<index>(Internal()))))
-  -> decltype(std::forward<Visitor>(v)(
-    std::forward<Storage>(s).template get_value<index>(Internal()))) {
-  return std::forward<Visitor>(v)(
-    std::forward<Storage>(s).template get_value<index>(Internal()));
+visitor_caller(Storage && s, Visitor && v) noexcept(noexcept(RESULT_EXPR))
+  -> decltype(RESULT_EXPR) {
+  return RESULT_EXPR;
 }
 
-/// Trait which figures out what the return type of visitor caller is
-template <unsigned index, typename Internal, typename Storage, typename Visitor>
-struct visitor_caller_return_type {
-  using type = decltype(
-    visitor_caller<index, Internal, Storage>(std::forward<Storage>(std::declval<Storage>()),
-                                             std::forward<Visitor>(std::declval<Visitor>())));
-  static constexpr bool noexcept_value = noexcept(std::forward<Visitor>(std::declval<Visitor>())(
-    std::forward<Storage>(std::declval<Storage>()).template get_value<index>(Internal())));
-};
+#undef RESULT_EXPR
 
 /// Helper which figures out the return type of multiple visitor calls
 /// It's better for this to be separate of the dispatch mechanism, because
@@ -75,16 +66,22 @@ struct visitor_caller_return_type {
 /// simplifies the dispatch code to only have to implement this once.
 template <typename Internal, typename Storage, typename Visitor>
 struct return_typer {
+
+#define RESULT_EXPR                                                                                \
+  visitor_caller<index, Internal, Storage>(std::forward<Storage>(std::declval<Storage>()),         \
+                                           std::forward<Visitor>(std::declval<Visitor>()))
+
   template <unsigned index>
   struct helper {
-    using type = typename visitor_caller_return_type<index, Internal, Storage, Visitor>::type;
+    using type = decltype(RESULT_EXPR);
   };
 
   template <unsigned index>
   struct noexcept_prop {
-    using type = std::integral_constant<bool, visitor_caller_return_type<index, Internal, Storage,
-                                                                         Visitor>::noexcept_value>;
+    using type = std::integral_constant<bool, noexcept(RESULT_EXPR)>;
   };
+
+#undef RESULT_EXPR
 };
 
 /// Helper object which dispatches a visitor object to the appropriate

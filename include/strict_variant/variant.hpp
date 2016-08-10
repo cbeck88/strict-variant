@@ -387,15 +387,14 @@ public:
 
 // Friend apply_visitor
 
-#define APPLY_VISITOR_BODY                                                            \
-visitable.get_visitor_dispatch()(visitable.which(),                                     \
-                                          std::forward<Visitable>(visitable).storage(), \
-                                          std::forward<Visitor>(visitor))
+#define APPLY_VISITOR_BODY                                                                         \
+  visitable.get_visitor_dispatch()(visitable.which(),                                              \
+                                   std::forward<Visitable>(visitable).storage(),                   \
+                                   std::forward<Visitor>(visitor))
 
   // TODO: Why doesn't noexcept annotation work here? It causes ICE in gcc and clang
   template <typename Visitor, typename Visitable>
-  friend auto apply_visitor(Visitor && visitor,
-                            Visitable && visitable)
+  friend auto apply_visitor(Visitor && visitor, Visitable && visitable)
     -> decltype(APPLY_VISITOR_BODY);
 
   // Implementation details for apply_visitor
@@ -415,8 +414,7 @@ private:
  */
 template <typename Visitor, typename Visitable>
 auto
-apply_visitor(Visitor && visitor,
-              Visitable && visitable) /*noexcept(noexcept(APPLY_VISITOR_BODY))*/
+apply_visitor(Visitor && visitor, Visitable && visitable) /*noexcept(noexcept(APPLY_VISITOR_BODY))*/
   -> decltype(APPLY_VISITOR_BODY) {
   return APPLY_VISITOR_BODY;
 }
