@@ -13,49 +13,39 @@ namespace strict_variant {
 
 /***
  * Metafunction `safely_constructible`:
- *   A metafunction yielding a bool which detects is A is constructible from B
- * without using
- *   conversions that we consider "unsafe". Roughly this means, information
- * could potentially
+ *   A metafunction yielding a bool which detects is A is constructible from B without using
+ *   conversions that we consider "unsafe". Roughly this means, information could potentially
  *   be lost on some platform.
  *
- *   Typically, this function is the same as `std::is_constructible` except in
- * regards to
+ *   Typically, this function is the same as `std::is_constructible` except in regards to
  *   conversions of fundamental types and pointer types.
  *
- *   The main purpose of this trait is to support `strict_variant::variant` in deciding
- * what conversions
- *   to allow, and how to deduce what internal type to assign to any given type.
+ *   The main purpose of this trait is to support `strict_variant::variant` in deciding what
+ *   conversions to allow, and how to deduce what internal type to assign to any given type.
  *
  *   Between numeric types:
  *     We forbid converting between integral and floating point.
  *     We forbid converting unsigned to signed.
  *     We forbid converting between bool and non-bool.
  *     We forbid conversions which are potentially lossy in some conforming
- * implementation of C++.
+ *       implementation of C++.
  *       For instance, long to int is not allowed because the standard permits
- * long to be strictly
- *       larger than int. int to long is allowed, because it can never be lossy.
- *     We permit signed to unsigned and smaller to larger, but not
- * simultaneously.
+ *       long to be strictly larger than int. int to long is allowed, because it can never be
+ *       lossy.
+ *     We permit signed to unsigned and smaller to larger, but not simultaneously.
  *     When either of the types being converted is not primitive, this is the
- * same as
- *     std::is_constructible.
+ *       same as std::is_constructible.
  *   Between pointer types:
- *     We forbid conversions, except for those involving only CV qualifiers and
- * references, and
+ *     We forbid conversions, except for those involving only CV qualifiers and references, and
  *     decay of array -> pointer, etc.
  *
  *   We forbid all conversions between numeric types and pointer types.
  *
- *   Safely-constructible is intended to be a pre-order, that is, if B is safely
- * constructible from
- *   A, or there is a sequence of safely constructible types leading from A to
- * B, this shoud not
+ *   Safely-constructible is intended to be a pre-order, that is, if B is safely constructible from
+ *   A, or there is a sequence of safely constructible types leading from A to B, this shoud not
  *   also be the case for B to A, unless A = B (modulo CV).
  *
- *   It is not a partial order. We allow unsigned int -> unsigned long, and int
- * -> unsigned int,
+ *   It is not a partial order. We allow unsigned int -> unsigned long, and int -> unsigned int,
  *   but not int -> unsigned long. You have to do that in two steps.
  */
 
