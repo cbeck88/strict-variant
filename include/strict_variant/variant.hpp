@@ -163,12 +163,14 @@ private:
   // whether it was allowed.
   template <typename T, unsigned idx>
   struct init_helper {
-    using type = unwrap_type_t<typename storage_t::template value_t<idx>>;
+    using target_type = unwrap_type_t<typename storage_t::template value_t<idx>>;
 
-    using trait = typename detail::allow_variant_construction<type, T>;
+    using trait = typename detail::allow_variant_construction<target_type, T>;
 
-    static constexpr bool value = trait::value;
+    static constexpr bool safe_value = trait::value;
     static constexpr int priority = trait::priority;
+
+    static constexpr bool is_numeric_value = is_numeric<target_type>::value;
   };
 
   // valid_property
@@ -176,7 +178,7 @@ private:
   struct valid_at {
     template <typename U>
     struct prop {
-      static constexpr bool value = U::value && p <= U::priority;
+      static constexpr bool value = U::safe_value && p <= U::priority;
     };
   };
 
@@ -189,7 +191,7 @@ private:
   struct initializer_base<T, idx, priority,
                           mpl::enable_if_t<valid_at<priority>::template prop<init_helper<T, idx>>::
                                              value>> {
-    using target_type = typename init_helper<T, idx>::type;
+    using target_type = typename init_helper<T, idx>::target_type;
 
     template <typename V>
     void operator()(V && v, target_type val) noexcept(noexcept(
@@ -205,11 +207,11 @@ private:
     template <typename U>
     constexpr report_problem(U &&) {
       // TODO: Clang seems to always instantiate these even when I think it shouldn't... why?
-      // static_assert(std::is_constructible<typename init_helper<T, idx>::type, T>::value, "No
+      // static_assert(std::is_constructible<typename init_helper<T, idx>::target_type, T>::value, "No
       // construction is possible!");
-      // static_assert(!std::is_constructible<typename init_helper<T, idx>::type, T>::value ||
+      // static_assert(!std::is_constructible<typename init_helper<T, idx>::target_type, T>::value ||
       // init_helper<T, idx>::value, "Conversion wasn't permitted!");
-      // static_assert(!std::is_constructible<typename init_helper<T, idx>::type, T>::value ||
+      // static_assert(!std::is_constructible<typename init_helper<T, idx>::target_type, T>::value ||
       // !init_helper<T, idx>::value, "Not clear whats wrong!");
     }
   };
