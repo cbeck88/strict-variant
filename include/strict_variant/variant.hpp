@@ -405,9 +405,7 @@ private:
 
   using dispatcher_t = detail::visitor_dispatch<detail::false_, 1 + sizeof...(Types)>;
 
-  dispatcher_t get_visitor_dispatch() const {
-    return {};
-  }
+  dispatcher_t get_visitor_dispatch() const { return {}; }
 };
 
 /***
@@ -694,8 +692,6 @@ variant<First, Types...>::variant(const variant & rhs) noexcept(
 }
 
 // Note: noexcept is enforced by static_assert in move_constructor visitor
-// Note: We use detail::false_ here because we want to pierce the recursive_wrapper.
-// If we don't pierce it then we leave the moved-from variant in an empty state.
 template <typename First, typename... Types>
 variant<First, Types...>::variant(variant && rhs) noexcept(
   detail::variant_noexcept_helper<First, Types...>::nothrow_move_ctors) {
@@ -781,7 +777,6 @@ template <typename First, typename... Types>
 bool
 variant<First, Types...>::operator==(const variant & rhs) const {
   eq_checker eq(*this, rhs.which());
-  // Pass detail::false because it needs to pierce the recursive wrapper
   return apply_visitor(eq, rhs);
 }
 
