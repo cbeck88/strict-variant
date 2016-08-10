@@ -2,11 +2,11 @@
 
 A type-safe discriminated union container.
 
-Its definition, and some ancillary function templates, are brought in by `#include <strict_variant/variant.hpp>`.
-
-(Declarations only are brought in by `<strict_variant/variant_fwd.hpp>`.)
-
 [h3 Synopsis]
+
+Declared in file `<strict_variant/variant_fwd.hpp>`.
+
+Defined in file `<strict_variant/variant.hpp>`:
 
 ```
 namespace strict_variant {
@@ -30,6 +30,7 @@ namespace strict_variant {
     variant & operator=(variant &&);
     variant & operator=(const variant &);
 
+    // Forwarding-reference ctor: Places the given value in the variant.
     template <typename T>
     variant(T &&);
 
@@ -89,9 +90,20 @@ namespace strict_variant {
 
 [h3 Description]
 
-`variant` is the core class of the `strict_variant` library. It controls the
+`variant` is the core object of the `strict_variant` library. It controls the
 storage in which the value is contained, and provides an interface for accessing
 the value and changing the value.
+
+[h4 Type Requirements]
+
+The template parameters `First, Types...` are called the ['value types] of the variant.
+These are the different possible types that the contained value may have.
+
+[variablelist Each value type:
+  [[Must be `nothrow_destructible`][ This is enforced by `static_assert`. ]]
+  [[Must not be a reference type.][ This is enforced by `static_assert`. Use `std::reference_wrapper` if you need this.]]
+  [[Must be complete at point of instantiation of the `variant`.][ Use `recursive_wrapper` or similar to work around this. ]]]
+
 
 [h4 Notes]
 
@@ -100,26 +112,20 @@ The `strict_variant::variant` is in many ways similar to `boost::variant`, which
 (However, this interface is exception-free. If you want to have
 analogues of the throwing functions in `boost::variant` you'll have to write them, which is pretty easy to do on top of the exception-free interface.)
 
-The template arguments to `variant` are subject to a few hard restrictions:
+The properties of the value types determine the properties of the resulting variant.
 
-# Must be `nothrow_destructible`. This is enforced by `static_assert`.
-# Must not be a reference type. This is enforced by `static_assert`. Use `std::reference_wrapper` if you need this.
-# Must be complete at point of instantiation of the `variant`.
-
-Additionally, the properties of the template arguments determine the properties of the resulting variant.
-
-* If the `First` type of the parameter list is `DefaultConstructible`, then `variant` is also. Otherwise it isn't.
-* If each type is `CopyConstructible`, then `variant` is `CopyConstructible`.
-* If each type is `MoveConstructible`, then `variant` is `MoveConstructible`.
-* If each type is `Assignable` and `CopyConstructible` and `nothrow_move_constructible`, then `variant` is `Assignable`.
-* If each type is `MoveAssignable` and `nothrow_move_constructible`, then `variant` is `MoveAssignable`.
+* If the `First` type is `DefaultConstructible`, then `variant` is also. Otherwise it isn't.
+* If each value type is `CopyConstructible`, then `variant` is `CopyConstructible`.
+* If each value type is `MoveConstructible`, then `variant` is `MoveConstructible`.
+* If each value type is `Assignable` and `CopyConstructible` and `nothrow_move_constructible`, then `variant` is `Assignable`.
+* If each value type is `MoveAssignable` and `nothrow_move_constructible`, then `variant` is `MoveAssignable`.
 
 Other properties of `variant`:
 
-* If each type is `EqualityComparable`, then `variant` is `EqualityComparable`.
-* If each type is `LessThanComparable`, then a comparator object, `VariantComparator`, suitable for `std::map` or `std::set`, may be obtained from `#include <strict_variant/variant_compare.hpp>`.
-* If each type is `OutputStreamable`, then `variant` is `OutputStreamable`, if the header `#include <strict_variant/variant_stream_ops.hpp>` is included.
-* If each type is `Hashable`, then `variant` is `Hashable`, if the header `#include <strict_variant/variant_hash.hpp>` is included.
+* If each value type is `EqualityComparable`, then `variant` is `EqualityComparable`.
+* If each value type is `LessThanComparable`, then a comparator object, `VariantComparator`, suitable for `std::map` or `std::set`, may be obtained from `#include <strict_variant/variant_compare.hpp>`.
+* If each value type is `OutputStreamable`, then `variant` is `OutputStreamable`, if the header `#include <strict_variant/variant_stream_ops.hpp>` is included.
+* If each value type is `Hashable`, then `variant` is `Hashable`, if the header `#include <strict_variant/variant_hash.hpp>` is included.
 
 [h4 Member Functions]
 
@@ -136,15 +142,18 @@ Other properties of `variant`:
  [ Copy constructs a variant.
 
    [variablelist
-     [[Requires][Each type `First, Types...` is `CopyConstructible`.]]
+     [[Requires][Each value type is `CopyConstructible`.]]
      [[Throws][If any of the copy constructors does.]]]]]
 
 [[`variant(variant &&)`]
  [ Move constructs a variant.
 
    [variablelist
-     [[Requires][Each type `First, Types...` is `MoveConstructible`.]]
-     [[Throws][If any of the moves does, or if any type is `recursive_wrapper`.]]]]]
+     [[Requires][Each value type is `MoveConstructible`.]]
+     [[Throws][[itemized_list
+                 [If any of the moves throws]
+                 [If any type is `recursive_wrapper`, may throw `std::bad_alloc`.]
+                 [If any type is `recursive_wrapper<T>`, and `T` has a throwing move, then this may throw such exceptions.]]]]]]]
 
 [[`variant(const variant<OFirst, OTypes...> &)`]
  [ Generalizing constructor.
@@ -152,7 +161,7 @@ Other properties of `variant`:
    Copy constructs a variant from another variant on strictly fewer types.
 
    [variablelist
-     [[Requires][Each type `OFirst, OTypes...` is template parameter of this `variant` also, modulo `const` and `recursive_wrapper`.]]
+     [[Requires][Each type `OFirst, OTypes...` is also a value type of this `variant`, modulo `const` and `recursive_wrapper`.]]
      [[Throws][If the copy constructor of the passed variant may throw.]]]]]
 
 [[`variant(variant<OFirst, OTypes...> &&)`]
@@ -161,13 +170,13 @@ Other properties of `variant`:
    Move constructs a variant from another variant on strictly fewer types.
 
    [variablelist
-     [[Requires][Each type `OFirst, OTypes...` is template parameter of this `variant` also, modulo `const` and `recursive_wrapper`.]]
+     [[Requires][Each type `OFirst, OTypes...` is also a value type of this `variant`, modulo `const` and `recursive_wrapper`.]]
      [[Throws][If the move constructor of the passed variant may throw.]]]]]
 
 [[`variant(T &&)`]
  [ Construct from a forwarding reference.
 
-   Attempts to convert `T` to one of the template parameters of this variant.
+   Attempts to convert `T` to one of the value types of this variant, or an expression convertible to such.
 
    This is resolved using overload resolution.
 
@@ -211,7 +220,7 @@ Other properties of `variant`:
    Constructs a value of type `T` in the storage. Any additional arguments `args` are forwarded to `T`'s constructor.
 
    [variablelist
-     [[Requires][`T` is one of the template parameter of this `variant`, modulo `const` and `recursive_wrapper`.]]
+     [[Requires][`T` is one of the value types of this `variant`, modulo `const` and `recursive_wrapper`.]]
      [[Throws][If the selected constructor may throw.]]]]]
 ]
 
@@ -221,24 +230,26 @@ Other properties of `variant`:
  [ Copy-assigns a variant.
 
    [variablelist
-     [[Requires][Each type `First, Types...` is `Assignable`, `CopyConstructible`, and `nothrow_move_constructible`.]]
+     [[Requires][Each value type is `Assignable`, `CopyConstructible`, and `nothrow_move_constructible`.]]
      [[Throws][If copy construction or copy assignment throws.]]]]]
 
 [[`variant & operator=(variant &&)`]
  [ Move-assigns a variant.
 
    [variablelist
-     [[Requires][Each type `First, Types...` is `MoveAssignable` and `nothrow_move_constructible`.]]
-     [[Throws][If the engaged type is `recursive_wrapper<T>`, this may throw if a dynamic allocation fails or if move construction of `T` fails.
-               If the type has a throwing move assignment, then this may throw such exceptions.
-               Otherwise this call is `noexcept`.]]]]]
+     [[Requires][Each value type is `MoveAssignable` and `nothrow_move_constructible`.]]
+     [[Throws][[itemized_list
+                 [If the type has a throwing move assignment, then this may throw such exceptions.]
+                 [If the engaged type is `recursive_wrapper<T>`, then this may throw `std::bad_alloc`.]
+                 [If the engaged type is `recursive_wrapper<T>`, and `T` has a throwing move, then this may throw such exceptions.]
+                 [Otherwise this call is `noexcept`.]]]]]]]
 
 [[`template <typename T, typename ... Args> void emplace(Args && ... args)`]
  [ Emplaces a value of type `T` into the variant.
 
    Force the variant to a particular type and value.
 
-   The user explicitly specifies the desired type as template parameter.
+   The user explicitly specifies the desired type as a template parameter.
 
    There are actually two implementations of `emplace`, depending on whether
    the invoked ctor is `noexcept`. If it is, construction takes in place directly
@@ -249,21 +260,21 @@ Other properties of `variant`:
    which is not `nothrow_move_constructible`.
 
    [variablelist
-     [[Requires][`T` must be a member of the variant, modulo `const` and `recursive_wrapper`, and ['either] the invoked constructor, ['or] the move constructor of `T`, must be `noexcept`.]]
+     [[Requires][`T` must be a value type of the variant, modulo `const` and `recursive_wrapper`, and ['either] the invoked constructor, ['or] the move constructor of `T`, must be `noexcept`.]]
      [[Throws][Only if the invoked constructor throws.]]]]]
 
 ]
 
 [variablelist Destructor
-[[`~variant() noexcept]
+[[`~variant() noexcept`]
  [ Destroys the contained value. Never throws. ]]]
 
 [variablelist Accessors
 
-[[int which() const noexcept]
+[[`int which() const noexcept`]
  [ Returns the `which` indicator value.
 
-   The `which` value is an index into the list `First, Types...` of template parameters, indicating the currently contained type.]]
+   The `which` value is an index into the list `First, Types...` of value types, indicating the currently contained type.]]
 
 [[`template <typename T>
   T * get() noexcept`]
@@ -290,14 +301,14 @@ Other properties of `variant`:
 
 [variablelist Operators
 
-[[bool operator ==(const variant & other) const]
+[[`bool operator ==(const variant & other) const`]
  [ Checks if `which() == other.which()`. Then checks if the contained values compare equal using `operator ==`.
 
    [variablelist
-     [[Requires][Each type `First, Types...` is `EqualityComparable`.]]
+     [[Requires][Each value type is `EqualityComparable`.]]
      [[Throws][If equality-comparison can throw.]]]]]
 
-[[bool operator !=(const variant &) const]
+[[`bool operator !=(const variant &) const`]
  [ Returns the negation of `operator ==`. ]]]
 
 [h4 Template Functions]
@@ -328,7 +339,7 @@ Other properties of `variant`:
   reference to that value, within the variant, is returned.
 
    [variablelist
-     [[Requires][`T` is one of the variant template parameters, modulo `const` and `recursive_wrapper`.]]
+     [[Requires][`T` is one of the value types of the variant, modulo `const` and `recursive_wrapper`.]]
      [[Throws][Only if `v->emplace<T>(std::move(def))` throws.]]]]]
 
 [[`template <typename Visitor, typename Variant>
@@ -336,19 +347,16 @@ Other properties of `variant`:
  [
    Applies `visitor` to the value contained in `variant`.
 
-   This call is equivalent to the expression `visitor(value)`,
-   where `visitor` and `value` have value-category corresponding to the arguments
-   `visitor` and `variant`, and `value` has the run-time type of the value
-   currently contained in `variant`.
+   [variablelist
+     [[Returns] [Result of call `visitor(value)` where value is the value contained by `variant`, with same value-category as `variant`.]]
+     [[Requires] [[itemized_list
+                    [The call expression `visitor(value)` is well-formed for each value type of the `variant` when `visitor` and `value` are forwarded with appropriate value-category]
+                    [Each of these expressions evaluate to the same type, or a common type can be found via e.g. integer promotion or a common base class.]]]]
+     [[Throws] [If the call expression throws.]]]
 
-   The return value is the result of that call.
-
-   If `visitor` returns different types when different types from the `variant` are passed,
-   the result type is a common base if one can be found. Otherwise the call is
-   ill-formed.
-
-   It is not possible to return an rvalue-reference -- `std::decay` will be
-   applied. However it is possible to return an lvalue-reference.
+   [note The mechanism for finding a common return type is similar to `std::common_type` of C++14,
+         however, we have modified it so that it does not decay lvalue reference types. This is as a
+         workaround to [@http://www.open-std.org/JTC1/SC22/WG21/docs/lwg-defects.html#2141 Library Working Group Defect #2141]. Other return types will be subject to `std::decay`.]
   ]]
 
 [[`template <typename Visitor, typename... Variants>
@@ -399,6 +407,11 @@ Other properties of `variant`:
 
      template <typename T>
      using wrap_if_throwing_move_t = typename wrap_if_throwing_move<T>::type;
-   ```]]]
+   ```
+
+  Since `recursive_wrapper` is transparently pierced at all parts of the interface,
+  `easy_variant` can be dropped in for `strict_variant` if desired.
+
+]]]
 
 [endsect]
