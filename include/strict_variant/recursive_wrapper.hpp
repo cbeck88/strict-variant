@@ -69,14 +69,18 @@ public:
   }
 
   recursive_wrapper & operator=(const recursive_wrapper & rhs) {
-    this->assign(rhs.get());
+    if (this != &rhs) {
+      this->assign(rhs.get());
+    }
     return *this;
   }
 
   recursive_wrapper & operator=(recursive_wrapper && rhs) noexcept {
-    this->destroy();
-    m_t = rhs.m_t;
-    rhs.m_t = nullptr;
+    if (this != &rhs) {
+      this->destroy();
+      m_t = rhs.m_t;
+      rhs.m_t = nullptr;
+    }
     return *this;
   }
 

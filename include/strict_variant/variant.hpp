@@ -541,10 +541,8 @@ struct variant<First, Types...>::copy_assigner {
     if (m_self.which() == m_rhs_which) {
       // the types are the same, so just assign into the lhs
       STRICT_VARIANT_ASSERT(m_rhs_which == index, "Bad access!");
-      // Implementation Note: This assignment is safe even if recursive_wrapper is vacant
-      // Because `detail::true_` here means that we are getting the recursive wrapper, not
-      // implicitly *'ing it.
-      m_self.m_storage.template get_value<index>(detail::true_{}) = rhs;
+      // Implementation note: detail::false_ here means to pierce the recursive_wrapper
+      m_self.m_storage.template get_value<index>(detail::false_{}) = rhs;
     } else if (detail::variant_noexcept_helper<First, Types...>::assume_copy_nothrow
                || noexcept(static_cast<variant *>(nullptr)->initialize<index>(
                     *static_cast<const Rhs *>(nullptr)))) {
@@ -597,10 +595,8 @@ struct variant<First, Types...>::move_assigner {
     if (m_self.which() == m_rhs_which) {
       // the types are the same, so just assign into the lhs
       STRICT_VARIANT_ASSERT(m_rhs_which == index, "Bad access!");
-      // Implementation Note: This assignment is safe even if recursive_wrapper is vacant
-      // Because `detail::true_` here means that we are getting the recursive wrapper, not
-      // implicitly *'ing it.
-      m_self.m_storage.template get_value<index>(detail::true_{}) = std::move(rhs);
+      // Implementation note: detail::false_ here means to pierce the recursive_wrapper
+      m_self.m_storage.template get_value<index>(detail::false_{}) = std::move(rhs);
     } else if (detail::variant_noexcept_helper<First, Types...>::assume_move_nothrow
                || noexcept(
                     static_cast<variant *>(nullptr)->initialize<index>(std::declval<Rhs>()))) {
@@ -711,11 +707,9 @@ template <typename First, typename... Types>
 variant<First, Types...> &
 variant<First, Types...>::operator=(const variant & rhs) noexcept(
   detail::variant_noexcept_helper<First, Types...>::nothrow_copy_assign) {
-  if (this != &rhs) {
-    copy_assigner a(*this, rhs.which());
-    apply_visitor(a, rhs);
-    STRICT_VARIANT_ASSERT(rhs.which() == this->which(), "Postcondition failed!");
-  }
+  copy_assigner a(*this, rhs.which());
+  apply_visitor(a, rhs);
+  STRICT_VARIANT_ASSERT(rhs.which() == this->which(), "Postcondition failed!");
   STRICT_VARIANT_ASSERT_WHICH_INVARIANT;
   return *this;
 }
@@ -725,11 +719,9 @@ template <typename First, typename... Types>
 variant<First, Types...> &
 variant<First, Types...>::operator=(variant && rhs) noexcept(
   detail::variant_noexcept_helper<First, Types...>::nothrow_move_assign) {
-  if (this != &rhs) {
-    move_assigner ma(*this, rhs.which());
-    apply_visitor(ma, rhs);
-    STRICT_VARIANT_ASSERT(rhs.which() == this->which(), "Postcondition failed!");
-  }
+  move_assigner ma(*this, rhs.which());
+  apply_visitor(ma, rhs);
+  STRICT_VARIANT_ASSERT(rhs.which() == this->which(), "Postcondition failed!");
   STRICT_VARIANT_ASSERT_WHICH_INVARIANT;
   return *this;
 }

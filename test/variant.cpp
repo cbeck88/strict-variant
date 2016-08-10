@@ -759,6 +759,7 @@ struct test_throwmove {
   test_throwmove() = default;
   test_throwmove(const test_throwmove &) noexcept(false) {}
   test_throwmove(test_throwmove &&) noexcept(false) {}
+  test_throwmove & operator=(test_throwmove &&) noexcept(false) { return *this; }
   ~test_throwmove() = default;
 };
 
