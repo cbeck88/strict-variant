@@ -151,7 +151,7 @@ void goal() {
 
 //]
 
-X::X() noexcept {};
+X::X() noexcept {}
 X::X(const X&) noexcept(false) {}
 X & X::operator=(const X&) noexcept(false) { return *this; }
 
