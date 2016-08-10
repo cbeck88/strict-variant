@@ -108,7 +108,7 @@ the object that threw it, and not also the surrounding container.
 [h4 `strict_variant` approach]
 
 Since most standard and boost containers provide strong-exception safety, it
-seems quite desirable to have at our disposal an efficient, modern C++ variant
+seems desirable to have at our disposal an efficient, modern C++ variant
 type which also provides this guarantee. And indeed, there have been some
 standardization proposals like this [footnote C.f. David Sanke "Simply a Strong Variant". P0093R0 [@http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0093r0.html]]
 [footnote C.f. Anthony Williams "P0110R0: Implementing the strong guarantee for variant<> assignment" P0110R0 [@http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0110r0.html]].

@@ -127,6 +127,9 @@ Other properties of `variant`:
 * If each value type is `OutputStreamable`, then `variant` is `OutputStreamable`, if the header `#include <strict_variant/variant_stream_ops.hpp>` is included.
 * If each value type is `Hashable`, then `variant` is `Hashable`, if the header `#include <strict_variant/variant_hash.hpp>` is included.
 
+In all cases, all operations on this `variant` are ['strongly exception-safe] and
+provide rollback-semantics if an exception is thrown while changing the type of the contained value.
+
 [h4 Member Functions]
 
 [variablelist Constructors
