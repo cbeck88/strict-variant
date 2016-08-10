@@ -106,10 +106,11 @@ public:
   }
 };
 
+//[ strict_variant_pierce_recursive_wrapper
 namespace detail {
 
 /***
- * Function to pierce the recursive wrapper
+ * Function to pierce the recursive_wrapper template
  */
 
 template <typename T>
@@ -137,6 +138,7 @@ pierce_recursive_wrapper(const recursive_wrapper<T> & t) {
 }
 
 } // end namespace detail
+//]
 
 /***
  * Trait to remove the wrapper

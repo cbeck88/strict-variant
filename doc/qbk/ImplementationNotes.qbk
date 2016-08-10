@@ -49,12 +49,22 @@ The strategy that we've adopted is, `strict_variant::recursive_wrapper`'s move
 ctor is the pointer-move. But in most cases, when visiting a variant, even for
 purposes of copy or move construction of another variant, we call a function
 `detail::pierce_recursive_wrapper` which ensures that we pierce the wrapper and
-move the value rather than the wrapper. Essentially, the only time that we want
-to visit a variant and not pierce the wrapper, is when calling the destructor.
+move the value rather than the wrapper.
+
+[strict_variant_pierce_recursive_wrapper]
+
+Whenever a user-defined visitor is applied, we use this function to transparently
+remove the wrapper for them.
+
+We also use that for almost all of our own visitors -- essentially, the only time that
+we want to visit a `variant` and not pierce the wrapper, is when calling the destructor.
 
 (Obviously, when constructing the value that gets moved into *our* storage though,
 we have to use exactly the type that was specified in the template parameters.
 This just won't always be the same as what the visited value is.)
+
+If we move ['after] piercing the wrapper, that performs a value move, and when
+we want to perform a pointer move, we move without piercing the wrapper.
 
 This ensures correctness also when we are using the "generalizing" ctors of
 `variant`.
