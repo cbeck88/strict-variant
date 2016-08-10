@@ -24,7 +24,7 @@ dispatch, and so on. And about how to achieve runtime polymorphism by creating a
 interface base class, and making multiple classes that derive from / implement the interface.
 
 Another way to get runtime polymorphism is, simply use a `variant` where you
-would have used the base class, and use visitors to get polymorphism based on the runtime type.
+would have used the base class, and use visitors to get different behavior based on the runtime type.
 
 Using a `variant` is attractive because:
 
