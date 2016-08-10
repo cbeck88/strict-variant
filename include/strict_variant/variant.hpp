@@ -165,7 +165,7 @@ private:
   struct init_helper {
     using target_type = unwrap_type_t<typename storage_t::template value_t<idx>>;
 
-    using trait = typename detail::allow_variant_construction<target_type, T>;
+    using trait = typename safely_constructible<target_type, T>;
 
     static constexpr bool safe_value = trait::value;
     static constexpr int priority = trait::priority;

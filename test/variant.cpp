@@ -168,42 +168,45 @@ static_assert(std::is_nothrow_move_constructible<variant<int, double>>::value,
               "failed a unit test");
 
 // Check core traits that enable construction from other types
-static_assert(detail::allow_variant_construction<std::string, const char *>::value,
-              "failed a unit test");
-static_assert(detail::allow_variant_construction<std::string, const std::string &>::value,
-              "failed a unit test");
-static_assert(detail::allow_variant_construction<std::string, std::string &&>::value,
-              "failed a unit test");
-static_assert(!detail::allow_variant_construction<int, const char *>::value, "failed a unit test");
-static_assert(detail::allow_variant_construction<int, int>::value, "failed a unit test");
-static_assert(!detail::allow_variant_construction<int, double>::value, "failed a unit test");
-static_assert(!detail::allow_variant_construction<double, int>::value, "failed a unit test");
-static_assert(detail::allow_variant_construction<double, double>::value, "failed a unit test");
+template <typename U, typename V>
+struct allow_variant_construction : safely_constructible<unwrap_type_t<U>, V> {};
 
-static_assert(detail::allow_variant_construction<int, const int &>::value, "failed a unit test");
-static_assert(!detail::allow_variant_construction<int, const double &>::value,
+static_assert(allow_variant_construction<std::string, const char *>::value,
               "failed a unit test");
-static_assert(!detail::allow_variant_construction<double, const int &>::value,
+static_assert(allow_variant_construction<std::string, const std::string &>::value,
               "failed a unit test");
-static_assert(detail::allow_variant_construction<double, const double &>::value,
+static_assert(allow_variant_construction<std::string, std::string &&>::value,
+              "failed a unit test");
+static_assert(!allow_variant_construction<int, const char *>::value, "failed a unit test");
+static_assert(allow_variant_construction<int, int>::value, "failed a unit test");
+static_assert(!allow_variant_construction<int, double>::value, "failed a unit test");
+static_assert(!allow_variant_construction<double, int>::value, "failed a unit test");
+static_assert(allow_variant_construction<double, double>::value, "failed a unit test");
+
+static_assert(allow_variant_construction<int, const int &>::value, "failed a unit test");
+static_assert(!allow_variant_construction<int, const double &>::value,
+              "failed a unit test");
+static_assert(!allow_variant_construction<double, const int &>::value,
+              "failed a unit test");
+static_assert(allow_variant_construction<double, const double &>::value,
               "failed a unit test");
 
-static_assert(detail::allow_variant_construction<int, int &&>::value, "failed a unit test");
-static_assert(!detail::allow_variant_construction<int, double &&>::value, "failed a unit test");
-static_assert(!detail::allow_variant_construction<double, int &&>::value, "failed a unit test");
-static_assert(detail::allow_variant_construction<double, double &&>::value, "failed a unit test");
+static_assert(allow_variant_construction<int, int &&>::value, "failed a unit test");
+static_assert(!allow_variant_construction<int, double &&>::value, "failed a unit test");
+static_assert(!allow_variant_construction<double, int &&>::value, "failed a unit test");
+static_assert(allow_variant_construction<double, double &&>::value, "failed a unit test");
 
-static_assert(detail::allow_variant_construction<float, float &&>::value, "failed a unit test");
-static_assert(!detail::allow_variant_construction<float, double &&>::value, "failed a unit test");
-static_assert(detail::allow_variant_construction<double, float &&>::value, "failed a unit test");
+static_assert(allow_variant_construction<float, float &&>::value, "failed a unit test");
+static_assert(!allow_variant_construction<float, double &&>::value, "failed a unit test");
+static_assert(allow_variant_construction<double, float &&>::value, "failed a unit test");
 
-static_assert(detail::allow_variant_construction<std::string, std::string>::value,
+static_assert(allow_variant_construction<std::string, std::string>::value,
               "failed a unit test");
 static_assert(
-  detail::allow_variant_construction<recursive_wrapper<std::string>, const std::string &>::value,
+  allow_variant_construction<recursive_wrapper<std::string>, const std::string &>::value,
   "failed a unit test");
 static_assert(
-  detail::allow_variant_construction<recursive_wrapper<std::string>, const std::string>::value,
+  allow_variant_construction<recursive_wrapper<std::string>, const std::string>::value,
   "failed a unit test");
 
 // Test noexcept annotations

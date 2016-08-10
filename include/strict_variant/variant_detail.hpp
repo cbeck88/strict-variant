@@ -75,29 +75,6 @@ struct proper_subvariant {
   static constexpr bool value = !std::is_same<A, B>::value && subvariant<A, B>::value;
 };
 
-/***
- * Metafunction `allow_variant_construction`:
- *   Check if a type should be allowed to initalize our variant with the value
- *   of a second type. Basically, we always answer with
- *   "mpl::safe_constructible<...>::value",
- *   unless one of them is recursively wrapped. If it is, then we only allow
- *   copy ctor essentially, so that it can be an incomplete type.
- *   Note that we do some tricky stuff here to ensure that things can be
- *   incomplete types, when using recursive wrapper.
- */
-template <typename A, typename B>
-struct allow_variant_construction : safely_constructible<A, B> {};
-
-// By default, recursive wrapper construction is NOT allowed, unless expressly
-// allowed below,
-// via simple checks that don't require complete types.
-
-// Usually we want to unwrap recursive_wrapper when we perform the check.
-// If we are being assigned *from* a recursive wrapper, it means we are
-template <typename T, typename U>
-struct allow_variant_construction<strict_variant::recursive_wrapper<T>, U>
-  : safely_constructible<T, U> {};
-
 /****
  * NOEXCEPT TRAITS
  *
