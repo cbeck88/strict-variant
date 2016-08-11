@@ -7,11 +7,11 @@
 <link rel="home" href="../../index.html" title="Chapter&#160;1.&#160;Strict Variant 0.0">
 <link rel="up" href="../remarks.html" title="Remarks">
 <link rel="prev" href="compiler_compatibility.html" title="Compiler Compatibility">
-<link rel="next" href="comparison_and_performance_chara.html" title="Comparison and Performance Characteristics">
+<link rel="next" href="comparison.html" title="Comparison and Performance Characteristics">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
 <div class="spirit-nav">
-<a accesskey="p" href="compiler_compatibility.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../remarks.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="comparison_and_performance_chara.html"><img src="../../images/next.png" alt="Next"></a>
+<a accesskey="p" href="compiler_compatibility.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../remarks.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="comparison.html"><img src="../../images/next.png" alt="Next"></a>
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
@@ -83,15 +83,59 @@
         move ctor is the pointer-move. But in most cases, when visiting a variant,
         even for purposes of copy or move construction of another variant, we call
         a function <code class="computeroutput"><span class="identifier">detail</span><span class="special">::</span><span class="identifier">pierce_recursive_wrapper</span></code> which ensures
-        that we pierce the wrapper and move the value rather than the wrapper. Essentially,
-        the only time that we want to visit a variant and not pierce the wrapper,
-        is when calling the destructor.
+        that we pierce the wrapper and move the value rather than the wrapper.
+      </p>
+<pre class="programlisting"><span class="keyword">namespace</span> <span class="identifier">detail</span> <span class="special">{</span>
+
+<span class="comment">/***
+ * Function to pierce the recursive_wrapper template
+ */</span>
+
+<span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
+<span class="keyword">inline</span> <span class="keyword">auto</span>
+<span class="identifier">pierce_recursive_wrapper</span><span class="special">(</span><span class="identifier">T</span> <span class="special">&amp;&amp;</span> <span class="identifier">t</span><span class="special">)</span> <span class="special">-&gt;</span> <span class="identifier">T</span> <span class="special">{</span>
+  <span class="keyword">return</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;(</span><span class="identifier">t</span><span class="special">);</span>
+<span class="special">}</span>
+
+<span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
+<span class="keyword">inline</span> <span class="identifier">T</span> <span class="special">&amp;</span>
+<span class="identifier">pierce_recursive_wrapper</span><span class="special">(</span><span class="identifier">recursive_wrapper</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span> <span class="special">&amp;</span> <span class="identifier">t</span><span class="special">)</span> <span class="special">{</span>
+  <span class="keyword">return</span> <span class="identifier">t</span><span class="special">.</span><span class="identifier">get</span><span class="special">();</span>
+<span class="special">}</span>
+
+<span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
+<span class="keyword">inline</span> <span class="identifier">T</span> <span class="special">&amp;&amp;</span>
+<span class="identifier">pierce_recursive_wrapper</span><span class="special">(</span><span class="identifier">recursive_wrapper</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span> <span class="special">&amp;&amp;</span> <span class="identifier">t</span><span class="special">)</span> <span class="special">{</span>
+  <span class="keyword">return</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">move</span><span class="special">(</span><span class="identifier">t</span><span class="special">.</span><span class="identifier">get</span><span class="special">());</span>
+<span class="special">}</span>
+
+<span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
+<span class="keyword">inline</span> <span class="keyword">const</span> <span class="identifier">T</span> <span class="special">&amp;</span>
+<span class="identifier">pierce_recursive_wrapper</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">recursive_wrapper</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span> <span class="special">&amp;</span> <span class="identifier">t</span><span class="special">)</span> <span class="special">{</span>
+  <span class="keyword">return</span> <span class="identifier">t</span><span class="special">.</span><span class="identifier">get</span><span class="special">();</span>
+<span class="special">}</span>
+
+<span class="special">}</span> <span class="comment">// end namespace detail</span>
+</pre>
+<p>
+        Whenever a user-defined visitor is applied, we use this function to transparently
+        remove the wrapper for them.
+      </p>
+<p>
+        We also use that for almost all of our own visitors -- essentially, the only
+        time that we want to visit a <code class="computeroutput"><span class="identifier">variant</span></code>
+        and not pierce the wrapper, is when calling the destructor.
       </p>
 <p>
         (Obviously, when constructing the value that gets moved into <span class="bold"><strong>our</strong></span>
         storage though, we have to use exactly the type that was specified in the
         template parameters. This just won't always be the same as what the visited
-        value is.)
+        value is, even when copy or move constructing.)
+      </p>
+<p>
+        If we move <span class="emphasis"><em>after</em></span> piercing the wrapper, that performs
+        a value move, and when we want to perform a pointer move, we move without
+        piercing the wrapper.
       </p>
 <p>
         This ensures correctness also when we are using the "generalizing"
@@ -306,7 +350,7 @@
 </tr></table>
 <hr>
 <div class="spirit-nav">
-<a accesskey="p" href="compiler_compatibility.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../remarks.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="comparison_and_performance_chara.html"><img src="../../images/next.png" alt="Next"></a>
+<a accesskey="p" href="compiler_compatibility.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../remarks.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="comparison.html"><img src="../../images/next.png" alt="Next"></a>
 </div>
 </body>
 </html>

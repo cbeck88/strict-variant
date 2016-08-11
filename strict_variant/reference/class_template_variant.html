@@ -21,17 +21,16 @@
 <p>
         A type-safe discriminated union container.
       </p>
-<p>
-        Its definition, and some ancillary function templates, are brought in by
-        <code class="computeroutput"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">strict_variant</span><span class="special">/</span><span class="identifier">variant</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span></code>.
-      </p>
-<p>
-        (Declarations only are brought in by <code class="computeroutput"><span class="special">&lt;</span><span class="identifier">strict_variant</span><span class="special">/</span><span class="identifier">variant_fwd</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span></code>.)
-      </p>
 <h4>
 <a name="strict_variant.reference.class_template_variant.h0"></a>
         <span><a name="strict_variant.reference.class_template_variant.synopsis"></a></span><a class="link" href="class_template_variant.html#strict_variant.reference.class_template_variant.synopsis">Synopsis</a>
       </h4>
+<p>
+        Declared in file <code class="computeroutput"><span class="special">&lt;</span><span class="identifier">strict_variant</span><span class="special">/</span><span class="identifier">variant_fwd</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span></code>.
+      </p>
+<p>
+        Defined in file <code class="computeroutput"><span class="special">&lt;</span><span class="identifier">strict_variant</span><span class="special">/</span><span class="identifier">variant</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span></code>:
+      </p>
 <pre class="programlisting"><span class="keyword">namespace</span> <span class="identifier">strict_variant</span> <span class="special">{</span>
 
   <span class="comment">// Used in tag dispatch</span>
@@ -41,6 +40,7 @@
   <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">First</span><span class="special">,</span> <span class="keyword">typename</span><span class="special">...</span> <span class="identifier">Types</span><span class="special">&gt;</span>
   <span class="keyword">class</span> <span class="identifier">variant</span> <span class="special">{</span>
 
+    <span class="comment">// Default constructs `First()`.</span>
     <span class="identifier">variant</span><span class="special">();</span>
 
     <span class="comment">// Special member functions</span>
@@ -52,6 +52,7 @@
     <span class="identifier">variant</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span><span class="identifier">variant</span> <span class="special">&amp;&amp;);</span>
     <span class="identifier">variant</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span><span class="keyword">const</span> <span class="identifier">variant</span> <span class="special">&amp;);</span>
 
+    <span class="comment">// Forwarding-reference ctor: Places the given value in the variant.</span>
     <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
     <span class="identifier">variant</span><span class="special">(</span><span class="identifier">T</span> <span class="special">&amp;&amp;);</span>
 
@@ -113,13 +114,42 @@
         <span><a name="strict_variant.reference.class_template_variant.description"></a></span><a class="link" href="class_template_variant.html#strict_variant.reference.class_template_variant.description">Description</a>
       </h4>
 <p>
-        <code class="computeroutput"><span class="identifier">variant</span></code> is the core class
+        <code class="computeroutput"><span class="identifier">variant</span></code> is the core object
         of the <code class="computeroutput"><span class="identifier">strict_variant</span></code> library.
         It controls the storage in which the value is contained, and provides an
         interface for accessing the value and changing the value.
       </p>
 <h5>
 <a name="strict_variant.reference.class_template_variant.h2"></a>
+        <span><a name="strict_variant.reference.class_template_variant.type_requirements"></a></span><a class="link" href="class_template_variant.html#strict_variant.reference.class_template_variant.type_requirements">Type
+        Requirements</a>
+      </h5>
+<p>
+        The template parameters <code class="computeroutput"><span class="identifier">First</span><span class="special">,</span> <span class="identifier">Types</span><span class="special">...</span></code> are called the <span class="emphasis"><em>value types</em></span>
+        of the variant. These are the different possible types that the contained
+        value may have.
+      </p>
+<div class="variablelist">
+<p class="title"><b>Each value type:</b></p>
+<dl>
+<dt><span class="term">Must be <code class="computeroutput"><span class="identifier">nothrow_destructible</span></code></span></dt>
+<dd>
+              This is enforced by <code class="computeroutput"><span class="keyword">static_assert</span></code>.
+            </dd>
+<dt><span class="term">Must not be a reference type.</span></dt>
+<dd><p>
+              This is enforced by <code class="computeroutput"><span class="keyword">static_assert</span></code>.
+              Use <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">reference_wrapper</span></code> if you need this.
+            </p></dd>
+<dt><span class="term">Must be complete at point of instantiation of the <code class="computeroutput"><span class="identifier">variant</span></code>.</span></dt>
+<dd><p>
+              Use <code class="computeroutput"><span class="identifier">recursive_wrapper</span></code>
+              or similar to work around this.
+            </p></dd>
+</dl>
+</div>
+<h5>
+<a name="strict_variant.reference.class_template_variant.h3"></a>
         <span><a name="strict_variant.reference.class_template_variant.notes"></a></span><a class="link" href="class_template_variant.html#strict_variant.reference.class_template_variant.notes">Notes</a>
       </h5>
 <p>
@@ -132,49 +162,32 @@
         interface.)
       </p>
 <p>
-        The template arguments to <code class="computeroutput"><span class="identifier">variant</span></code>
-        are subject to a few hard restrictions:
-      </p>
-<div class="orderedlist"><ol class="orderedlist" type="1">
-<li class="listitem">
-            Must be <code class="computeroutput"><span class="identifier">nothrow_destructible</span></code>.
-            This is enforced by <code class="computeroutput"><span class="keyword">static_assert</span></code>.
-          </li>
-<li class="listitem">
-            Must not be a reference type. This is enforced by <code class="computeroutput"><span class="keyword">static_assert</span></code>.
-            Use <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">reference_wrapper</span></code> if you need this.
-          </li>
-<li class="listitem">
-            Must be complete at point of instantiation of the <code class="computeroutput"><span class="identifier">variant</span></code>.
-          </li>
-</ol></div>
-<p>
-        Additionally, the properties of the template arguments determine the properties
-        of the resulting variant.
+        The properties of the value types determine the properties of the resulting
+        variant.
       </p>
 <div class="itemizedlist"><ul class="itemizedlist" type="disc">
 <li class="listitem">
-            If the <code class="computeroutput"><span class="identifier">First</span></code> type of
-            the parameter list is <code class="computeroutput"><span class="identifier">DefaultConstructible</span></code>,
+            If the <code class="computeroutput"><span class="identifier">First</span></code> type is
+            <code class="computeroutput"><span class="identifier">DefaultConstructible</span></code>,
             then <code class="computeroutput"><span class="identifier">variant</span></code> is also.
             Otherwise it isn't.
           </li>
 <li class="listitem">
-            If each type is <code class="computeroutput"><span class="identifier">CopyConstructible</span></code>,
+            If each value type is <code class="computeroutput"><span class="identifier">CopyConstructible</span></code>,
             then <code class="computeroutput"><span class="identifier">variant</span></code> is <code class="computeroutput"><span class="identifier">CopyConstructible</span></code>.
           </li>
 <li class="listitem">
-            If each type is <code class="computeroutput"><span class="identifier">MoveConstructible</span></code>,
+            If each value type is <code class="computeroutput"><span class="identifier">MoveConstructible</span></code>,
             then <code class="computeroutput"><span class="identifier">variant</span></code> is <code class="computeroutput"><span class="identifier">MoveConstructible</span></code>.
           </li>
 <li class="listitem">
-            If each type is <code class="computeroutput"><span class="identifier">Assignable</span></code>
+            If each value type is <code class="computeroutput"><span class="identifier">Assignable</span></code>
             and <code class="computeroutput"><span class="identifier">CopyConstructible</span></code>
             and <code class="computeroutput"><span class="identifier">nothrow_move_constructible</span></code>,
             then <code class="computeroutput"><span class="identifier">variant</span></code> is <code class="computeroutput"><span class="identifier">Assignable</span></code>.
           </li>
 <li class="listitem">
-            If each type is <code class="computeroutput"><span class="identifier">MoveAssignable</span></code>
+            If each value type is <code class="computeroutput"><span class="identifier">MoveAssignable</span></code>
             and <code class="computeroutput"><span class="identifier">nothrow_move_constructible</span></code>,
             then <code class="computeroutput"><span class="identifier">variant</span></code> is <code class="computeroutput"><span class="identifier">MoveAssignable</span></code>.
           </li>
@@ -184,29 +197,34 @@
       </p>
 <div class="itemizedlist"><ul class="itemizedlist" type="disc">
 <li class="listitem">
-            If each type is <code class="computeroutput"><span class="identifier">EqualityComparable</span></code>,
+            If each value type is <code class="computeroutput"><span class="identifier">EqualityComparable</span></code>,
             then <code class="computeroutput"><span class="identifier">variant</span></code> is <code class="computeroutput"><span class="identifier">EqualityComparable</span></code>.
           </li>
 <li class="listitem">
-            If each type is <code class="computeroutput"><span class="identifier">LessThanComparable</span></code>,
+            If each value type is <code class="computeroutput"><span class="identifier">LessThanComparable</span></code>,
             then a comparator object, <code class="computeroutput"><span class="identifier">VariantComparator</span></code>,
             suitable for <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">map</span></code> or <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">set</span></code>,
             may be obtained from <code class="computeroutput"><span class="preprocessor">#include</span>
             <span class="special">&lt;</span><span class="identifier">strict_variant</span><span class="special">/</span><span class="identifier">variant_compare</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span></code>.
           </li>
 <li class="listitem">
-            If each type is <code class="computeroutput"><span class="identifier">OutputStreamable</span></code>,
+            If each value type is <code class="computeroutput"><span class="identifier">OutputStreamable</span></code>,
             then <code class="computeroutput"><span class="identifier">variant</span></code> is <code class="computeroutput"><span class="identifier">OutputStreamable</span></code>, if the header <code class="computeroutput"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">strict_variant</span><span class="special">/</span><span class="identifier">variant_stream_ops</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span></code>
             is included.
           </li>
 <li class="listitem">
-            If each type is <code class="computeroutput"><span class="identifier">Hashable</span></code>,
+            If each value type is <code class="computeroutput"><span class="identifier">Hashable</span></code>,
             then <code class="computeroutput"><span class="identifier">variant</span></code> is <code class="computeroutput"><span class="identifier">Hashable</span></code>, if the header <code class="computeroutput"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">strict_variant</span><span class="special">/</span><span class="identifier">variant_hash</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span></code>
             is included.
           </li>
 </ul></div>
+<p>
+        In all cases, all operations on this <code class="computeroutput"><span class="identifier">variant</span></code>
+        are <span class="emphasis"><em>strongly exception-safe</em></span> and provide rollback-semantics
+        if an exception is thrown while changing the type of the contained value.
+      </p>
 <h5>
-<a name="strict_variant.reference.class_template_variant.h3"></a>
+<a name="strict_variant.reference.class_template_variant.h4"></a>
         <span><a name="strict_variant.reference.class_template_variant.member_functions"></a></span><a class="link" href="class_template_variant.html#strict_variant.reference.class_template_variant.member_functions">Member
         Functions</a>
       </h5>
@@ -245,7 +263,7 @@
 <dl>
 <dt><span class="term">Requires</span></dt>
 <dd><p>
-                    Each type <code class="computeroutput"><span class="identifier">First</span><span class="special">,</span> <span class="identifier">Types</span><span class="special">...</span></code> is <code class="computeroutput"><span class="identifier">CopyConstructible</span></code>.
+                    Each value type is <code class="computeroutput"><span class="identifier">CopyConstructible</span></code>.
                   </p></dd>
 <dt><span class="term">Throws</span></dt>
 <dd><p>
@@ -264,21 +282,31 @@
 <dl>
 <dt><span class="term">Requires</span></dt>
 <dd><p>
-                    Each type <code class="computeroutput"><span class="identifier">First</span><span class="special">,</span> <span class="identifier">Types</span><span class="special">...</span></code> is <code class="computeroutput"><span class="identifier">MoveConstructible</span></code>.
+                    Each value type is <code class="computeroutput"><span class="identifier">MoveConstructible</span></code>.
                   </p></dd>
 <dt><span class="term">Throws</span></dt>
-<dd><p>
-                    If any of the moves does, or if any type is <code class="computeroutput"><span class="identifier">recursive_wrapper</span></code>.
-                  </p></dd>
+<dd><div class="itemizedlist"><ul class="itemizedlist" type="disc">
+<li class="listitem">
+                        If any of the moves throws
+                      </li>
+<li class="listitem">
+                        If any type is <code class="computeroutput"><span class="identifier">recursive_wrapper</span></code>,
+                        may throw <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">bad_alloc</span></code>.
+                      </li>
+<li class="listitem">
+                        If any type is <code class="computeroutput"><span class="identifier">recursive_wrapper</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span></code>, and <code class="computeroutput"><span class="identifier">T</span></code>
+                        has a throwing move, then this may throw such exceptions.
+                      </li>
+</ul></div></dd>
 </dl>
 </div>
 </dd>
 <dt><span class="term"><code class="computeroutput"><span class="identifier">variant</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">variant</span><span class="special">&lt;</span><span class="identifier">OFirst</span><span class="special">,</span> <span class="identifier">OTypes</span><span class="special">...&gt;</span> <span class="special">&amp;)</span></code></span></dt>
 <dd>
-<p>
+<p class="simpara">
               Generalizing constructor.
             </p>
-<p>
+<p class="simpara">
               Copy constructs a variant from another variant on strictly fewer types.
             </p>
 <div class="variablelist">
@@ -286,10 +314,9 @@
 <dl>
 <dt><span class="term">Requires</span></dt>
 <dd><p>
-                    Each type <code class="computeroutput"><span class="identifier">OFirst</span><span class="special">,</span> <span class="identifier">OTypes</span><span class="special">...</span></code> is template parameter of this
-                    <code class="computeroutput"><span class="identifier">variant</span></code> also,
-                    modulo <code class="computeroutput"><span class="keyword">const</span></code> and
-                    <code class="computeroutput"><span class="identifier">recursive_wrapper</span></code>.
+                    Each type <code class="computeroutput"><span class="identifier">OFirst</span><span class="special">,</span> <span class="identifier">OTypes</span><span class="special">...</span></code> is also a value type of this
+                    <code class="computeroutput"><span class="identifier">variant</span></code>, modulo
+                    <code class="computeroutput"><span class="keyword">const</span></code> and <code class="computeroutput"><span class="identifier">recursive_wrapper</span></code>.
                   </p></dd>
 <dt><span class="term">Throws</span></dt>
 <dd><p>
@@ -312,10 +339,9 @@
 <dl>
 <dt><span class="term">Requires</span></dt>
 <dd><p>
-                    Each type <code class="computeroutput"><span class="identifier">OFirst</span><span class="special">,</span> <span class="identifier">OTypes</span><span class="special">...</span></code> is template parameter of this
-                    <code class="computeroutput"><span class="identifier">variant</span></code> also,
-                    modulo <code class="computeroutput"><span class="keyword">const</span></code> and
-                    <code class="computeroutput"><span class="identifier">recursive_wrapper</span></code>.
+                    Each type <code class="computeroutput"><span class="identifier">OFirst</span><span class="special">,</span> <span class="identifier">OTypes</span><span class="special">...</span></code> is also a value type of this
+                    <code class="computeroutput"><span class="identifier">variant</span></code>, modulo
+                    <code class="computeroutput"><span class="keyword">const</span></code> and <code class="computeroutput"><span class="identifier">recursive_wrapper</span></code>.
                   </p></dd>
 <dt><span class="term">Throws</span></dt>
 <dd><p>
@@ -331,7 +357,8 @@
             </p>
 <p>
               Attempts to convert <code class="computeroutput"><span class="identifier">T</span></code>
-              to one of the template parameters of this variant.
+              to one of the value types of this variant, or an expression convertible
+              to such.
             </p>
 <p>
               This is resolved using overload resolution.
@@ -359,29 +386,68 @@
               any ties among the fundamental types.
             </p>
 <p>
-              For instance:
+              Here are some examples that show how ties will be broken when assigning
+              some fundamental types.
+            </p>
+<div class="variablelist">
+<p class="title"><b>When assigning</b></p>
+<dl>
+<dt><span class="term"><code class="computeroutput"><span class="keyword">float</span></code></span></dt>
+<dd>
+                    The permitted conversions, in order of priority, are <code class="computeroutput"><span class="keyword">float</span></code>, <code class="computeroutput"><span class="keyword">double</span></code>,
+                    <code class="computeroutput"><span class="keyword">long</span> <span class="keyword">double</span></code>.
+                  </dd>
+<dt><span class="term"><code class="computeroutput"><span class="keyword">double</span></code></span></dt>
+<dd><p>
+                    The permitted conversions, in order of priority, are <code class="computeroutput"><span class="keyword">double</span></code>, <code class="computeroutput"><span class="keyword">long</span>
+                    <span class="keyword">double</span></code>.
+                  </p></dd>
+<dt><span class="term"><code class="computeroutput"><span class="keyword">unsigned</span> <span class="keyword">int</span></code></span></dt>
+<dd><p>
+                    The permitted conversions, in order of priority, are <code class="computeroutput"><span class="keyword">unsigned</span> <span class="keyword">int</span></code>,
+                    <code class="computeroutput"><span class="keyword">unsigned</span> <span class="keyword">long</span></code>,
+                    <code class="computeroutput"><span class="keyword">unsigned</span> <span class="keyword">long</span>
+                    <span class="keyword">long</span></code>.
+                  </p></dd>
+<dt><span class="term"><code class="computeroutput"><span class="keyword">signed</span> <span class="keyword">int</span></code></span></dt>
+<dd><p>
+                    The permitted conversions, in order of priority, are <code class="computeroutput"><span class="keyword">signed</span> <span class="keyword">int</span></code>,
+                    <code class="computeroutput"><span class="keyword">unsigned</span> <span class="keyword">int</span></code>,
+                    <code class="computeroutput"><span class="keyword">signed</span> <span class="keyword">long</span></code>,
+                    <code class="computeroutput"><span class="keyword">signed</span> <span class="keyword">long</span>
+                    <span class="keyword">long</span></code>.
+                  </p></dd>
+<dt><span class="term"><code class="computeroutput"><span class="keyword">char</span></code></span></dt>
+<dd><p>
+                    The permitted conversions, in order of priority, are <code class="computeroutput"><span class="keyword">char</span></code>, <code class="computeroutput"><span class="keyword">unsigned</span>
+                    <span class="keyword">char</span></code>.
+                  </p></dd>
+</dl>
+</div>
+<p>
+              Here are some concrete annotated examples:
             </p>
 <pre class="programlisting"><span class="identifier">variant</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">,</span> <span class="keyword">long</span><span class="special">&gt;</span> <span class="identifier">v</span><span class="special">{</span><span class="number">10</span><span class="special">};</span>                    <span class="comment">// Selects `int`, it is lower rank.</span>
 <span class="identifier">variant</span><span class="special">&lt;</span><span class="keyword">long</span><span class="special">,</span> <span class="keyword">long</span> <span class="keyword">long</span><span class="special">&gt;</span> <span class="identifier">v</span><span class="special">{</span><span class="number">10</span><span class="special">};</span>              <span class="comment">// Selects `long`, it is lower rank.</span>
+<span class="identifier">variant</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">,</span> <span class="keyword">unsigned</span> <span class="keyword">int</span><span class="special">&gt;</span> <span class="identifier">v</span><span class="special">{</span><span class="number">10</span><span class="special">};</span>            <span class="comment">// Selects `int`, it has a better conversion (identity)</span>
 <span class="identifier">variant</span><span class="special">&lt;</span><span class="keyword">long</span><span class="special">,</span> <span class="keyword">unsigned</span> <span class="keyword">int</span><span class="special">&gt;</span> <span class="identifier">v</span><span class="special">{</span><span class="number">10</span><span class="special">};</span>           <span class="comment">// Selects `unsigned int`, it is lower rank.</span>
 <span class="identifier">variant</span><span class="special">&lt;</span><span class="keyword">long</span> <span class="keyword">long</span><span class="special">,</span> <span class="keyword">unsigned</span> <span class="keyword">long</span><span class="special">&gt;</span> <span class="identifier">v</span><span class="special">{</span><span class="number">10</span><span class="special">};</span>     <span class="comment">// Selects `long long`, because `int -&gt; unsigned long` is considered unsafe.</span>
-<span class="identifier">variant</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">,</span> <span class="keyword">unsigned</span> <span class="keyword">int</span><span class="special">&gt;</span> <span class="identifier">v</span><span class="special">{</span><span class="number">10</span><span class="special">};</span>            <span class="comment">// Selects `int`, it has a better conversion (overload resolution)</span>
 
 <span class="identifier">variant</span><span class="special">&lt;</span><span class="keyword">unsigned</span> <span class="keyword">int</span><span class="special">,</span> <span class="keyword">unsigned</span> <span class="keyword">long</span><span class="special">&gt;</span> <span class="identifier">v</span><span class="special">{</span><span class="number">10u</span><span class="special">};</span> <span class="comment">// Selects `unsigned int`, it is lower rank.</span>
 <span class="identifier">variant</span><span class="special">&lt;</span><span class="keyword">long</span><span class="special">,</span> <span class="keyword">unsigned</span> <span class="keyword">long</span> <span class="keyword">long</span><span class="special">&gt;</span> <span class="identifier">v</span><span class="special">{</span><span class="number">10u</span><span class="special">};</span>    <span class="comment">// Selects `unsigned long long`, because `unsigned -&gt; signed` is considered unsafe.</span>
 </pre>
 <p>
-              Overload resolution might still be ambiguous with other, user-defined
-              types in the variant.
+              Even when ties among fundamental types are broken, overload resolution
+              might still be ambiguous with other, user-defined types in the variant.
             </p>
 </dd>
 <dt><span class="term"><code class="computeroutput"><span class="identifier">variant</span><span class="special">(</span><span class="identifier">emplace_tag</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;,</span> <span class="identifier">Args</span> <span class="special">&amp;&amp;</span>
           <span class="special">...</span> <span class="identifier">args</span><span class="special">)</span></code></span></dt>
 <dd>
-<p class="simpara">
+<p>
               Emplace-constructs a variant.
             </p>
-<p class="simpara">
+<p>
               Constructs a value of type <code class="computeroutput"><span class="identifier">T</span></code>
               in the storage. Any additional arguments <code class="computeroutput"><span class="identifier">args</span></code>
               are forwarded to <code class="computeroutput"><span class="identifier">T</span></code>'s
@@ -393,7 +459,7 @@
 <dt><span class="term">Requires</span></dt>
 <dd><p>
                     <code class="computeroutput"><span class="identifier">T</span></code> is one of the
-                    template parameter of this <code class="computeroutput"><span class="identifier">variant</span></code>,
+                    value types of this <code class="computeroutput"><span class="identifier">variant</span></code>,
                     modulo <code class="computeroutput"><span class="keyword">const</span></code> and
                     <code class="computeroutput"><span class="identifier">recursive_wrapper</span></code>.
                   </p></dd>
@@ -421,7 +487,7 @@
 <dl>
 <dt><span class="term">Requires</span></dt>
 <dd><p>
-                    Each type <code class="computeroutput"><span class="identifier">First</span><span class="special">,</span> <span class="identifier">Types</span><span class="special">...</span></code> is <code class="computeroutput"><span class="identifier">Assignable</span></code>,
+                    Each value type is <code class="computeroutput"><span class="identifier">Assignable</span></code>,
                     <code class="computeroutput"><span class="identifier">CopyConstructible</span></code>,
                     and <code class="computeroutput"><span class="identifier">nothrow_move_constructible</span></code>.
                   </p></dd>
@@ -443,40 +509,51 @@
 <dl>
 <dt><span class="term">Requires</span></dt>
 <dd><p>
-                    Each type <code class="computeroutput"><span class="identifier">First</span><span class="special">,</span> <span class="identifier">Types</span><span class="special">...</span></code> is <code class="computeroutput"><span class="identifier">MoveAssignable</span></code>
+                    Each value type is <code class="computeroutput"><span class="identifier">MoveAssignable</span></code>
                     and <code class="computeroutput"><span class="identifier">nothrow_move_constructible</span></code>.
                   </p></dd>
 <dt><span class="term">Throws</span></dt>
-<dd><p>
-                    If the engaged type is <code class="computeroutput"><span class="identifier">recursive_wrapper</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span></code>, this may throw if a dynamic
-                    allocation fails or if move construction of <code class="computeroutput"><span class="identifier">T</span></code>
-                    fails. If the type has a throwing move assignment, then this
-                    may throw such exceptions. Otherwise this call is <code class="computeroutput"><span class="keyword">noexcept</span></code>.
-                  </p></dd>
+<dd><div class="itemizedlist"><ul class="itemizedlist" type="disc">
+<li class="listitem">
+                        If the type has a throwing move assignment, then this may
+                        throw such exceptions.
+                      </li>
+<li class="listitem">
+                        If the engaged type is <code class="computeroutput"><span class="identifier">recursive_wrapper</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span></code>, then this may throw
+                        <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">bad_alloc</span></code>.
+                      </li>
+<li class="listitem">
+                        If the engaged type is <code class="computeroutput"><span class="identifier">recursive_wrapper</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span></code>, and <code class="computeroutput"><span class="identifier">T</span></code>
+                        has a throwing move, then this may throw such exceptions.
+                      </li>
+<li class="listitem">
+                        Otherwise this call is <code class="computeroutput"><span class="keyword">noexcept</span></code>.
+                      </li>
+</ul></div></dd>
 </dl>
 </div>
 </dd>
 <dt><span class="term"><code class="computeroutput"><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">,</span> <span class="keyword">typename</span> <span class="special">...</span> <span class="identifier">Args</span><span class="special">&gt;</span> <span class="keyword">void</span> <span class="identifier">emplace</span><span class="special">(</span><span class="identifier">Args</span> <span class="special">&amp;&amp;</span>
           <span class="special">...</span> <span class="identifier">args</span><span class="special">)</span></code></span></dt>
 <dd>
-<p>
+<p class="simpara">
               Emplaces a value of type <code class="computeroutput"><span class="identifier">T</span></code>
               into the variant.
             </p>
-<p>
+<p class="simpara">
               Force the variant to a particular type and value.
             </p>
-<p>
-              The user explicitly specifies the desired type as template parameter.
+<p class="simpara">
+              The user explicitly specifies the desired type as a template parameter.
             </p>
-<p>
+<p class="simpara">
               There are actually two implementations of <code class="computeroutput"><span class="identifier">emplace</span></code>,
               depending on whether the invoked ctor is <code class="computeroutput"><span class="keyword">noexcept</span></code>.
               If it is, construction takes in place directly in the storage. If it
               is not, construction takes place on the stack, and the value is moved
               into storage. (For strong exception-safety.)
             </p>
-<p>
+<p class="simpara">
               <code class="computeroutput"><span class="identifier">emplace</span></code> may be used
               to resolve ambiguity in assignment, or to put a value in the container
               which is not <code class="computeroutput"><span class="identifier">nothrow_move_constructible</span></code>.
@@ -486,8 +563,8 @@
 <dl>
 <dt><span class="term">Requires</span></dt>
 <dd><p>
-                    <code class="computeroutput"><span class="identifier">T</span></code> must be a member
-                    of the variant, modulo <code class="computeroutput"><span class="keyword">const</span></code>
+                    <code class="computeroutput"><span class="identifier">T</span></code> must be a value
+                    type of the variant, modulo <code class="computeroutput"><span class="keyword">const</span></code>
                     and <code class="computeroutput"><span class="identifier">recursive_wrapper</span></code>,
                     and <span class="emphasis"><em>either</em></span> the invoked constructor, <span class="emphasis"><em>or</em></span>
                     the move constructor of <code class="computeroutput"><span class="identifier">T</span></code>,
@@ -505,7 +582,7 @@
 <div class="variablelist">
 <p class="title"><b>Destructor</b></p>
 <dl>
-<dt><span class="term">`~variant() noexcept</span></dt>
+<dt><span class="term"><code class="computeroutput"><span class="special">~</span><span class="identifier">variant</span><span class="special">()</span> <span class="keyword">noexcept</span></code></span></dt>
 <dd><p>
               Destroys the contained value. Never throws.
             </p></dd>
@@ -514,7 +591,7 @@
 <div class="variablelist">
 <p class="title"><b>Accessors</b></p>
 <dl>
-<dt><span class="term">int which() const noexcept</span></dt>
+<dt><span class="term"><code class="computeroutput"><span class="keyword">int</span> <span class="identifier">which</span><span class="special">()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span></code></span></dt>
 <dd>
 <p>
               Returns the <code class="computeroutput"><span class="identifier">which</span></code> indicator
@@ -522,8 +599,8 @@
             </p>
 <p>
               The <code class="computeroutput"><span class="identifier">which</span></code> value is
-              an index into the list <code class="computeroutput"><span class="identifier">First</span><span class="special">,</span> <span class="identifier">Types</span><span class="special">...</span></code> of template parameters, indicating
-              the currently contained type.
+              an index into the list <code class="computeroutput"><span class="identifier">First</span><span class="special">,</span> <span class="identifier">Types</span><span class="special">...</span></code> of value types, indicating the currently
+              contained type.
             </p>
 </dd>
 <dt><span class="term"><code class="computeroutput"><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span> <span class="identifier">T</span> <span class="special">*</span> <span class="identifier">get</span><span class="special">()</span> <span class="keyword">noexcept</span></code></span></dt>
@@ -551,7 +628,11 @@
 <div class="variablelist">
 <p class="title"><b>Operators</b></p>
 <dl>
-<dt><span class="term">bool operator ==(const variant &amp; other) const</span></dt>
+<dt><span class="term"><code class="computeroutput"><span class="keyword">bool</span> <span class="keyword">operator</span>
+          <span class="special">==(</span><span class="keyword">const</span>
+          <span class="identifier">variant</span> <span class="special">&amp;</span>
+          <span class="identifier">other</span><span class="special">)</span>
+          <span class="keyword">const</span></code></span></dt>
 <dd>
 <p>
               Checks if <code class="computeroutput"><span class="identifier">which</span><span class="special">()</span>
@@ -564,7 +645,7 @@
 <dl>
 <dt><span class="term">Requires</span></dt>
 <dd><p>
-                    Each type <code class="computeroutput"><span class="identifier">First</span><span class="special">,</span> <span class="identifier">Types</span><span class="special">...</span></code> is <code class="computeroutput"><span class="identifier">EqualityComparable</span></code>.
+                    Each value type is <code class="computeroutput"><span class="identifier">EqualityComparable</span></code>.
                   </p></dd>
 <dt><span class="term">Throws</span></dt>
 <dd><p>
@@ -573,7 +654,10 @@
 </dl>
 </div>
 </dd>
-<dt><span class="term">bool operator !=(const variant &amp;) const</span></dt>
+<dt><span class="term"><code class="computeroutput"><span class="keyword">bool</span> <span class="keyword">operator</span>
+          <span class="special">!=(</span><span class="keyword">const</span>
+          <span class="identifier">variant</span> <span class="special">&amp;)</span>
+          <span class="keyword">const</span></code></span></dt>
 <dd><p>
               Returns the negation of <code class="computeroutput"><span class="keyword">operator</span>
               <span class="special">==</span></code>.
@@ -581,7 +665,7 @@
 </dl>
 </div>
 <h5>
-<a name="strict_variant.reference.class_template_variant.h4"></a>
+<a name="strict_variant.reference.class_template_variant.h5"></a>
         <span><a name="strict_variant.reference.class_template_variant.template_functions"></a></span><a class="link" href="class_template_variant.html#strict_variant.reference.class_template_variant.template_functions">Template
         Functions</a>
       </h5>
@@ -617,7 +701,7 @@
 <dt><span class="term">Requires</span></dt>
 <dd><p>
                     <code class="computeroutput"><span class="identifier">T</span></code> is one of the
-                    variant template parameters, modulo <code class="computeroutput"><span class="keyword">const</span></code>
+                    value types of the variant, modulo <code class="computeroutput"><span class="keyword">const</span></code>
                     and <code class="computeroutput"><span class="identifier">recursive_wrapper</span></code>.
                   </p></dd>
 <dt><span class="term">Throws</span></dt>
@@ -635,26 +719,49 @@
               Applies <code class="computeroutput"><span class="identifier">visitor</span></code> to
               the value contained in <code class="computeroutput"><span class="identifier">variant</span></code>.
             </p>
-<p>
-              This call is equivalent to the expression <code class="computeroutput"><span class="identifier">visitor</span><span class="special">(</span><span class="identifier">value</span><span class="special">)</span></code>, where <code class="computeroutput"><span class="identifier">visitor</span></code>
-              and <code class="computeroutput"><span class="identifier">value</span></code> have value-category
-              corresponding to the arguments <code class="computeroutput"><span class="identifier">visitor</span></code>
-              and <code class="computeroutput"><span class="identifier">variant</span></code>, and <code class="computeroutput"><span class="identifier">value</span></code> has the run-time type of the
-              value currently contained in <code class="computeroutput"><span class="identifier">variant</span></code>.
-            </p>
-<p>
-              The return value is the result of that call.
-            </p>
-<p>
-              If <code class="computeroutput"><span class="identifier">visitor</span></code> returns
-              different types when different types from the <code class="computeroutput"><span class="identifier">variant</span></code>
-              are passed, the result type is a common base if one can be found. Otherwise
-              the call is ill-formed.
-            </p>
-<p>
-              It is not possible to return an rvalue-reference -- <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">decay</span></code>
-              will be applied. However it is possible to return an lvalue-reference.
-            </p>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Returns</span></dt>
+<dd><p>
+                    Result of call <code class="computeroutput"><span class="identifier">visitor</span><span class="special">(</span><span class="identifier">value</span><span class="special">)</span></code> where value is the value contained
+                    by <code class="computeroutput"><span class="identifier">variant</span></code>, with
+                    same value-category as <code class="computeroutput"><span class="identifier">variant</span></code>.
+                  </p></dd>
+<dt><span class="term">Requires</span></dt>
+<dd><div class="itemizedlist"><ul class="itemizedlist" type="disc">
+<li class="listitem">
+                        The call expression <code class="computeroutput"><span class="identifier">visitor</span><span class="special">(</span><span class="identifier">value</span><span class="special">)</span></code> is well-formed for each
+                        value type of the <code class="computeroutput"><span class="identifier">variant</span></code>
+                        when <code class="computeroutput"><span class="identifier">visitor</span></code>
+                        and <code class="computeroutput"><span class="identifier">value</span></code>
+                        are forwarded with appropriate value-category
+                      </li>
+<li class="listitem">
+                        Each of these expressions evaluate to the same type, or a
+                        common type can be found via e.g. integer promotion or a
+                        common base class.
+                      </li>
+</ul></div></dd>
+<dt><span class="term">Throws</span></dt>
+<dd>
+                    If the call expression throws.
+                  </dd>
+</dl>
+</div>
+<div class="note"><table border="0" summary="Note">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="../../images/note.png"></td>
+<th align="left">Note</th>
+</tr>
+<tr><td align="left" valign="top"><p>
+                The mechanism for finding a common return type is similar to <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">common_type</span></code> of C++14, however,
+                we have modified it so that it does not decay lvalue reference types.
+                This is as a workaround to <a href="http://www.open-std.org/JTC1/SC22/WG21/docs/lwg-defects.html#2141" target="_top">Library
+                Working Group Defect #2141</a>. Other return types will be subject
+                to <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">decay</span></code>.
+              </p></td></tr>
+</table></div>
 </dd>
 <dt><span class="term"><code class="computeroutput"><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">Visitor</span><span class="special">,</span> <span class="keyword">typename</span><span class="special">...</span> <span class="identifier">Variants</span><span class="special">&gt;</span> <span class="keyword">auto</span> <span class="identifier">apply_visitor</span><span class="special">(</span><span class="identifier">Visitor</span> <span class="special">&amp;&amp;</span>
           <span class="identifier">visitor</span><span class="special">,</span>
@@ -678,7 +785,7 @@
 </dl>
 </div>
 <h5>
-<a name="strict_variant.reference.class_template_variant.h5"></a>
+<a name="strict_variant.reference.class_template_variant.h6"></a>
         <span><a name="strict_variant.reference.class_template_variant.template_aliases"></a></span><a class="link" href="class_template_variant.html#strict_variant.reference.class_template_variant.template_aliases">Template
         Aliases</a>
       </h5>
@@ -722,6 +829,11 @@
 <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
 <span class="keyword">using</span> <span class="identifier">wrap_if_throwing_move_t</span> <span class="special">=</span> <span class="keyword">typename</span> <span class="identifier">wrap_if_throwing_move</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;::</span><span class="identifier">type</span><span class="special">;</span>
 </pre>
+<p>
+              Since <code class="computeroutput"><span class="identifier">recursive_wrapper</span></code>
+              is transparently pierced at all parts of the interface, <code class="computeroutput"><span class="identifier">easy_variant</span></code> can be dropped in for
+              <code class="computeroutput"><span class="identifier">strict_variant</span></code> if desired.
+            </p>
 </dd>
 </dl>
 </div>

@@ -98,10 +98,10 @@
 <pre class="programlisting"><span class="identifier">strict_variant</span><span class="special">::</span><span class="identifier">variant</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">,</span> <span class="keyword">float</span><span class="special">&gt;</span> <span class="identifier">v</span><span class="special">;</span>
 <span class="identifier">v</span> <span class="special">=</span> <span class="number">5</span><span class="special">;</span>
 
-<span class="comment">// Prints 10.0</span>
+<span class="comment">// Prints 10</span>
 <span class="identifier">std</span><span class="special">::</span><span class="identifier">cout</span> <span class="special">&lt;&lt;</span> <span class="identifier">strict_variant</span><span class="special">::</span><span class="identifier">apply_visitor</span><span class="special">([](</span><span class="keyword">double</span> <span class="identifier">d</span><span class="special">)</span> <span class="special">-&gt;</span> <span class="keyword">double</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">d</span> <span class="special">*</span> <span class="number">2</span><span class="special">;</span> <span class="special">},</span> <span class="identifier">v</span><span class="special">)</span> <span class="special">&lt;&lt;</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">endl</span><span class="special">;</span>
 
-<span class="identifier">v</span> <span class="special">=</span> <span class="number">7.5f</span>
+<span class="identifier">v</span> <span class="special">=</span> <span class="number">7.5f</span><span class="special">;</span>
 
 <span class="comment">// Prints 22.5</span>
 <span class="identifier">std</span><span class="special">::</span><span class="identifier">cout</span> <span class="special">&lt;&lt;</span> <span class="identifier">strict_variant</span><span class="special">::</span><span class="identifier">apply_visitor</span><span class="special">([](</span><span class="keyword">double</span> <span class="identifier">d</span><span class="special">)</span> <span class="special">-&gt;</span> <span class="keyword">double</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">d</span> <span class="special">*</span> <span class="number">3</span><span class="special">;</span> <span class="special">},</span> <span class="identifier">v</span><span class="special">)</span> <span class="special">&lt;&lt;</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">endl</span><span class="special">;</span>
@@ -121,13 +121,13 @@
 <pre class="programlisting"><span class="keyword">struct</span> <span class="identifier">formatter</span> <span class="special">{</span>
   <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="keyword">operator</span><span class="special">()(</span><span class="keyword">const</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="special">&amp;</span> <span class="identifier">s</span><span class="special">)</span> <span class="keyword">const</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">s</span><span class="special">;</span> <span class="special">}</span>
 
-  <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">,</span> <span class="keyword">typename</span> <span class="special">=</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">enable_if_t</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">is_integral</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;::</span><span class="identifier">value</span><span class="special">&gt;&gt;</span>
+  <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">,</span> <span class="keyword">typename</span> <span class="special">=</span> <span class="keyword">typename</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">enable_if</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">is_arithmetic</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;::</span><span class="identifier">value</span><span class="special">&gt;::</span><span class="identifier">type</span><span class="special">&gt;</span>
   <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="keyword">operator</span><span class="special">()(</span><span class="identifier">T</span> <span class="identifier">t</span><span class="special">)</span> <span class="keyword">const</span> <span class="special">{</span> <span class="keyword">return</span> <span class="string">"["</span> <span class="special">+</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">to_string</span><span class="special">(</span><span class="identifier">t</span><span class="special">)</span> <span class="special">+</span> <span class="string">"]"</span><span class="special">;</span> <span class="special">}</span>
 
   <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
   <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="keyword">operator</span><span class="special">()(</span><span class="keyword">const</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span> <span class="special">&amp;</span> <span class="identifier">vec</span><span class="special">)</span> <span class="keyword">const</span> <span class="special">{</span>
     <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">result</span> <span class="special">=</span> <span class="string">"{ "</span><span class="special">;</span>
-    <span class="keyword">for</span> <span class="special">(</span><span class="keyword">int</span> <span class="identifier">i</span> <span class="special">=</span> <span class="number">0</span><span class="special">;</span> <span class="identifier">i</span> <span class="special">&lt;</span> <span class="identifier">vec</span><span class="special">.</span><span class="identifier">size</span><span class="special">();</span> <span class="special">++</span><span class="identifier">i</span><span class="special">)</span> <span class="special">{</span>
+    <span class="keyword">for</span> <span class="special">(</span><span class="keyword">unsigned</span> <span class="keyword">int</span> <span class="identifier">i</span> <span class="special">=</span> <span class="number">0</span><span class="special">;</span> <span class="identifier">i</span> <span class="special">&lt;</span> <span class="identifier">vec</span><span class="special">.</span><span class="identifier">size</span><span class="special">();</span> <span class="special">++</span><span class="identifier">i</span><span class="special">)</span> <span class="special">{</span>
       <span class="keyword">if</span> <span class="special">(</span><span class="identifier">i</span><span class="special">)</span> <span class="special">{</span> <span class="identifier">result</span> <span class="special">+=</span> <span class="string">", "</span><span class="special">;</span> <span class="special">}</span>
       <span class="identifier">result</span> <span class="special">+=</span> <span class="special">(*</span><span class="keyword">this</span><span class="special">)(</span><span class="identifier">vec</span><span class="special">[</span><span class="identifier">i</span><span class="special">]);</span>
     <span class="special">}</span>
@@ -160,7 +160,7 @@
 </pre>
 <p>
         This works as long as the returns can be reconciled in a fashion similar
-        to <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">common_type</span></code>. <sup>[<a name="strict_variant.tutorial.advanced_usage.f0" href="#ftn.strict_variant.tutorial.advanced_usage.f0" class="footnote">10</a>]</sup>
+        to <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">common_type</span></code>. <sup>[<a name="strict_variant.tutorial.advanced_usage.f0" href="#ftn.strict_variant.tutorial.advanced_usage.f0" class="footnote">11</a>]</sup>
       </p>
 <p>
         One feature of <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code> which we <span class="emphasis"><em>don't currently
@@ -202,7 +202,8 @@
       </p>
 <h4>
 <a name="strict_variant.tutorial.advanced_usage.h8"></a>
-        <span><a name="strict_variant.tutorial.advanced_usage.assignment"></a></span><a class="link" href="advanced_usage.html#strict_variant.tutorial.advanced_usage.assignment">Assignment</a>
+        <span><a name="strict_variant.tutorial.advanced_usage.throwing_assignment"></a></span><a class="link" href="advanced_usage.html#strict_variant.tutorial.advanced_usage.throwing_assignment">Throwing
+        Assignment</a>
       </h4>
 <p>
         Just like <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code> and any other standard container,
@@ -212,18 +213,23 @@
 <p>
         However, like <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code> it has some restrictions.
       </p>
+<div class="itemizedlist"><ul class="itemizedlist" type="disc">
+<li class="listitem">
+            Each type must be <code class="computeroutput"><span class="identifier">nothrow</span><span class="special">-</span><span class="identifier">destructible</span></code>
+          </li>
+<li class="listitem">
+            Each type must be copy or move-constructible
+          </li>
+</ul></div>
 <p>
-        <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code> requires that all its constituent
-        types satisfy the <code class="computeroutput"><span class="identifier">Bounded</span> <span class="identifier">Type</span></code> concept, which required that they
-        are no-throw destructible, and that they are copy constructible or move constructible.
+        <code class="computeroutput"><span class="identifier">strict_variant</span></code> also requires
+        that its types are <code class="computeroutput"><span class="identifier">nothrow_destructible</span></code>.
       </p>
 <p>
-        <code class="computeroutput"><span class="identifier">strict_variant</span></code> requires that
-        its constituent types are no-throw destructible.
-      </p>
-<p>
-        Further, <code class="computeroutput"><span class="identifier">strict_variant</span></code> is
-        only assignable if the constituent types are all nothrow move constructible.
+        However, <code class="computeroutput"><span class="identifier">strict_variant</span></code> is
+        different in that it can only be assignable if each type is assignable AND
+        each type is <code class="computeroutput"><span class="identifier">nothrow_move_constructible</span></code>.
+        If this doesn't happen, compilation will fail with a <code class="computeroutput"><span class="keyword">static_assert</span></code>.
       </p>
 <p>
         Since that's not always possible for the types you may want to use it with,
@@ -235,18 +241,20 @@
 <pre class="programlisting"><span class="comment">// A class with a throwing move</span>
 <span class="keyword">class</span> <span class="identifier">X</span> <span class="special">{</span>
   <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">foo</span><span class="special">;</span>
+  <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">bar</span><span class="special">;</span>
 
 <span class="keyword">public</span><span class="special">:</span>
-  <span class="identifier">X</span> <span class="special">();</span>
-  <span class="identifier">X</span> <span class="special">(</span><span class="keyword">const</span> <span class="identifier">X</span> <span class="special">&amp;);</span>
-  <span class="identifier">X</span> <span class="special">(</span><span class="identifier">X</span> <span class="special">&amp;&amp;)</span> <span class="special">=</span> <span class="keyword">delete</span><span class="special">;</span>
+  <span class="identifier">X</span> <span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
+  <span class="identifier">X</span> <span class="special">(</span><span class="keyword">const</span> <span class="identifier">X</span> <span class="special">&amp;)</span> <span class="keyword">noexcept</span><span class="special">(</span><span class="keyword">false</span><span class="special">);</span>
+
+  <span class="identifier">X</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span><span class="keyword">const</span> <span class="identifier">X</span> <span class="special">&amp;)</span> <span class="keyword">noexcept</span><span class="special">(</span><span class="keyword">false</span><span class="special">);</span>
 <span class="special">};</span>
 
 <span class="comment">// A variant containing X</span>
-<span class="keyword">int</span> <span class="identifier">main</span><span class="special">()</span> <span class="special">{</span>
+<span class="keyword">void</span> <span class="identifier">goal</span><span class="special">()</span> <span class="special">{</span>
   <span class="identifier">variant</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">,</span> <span class="identifier">X</span><span class="special">&gt;</span> <span class="identifier">v</span><span class="special">;</span>
   <span class="identifier">v</span> <span class="special">=</span> <span class="number">5</span><span class="special">;</span>
-  <span class="identifier">v</span> <span class="special">=</span> <span class="identifier">X</span><span class="special">();</span>
+  <span class="identifier">v</span> <span class="special">=</span> <span class="identifier">X</span><span class="special">();</span>  <span class="comment">// Error: No assignment if X has a throwing move!</span>
 <span class="special">}</span>
 </pre>
 <p>
@@ -257,10 +265,9 @@
 <div class="orderedlist"><ol class="orderedlist" type="1">
 <li class="listitem">
 <p class="simpara">
-            Use <code class="computeroutput"><span class="identifier">recursive_wrapper</span></code>
-            with types that have throwing moves.
+            Use a <code class="computeroutput"><span class="identifier">recursive_wrapper</span></code>.
           </p>
-<pre class="programlisting"><span class="keyword">int</span> <span class="identifier">main</span><span class="special">()</span> <span class="special">{</span>
+<pre class="programlisting"><span class="keyword">void</span> <span class="identifier">goal</span><span class="special">()</span> <span class="special">{</span>
   <span class="identifier">variant</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">,</span> <span class="identifier">recursive_wrapper</span><span class="special">&lt;</span><span class="identifier">X</span><span class="special">&gt;&gt;</span> <span class="identifier">v</span><span class="special">;</span>
   <span class="identifier">v</span> <span class="special">=</span> <span class="number">5</span><span class="special">;</span>
   <span class="identifier">v</span> <span class="special">=</span> <span class="identifier">X</span><span class="special">();</span>
@@ -269,12 +276,11 @@
 </li>
 <li class="listitem">
 <p class="simpara">
-            Use <code class="computeroutput"><span class="identifier">easy_variant</span></code> instead
-            of <code class="computeroutput"><span class="identifier">strict_variant</span></code>. It's
-            the same, but it implicitly applies wrappers to its arguments with throwing
-            moves.
+            Use <code class="computeroutput"><span class="identifier">easy_variant</span></code> instead.
+            It's the same, but it implicitly applies wrappers to value types with
+            a throwing move.
           </p>
-<pre class="programlisting"><span class="keyword">int</span> <span class="identifier">main</span><span class="special">()</span> <span class="special">{</span>
+<pre class="programlisting"><span class="keyword">void</span> <span class="identifier">goal</span><span class="special">()</span> <span class="special">{</span>
   <span class="identifier">easy_variant</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">,</span> <span class="identifier">X</span><span class="special">&gt;</span> <span class="identifier">v</span><span class="special">;</span>
   <span class="identifier">v</span> <span class="special">=</span> <span class="number">5</span><span class="special">;</span>
   <span class="identifier">v</span> <span class="special">=</span> <span class="identifier">X</span><span class="special">();</span>
@@ -283,10 +289,11 @@
 </li>
 <li class="listitem">
 <p class="simpara">
-            Don't use assignment, and use the <code class="computeroutput"><span class="identifier">emplace</span></code>
-            method instead.
+            Use <code class="computeroutput"><span class="identifier">emplace</span></code> instead of
+            assignment. This works even if <code class="computeroutput"><span class="identifier">X</span></code>
+            is not copyable or moveable.
           </p>
-<pre class="programlisting"><span class="keyword">int</span> <span class="identifier">main</span><span class="special">()</span> <span class="special">{</span>
+<pre class="programlisting"><span class="keyword">void</span> <span class="identifier">goal</span><span class="special">()</span> <span class="special">{</span>
   <span class="identifier">variant</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">,</span> <span class="identifier">X</span><span class="special">&gt;</span> <span class="identifier">v</span><span class="special">;</span>
   <span class="identifier">v</span><span class="special">.</span><span class="identifier">emplace</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">&gt;(</span><span class="number">5</span><span class="special">);</span>
   <span class="identifier">v</span><span class="special">.</span><span class="identifier">emplace</span><span class="special">&lt;</span><span class="identifier">X</span><span class="special">&gt;();</span>
@@ -296,7 +303,7 @@
 </ol></div>
 <div class="footnotes">
 <br><hr width="100" align="left">
-<div class="footnote"><p><sup>[<a name="ftn.strict_variant.tutorial.advanced_usage.f0" href="#strict_variant.tutorial.advanced_usage.f0" class="para">10</a>] </sup>
+<div class="footnote"><p><sup>[<a name="ftn.strict_variant.tutorial.advanced_usage.f0" href="#strict_variant.tutorial.advanced_usage.f0" class="para">11</a>] </sup>
           Note that we don't actually use <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">common_type</span></code>:
           for one, that is C++14, for two, it wouldn't allow us to return references.
           We compromise by allowing the return of lvalue references but not rvalue

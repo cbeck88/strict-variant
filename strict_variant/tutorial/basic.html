@@ -336,8 +336,8 @@
       </p>
 <p>
         Another way to get runtime polymorphism is, simply use a <code class="computeroutput"><span class="identifier">variant</span></code>
-        where you would have used the base class, and use visitors to get polymorphism
-        based on the runtime type.
+        where you would have used the base class, and use visitors to get different
+        behavior based on the runtime type.
       </p>
 <p>
         Using a <code class="computeroutput"><span class="identifier">variant</span></code> is attractive
@@ -359,16 +359,25 @@
           </li>
 <li class="listitem">
             Dispatching a visitor to a <code class="computeroutput"><span class="identifier">variant</span></code>
-            is very simple and transparent to the compiler. At the time that it compiles
-            the code, it knows all of the different types that the variant could
-            be holding, and it just has to select the right function to call based
-            on the <code class="computeroutput"><span class="identifier">which</span></code> value. With
-            inheritance, the compiler often can't actually know all the possible
-            types until every compilation unit has been compiled, because any compilation
-            unit can declare a new class which inherits from the base class. So virtual
-            dispatch is usually opaque to the optimizer, while with a variant, dispatch
-            can potentially be inlined. This can sometimes be alleviated by link-time-optimizations
-            and devirtualization optimizations, but not always.
+            is very simple and transparent to the compiler. When the compiler encounters
+            <code class="computeroutput"><span class="identifier">apply_visitor</span></code>, it knows
+            all of the different types that the variant could be holding, and it
+            just has to select the right function to call based on the <code class="computeroutput"><span class="identifier">which</span></code> value. With virtual dispatch,
+            the compiler often can't actually know all the possible types until every
+            compilation unit has been compiled, because any compilation unit can
+            declare a new class which inherits from the base class. How virtual dispatch
+            is implemented may vary from compiler to compiler, but typically it involves
+            indirection through a "<code class="computeroutput"><span class="identifier">vptr</span></code>"
+            associated to each instance, which points to a table of function pointers
+            called a "<code class="computeroutput"><span class="identifier">vtable</span></code>"
+            associated to each class. And we usually can't know all the possible
+            <code class="computeroutput"><span class="identifier">vptr</span></code> values until we've
+            seen every compilation unit. So virtual dispatch is usually opaque to
+            the optimizer. With a <code class="computeroutput"><span class="identifier">variant</span></code>,
+            the whole dispatch is transparent and can potentially be inlined. This
+            can sometimes be alleviated by link-time optimizations and devirtualization
+            optimizations, but not always, and at time of writing, not typically
+            either.
           </li>
 <li class="listitem">
             Variants can be used even in very restrictive software environments.
@@ -378,10 +387,9 @@
             and RTTI play.
           </li>
 <li class="listitem">
-            Sometimes, the same <code class="computeroutput"><span class="identifier">visitor</span></code>
-            can be used with multiple different variants. This allows code reuse
-            in cases where with an inheritance-based solution you might have needed
-            to duplicate code.
+            Sometimes, the same visitor can be used with multiple different variant
+            types. This allows code reuse in cases where with an inheritance-based
+            solution you might have needed to duplicate code.
           </li>
 </ol></div>
 <p>
