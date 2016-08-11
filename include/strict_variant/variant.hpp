@@ -601,6 +601,7 @@ template <typename First, typename... Types>
 struct variant<First, Types...>::destroyer {
   typedef void result_type;
 
+  // "Choose the form of the destructor!" -- Ghostbusters, 1984
   template <typename T>
   void operator()(T & t) const noexcept {
     t.~T();
