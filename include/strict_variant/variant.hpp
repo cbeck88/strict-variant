@@ -176,15 +176,20 @@ private:
   // valid_property
   template <int p>
   struct valid_at {
-    template <typename U, typename = mpl::enable_if_t<U::is_numeric_value>>
-    struct prop {
+    template <typename U, bool numeric = U::is_numeric_value>
+    struct prop_impl;
+
+    template <typename U>
+    struct prop_impl<U, true> {
       static constexpr bool value = U::safe_value && p <= U::priority;
     };
-    template <typename U, typename = mpl::enable_if_t<!U::is_numeric_value>>
-    struct prop {
+    template <typename U>
+    struct prop_impl<U, false> {
       static constexpr bool value = U::safe_value;
     };
 
+    template <typename U>
+    struct prop : prop_impl<U> {};
   };
 
   // Initializer base is (possibly) a function object

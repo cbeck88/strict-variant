@@ -237,7 +237,8 @@ UNIT_TEST(ambiguous_string) {
     TEST_TRUE(a.get<std::string>());
     TEST_FALSE(a.get<const char *>());
 
-    a = test_string;
+    // TODO: Should a = test_string be okay here? How would that work?
+    a.emplace<const char *>(test_string);
     TEST_EQ(a.which(), 1);
     TEST_FALSE(a.get<std::string>());
     TEST_TRUE(a.get<const char *>());
@@ -249,7 +250,7 @@ UNIT_TEST(ambiguous_string) {
     TEST_TRUE(a.get<std::string>());
     TEST_FALSE(a.get<const char *>());
 
-    a = test_string;
+    a.emplace<const char *>(test_string);
     TEST_EQ(a.which(), 0);
     TEST_FALSE(a.get<std::string>());
     TEST_TRUE(a.get<const char *>());
