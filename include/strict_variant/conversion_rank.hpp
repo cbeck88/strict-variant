@@ -82,6 +82,15 @@ RANK(long double, 2);
 #undef RANK
 
 /***
+ * As a hack, we consider `char` always to be signed, regardless of implementation.
+ */
+template <typename T>
+struct is_unsigned : std::is_unsigned<T> {};
+
+template <>
+struct is_unsigned<char> : std::false_type {};
+
+/***
  * Compare two types to see if they are same class, sign and rank A >= rank B,
  * or it is a signed -> unsigned conversion of same rank
  *
@@ -102,8 +111,8 @@ template <typename A, typename B>
 struct safe_by_rank {
   static constexpr bool same_class =
     (mpl::classify_numeric<A>::value == mpl::classify_numeric<B>::value);
-  static constexpr bool sa = std::is_unsigned<A>::value && !std::is_same<char, A>::value;
-  static constexpr bool sb = std::is_unsigned<B>::value && !std::is_same<char, B>::value;
+  static constexpr bool sa = mpl::is_unsigned<A>::value;
+  static constexpr bool sb = mpl::is_unsigned<B>::value;
 
   static constexpr bool same_sign = (sa == sb);
   static constexpr bool sign_to_unsign = (sa && !sb);
@@ -112,9 +121,7 @@ struct safe_by_rank {
   static constexpr int rb = mpl::rank_numeric<B>::value;
 
   static constexpr bool value =
-    same_class && (same_sign ? (ra >= rb) : (sign_to_unsign && ra == rb));
-
-  static constexpr int priority = (5 - ra);
+    same_class && (same_sign || sign_to_unsign) && (ra >= rb);
 };
 
 // Technically, the standard specifies that `char, signed char, unsigned char`
@@ -131,10 +138,7 @@ struct safe_by_rank {
 template <>
 struct safe_by_rank<unsigned char, signed char> {
   static constexpr bool value = true;
-  static constexpr int priority = 4;
 };
-
-static constexpr int priority_max = 5;
 
 } // end namespace mpl
 } // end namespace strict_variant

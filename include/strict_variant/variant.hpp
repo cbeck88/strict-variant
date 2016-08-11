@@ -24,6 +24,7 @@
 #include <strict_variant/mpl/std_traits.hpp>
 #include <strict_variant/mpl/typelist.hpp>
 #include <strict_variant/mpl/ulist.hpp>
+#include <strict_variant/filter_overloads.hpp>
 #include <strict_variant/recursive_wrapper.hpp>
 #include <strict_variant/safely_constructible.hpp>
 #include <strict_variant/variant_detail.hpp>
@@ -161,47 +162,17 @@ private:
 
   // Init helper finds the target type, the priority of the conversion, and
   // whether it was allowed.
-  template <typename T, unsigned idx>
+  template <unsigned idx>
   struct init_helper {
     using target_type = unwrap_type_t<typename storage_t::template value_t<idx>>;
-
-    using trait = safely_constructible<target_type, T>;
-
-    static constexpr bool safe_value = trait::value;
-    static constexpr int priority = trait::priority;
-
-    static constexpr bool is_numeric_value = is_numeric<target_type>::value;
-  };
-
-  // valid_property
-  template <int p>
-  struct valid_at {
-    template <typename U, bool numeric = U::is_numeric_value>
-    struct prop_impl;
-
-    template <typename U>
-    struct prop_impl<U, true> {
-      static constexpr bool value = U::safe_value && p <= U::priority;
-    };
-    template <typename U>
-    struct prop_impl<U, false> {
-      static constexpr bool value = U::safe_value;
-    };
-
-    template <typename U>
-    struct prop : prop_impl<U> {};
+    using type = target_type;
   };
 
   // Initializer base is (possibly) a function object
   // If construction is prohibited, then don't generate operator()
-  template <typename T, unsigned idx, int priority, typename ENABLE = void>
-  struct initializer_base {};
-
-  template <typename T, unsigned idx, int priority>
-  struct initializer_base<T, idx, priority,
-                          mpl::enable_if_t<valid_at<priority>::template prop<init_helper<T, idx>>::
-                                             value>> {
-    using target_type = typename init_helper<T, idx>::target_type;
+  template <typename T, unsigned idx>
+  struct initializer_base {
+    using target_type = typename init_helper<idx>::target_type;
 
     template <typename V>
     void operator()(V && v, target_type val) noexcept(noexcept(
@@ -210,60 +181,20 @@ private:
     }
   };
 
-  // Report problem
-  template <typename T, unsigned idx>
-  struct report_problem {
-    // Force delayed instantiation
-    template <typename U>
-    constexpr report_problem(U &&) {
-      // TODO: Clang seems to always instantiate these even when I think it shouldn't... why?
-      // static_assert(std::is_constructible<typename init_helper<T, idx>::target_type, T>::value, "No
-      // construction is possible!");
-      // static_assert(!std::is_constructible<typename init_helper<T, idx>::target_type, T>::value ||
-      // init_helper<T, idx>::value, "Conversion wasn't permitted!");
-      // static_assert(!std::is_constructible<typename init_helper<T, idx>::target_type, T>::value ||
-      // !init_helper<T, idx>::value, "Not clear whats wrong!");
-    }
-  };
-
-  // Any_At_Priority
-  template <typename T, int priority, unsigned... us>
-  struct Any_At_Priority {
-    static constexpr bool value =
-      mpl::Find_Any<valid_at<priority>::template prop, init_helper<T, us>...>::value;
-  };
-
-  // Test_Priority
-  // Find the highest level at which we are able to construct the type.
-  // Primary Template: If there are none at this priority, then reduce priority.
-  template <typename T, int priority, typename UL = mpl::count_t<sizeof...(Types) + 1>,
-            typename Enable = void>
-  struct Test_Priority : Test_Priority<T, priority - 1, UL> {};
-
-  // If there are some at this priority, then use that priority
-  template <typename T, int priority, unsigned... us>
-  struct Test_Priority<T, priority, mpl::ulist<us...>,
-                       mpl::enable_if_t<priority >= 0
-                                        && Any_At_Priority<T, priority, us...>::value>> {
-    static constexpr int value = priority;
-  };
-
-  // Fire a bunch of static asserts explaining that we cannot construct the variant
-  // because priority got down to -1 and we didn't find anything.
-  template <typename T, unsigned... us>
-  struct Test_Priority<T, -1, mpl::ulist<us...>> {
-    static constexpr int dummy[] = {(report_problem<T, us>{0}, 0)..., 0};
-    static constexpr int value = -1;
-  };
-
   // Main object, created using inheritance
   // T should be a forwarding reference
-  template <typename T, typename UL = mpl::count_t<sizeof...(Types) + 1>>
+  template <typename T, typename UL = typename filter_overloads<T, mpl::ulist_map_t<init_helper, mpl::count_t<sizeof...(Types) + 1>>>::type>
   struct initializer;
 
   template <typename T, unsigned... us>
   struct initializer<T, mpl::ulist<us...>>
-    : initializer_base<T, us, Test_Priority<T, mpl::priority_max>::value>... {};
+    : initializer_base<T, us>... {};
+
+  /*
+  template <typename T>
+  struct initializer<T, mpl::ulist<>> {
+    static_assert(false, "All possible overloads were eliminated!");
+  };*/
 
 public:
   template <typename ENABLE = void>

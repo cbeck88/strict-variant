@@ -16,6 +16,13 @@ struct ulist {
   static constexpr std::size_t size = sizeof...(us);
 };
 
+// Concat
+
+template <unsigned... ul, unsigned... ur>
+struct Concat<ulist<ul...>, ulist<ur...>> {
+  typedef ulist<ul..., ur...> type;
+};
+
 // Append
 template <typename UL, unsigned u>
 struct append;
@@ -50,6 +57,30 @@ template <template <unsigned> class F, unsigned... us>
 struct ulist_map<F, ulist<us...>> {
   using type = mpl::TypeList<typename F<us>::type...>;
 };
+
+template <template <unsigned> class F, typename TL>
+using ulist_map_t = typename ulist_map<F, TL>::type;
+
+// filter function
+
+template <template <unsigned> class F, typename UL>
+struct ulist_filter;
+
+template <template <unsigned> class F>
+struct ulist_filter<F, ulist<>> {
+  using type = ulist<>;
+};
+
+template <template <unsigned> class F, unsigned u, unsigned... us>
+struct ulist_filter<F, ulist<u, us...>> {
+  using recurse_t = typename ulist_filter<F, ulist<us...>>::type;
+
+  using type = typename std::conditional<F<u>::value, Concat_t<ulist<u>, recurse_t>, recurse_t>::type;
+};
+
+template <template <unsigned> class F, typename UL>
+using ulist_filter_t = typename ulist_filter<F, UL>::type;
+
 
 } // end namespace mpl
 } // end namespace strict_variant

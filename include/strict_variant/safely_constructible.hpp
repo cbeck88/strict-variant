@@ -70,7 +70,6 @@ struct is_ptr {
 template <typename A, typename B, typename ENABLE = void>
 struct safely_constructible {
   static constexpr bool value = std::is_constructible<A, B>::value;
-  static constexpr int priority = 0;
 };
 
 // If both are numeric, then remove references and cv and pass to safe_by_rank
@@ -89,7 +88,6 @@ struct safely_constructible<A, B, mpl::enable_if_t<is_ptr<A>::value && is_ptr<B>
     (std::is_same<A2, B2>::value || std::is_same<mpl::remove_const_t<mpl::remove_pointer_t<A2>>,
                                                  mpl::remove_pointer_t<B2>>::value)
     && std::is_constructible<A, B>::value;
-  static constexpr int priority = 1;
 };
 
 // If one is numeric and the other is pointer, after decay and remove reference,
@@ -98,7 +96,6 @@ template <typename A, typename B>
 struct safely_constructible<A, B, mpl::enable_if_t<(is_numeric<A>::value && is_ptr<B>::value)
                                                    || (is_ptr<A>::value && is_numeric<B>::value)>> {
   static constexpr bool value = false;
-  static constexpr int priority = 0;
 };
 
 } // end namespace strict_variant
