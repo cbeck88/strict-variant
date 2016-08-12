@@ -1,0 +1,36 @@
+[section Type trait `dominates`]
+
+The `dominates` type trait plays a role in modifying the overload set when construction
+or making an assingment to variant using the `T &&` (forwarding-reference) constructor.
+
+`dominates` is a predicate which is used to eliminate a type from the overload set in
+the case that a "stronger match" is present, which overload resolution wouldn't normally eliminate.
+
+[h3 Valid Expressions]
+[table
+  [[`T, U, V`] [ any types]]
+  [[`strict_variant::dominates<U, V, T>::value`][ `true` if `U` is a strictly better match for `T` than `V`. ]]]
+
+[h3 Synopsis]
+  The default implementation affects only ['numeric] types -- in this library, "numeric" means "an arithmetic type or reference to arithmetic type, possibly CV-qualified."
+
+  [strict_variant_dominates_trait]
+
+  It turns out that this default definition is equivalent to:
+
+  "If all of `T, U, V` are `numeric`, and `U`, `V` are the same class (`integral`, `floating point`, `character`, `bool`, `wchar_t`), then `U` dominates `V` if it is less or equal rank, and is only `unsigned` if `V` is also. In other words, the conversion `U -> V` represents increase in the rank and / or converts signed to unsigned."
+
+[h3 Notes]
+
+See also `variant::variant(T &&)` constructor.
+
+Before overload resolution takes place, all of the value types of the variant are considered.
+
+* Those that `T` cannot be safely converted to are eliminated.
+* Those which are dominated by another type (which has a safe conversion from `T`) are also eliminated.
+
+Overload resolution takes place with the remaining types.
+
+You ['may] specialize `dominates` as you please in order to modify the overload resolution process further.
+
+[endsect]

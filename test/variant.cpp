@@ -9,6 +9,7 @@
 
 #include "test_harness/test_harness.hpp"
 
+#include <string>
 #include <type_traits>
 
 namespace strict_variant {
@@ -122,6 +123,34 @@ static_assert(safely_constructible<const char *, char *>::value, "failed a unit 
 static_assert(!safely_constructible<char *, const char *>::value, "failed a unit test");
 static_assert(safely_constructible<const char *, char * const>::value, "failed a unit test");
 static_assert(!safely_constructible<char *, const char * const>::value, "failed a unit test");
+
+//[ strict_variant_safely_constructible_examples
+  static_assert(safely_constructible<unsigned char, char>::value, "");
+  static_assert(!safely_constructible<char, unsigned char>::value, "");
+ 
+  static_assert(safely_constructible<unsigned int, int>::value, "");
+  static_assert(!safely_constructible<int, char>::value, "");
+  static_assert(!safely_constructible<int, bool>::value, "");
+  static_assert(!safely_constructible<char, bool>::value, "");
+
+  static_assert(safely_constructible<double, float>::value, "");
+  static_assert(!safely_constructible<float, double>::value, "");
+  static_assert(!safely_constructible<int, double>::value, "");
+  static_assert(!safely_constructible<double, int>::value, "");
+
+  static_assert(!safely_constructible<bool, const char *>::value, "");
+  static_assert(!safely_constructible<const void *, const char *>::value, "");
+
+  static_assert(safely_constructible<const char *, char *>::value, "");
+  static_assert(!safely_constructible<char *, const char *>::value, "");
+
+  static_assert(safely_constructible<const char *, decltype("foo")>::value, "");
+  static_assert(!safely_constructible<char *, decltype("foo")>::value, "");
+
+  static_assert(safely_constructible<std::string, const char *>::value, "");
+  static_assert(safely_constructible<std::string, decltype("foo")>::value, "");
+  static_assert(!safely_constructible<const char *, std::string>::value, "");
+//]
 
 } // end anonymous namespace
 

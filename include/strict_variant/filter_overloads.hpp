@@ -15,16 +15,20 @@
 namespace strict_variant {
 
 // Dominates is a condition that we use to eliminate overloads in some cases.
-// If A and B are in an overload set, and T is safely convertible to A and to B,
-// and A dominates B, then B will be removed.
-template <typename A, typename B, typename ENABLE = void>
+// If C is the argument, and A and B are in an overload set, and C is safely
+// convertible to A and to B, and A dominates B, then B will be removed.
+// Dominates should be thought of as a predicate on A and B, but is allowed to
+// be sensitive to the identity of C.
+//[ strict_variant_dominates_trait
+template <typename A, typename B, typename C, typename ENABLE = void>
 struct dominates : std::false_type{};
 
-template <typename A, typename B>
-struct dominates<A, B, mpl::enable_if_t<
-                                         is_numeric<A>::value && is_numeric<B>::value &&
+template <typename A, typename B, typename C>
+struct dominates<A, B, C, mpl::enable_if_t<
+                                         is_numeric<A>::value && is_numeric<B>::value && is_numeric<C>::value &&
                                          !safely_constructible<A, B>::value && safely_constructible<B, A>::value
                                        >> : std::true_type{};
+//]
 
 // A version of find_any for a typelist rather than a parameter pack
 namespace mpl {
@@ -59,7 +63,7 @@ struct filter_overloads<T, mpl::TypeList<Ts...>> {
   template <typename U>
   struct dominating {
     template <typename V>
-    struct prop : dominates<V, U> {};
+    struct prop : dominates<V, U, T> {};
   };
 
   template <unsigned u>
