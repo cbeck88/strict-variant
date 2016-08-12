@@ -902,7 +902,7 @@ UNIT_TEST(incomplete_default_ctor) {
   auto w = test_func();
 }
 
-    static_assert(std::is_same<mpl::ulist<0>,
+static_assert(std::is_same<mpl::ulist<0>,
                            typename filter_overloads<int, mpl::TypeList<int, float>>::type>::value,
               "");
 
