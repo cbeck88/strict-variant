@@ -1,0 +1,127 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<title>Type trait dominates</title>
+<link rel="stylesheet" href="../../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="../../index.html" title="Chapter&#160;1.&#160;Strict Variant 0.0">
+<link rel="up" href="../reference.html" title="Reference">
+<link rel="prev" href="safely_constructible.html" title="Type trait safely_constructible">
+<link rel="next" href="includes.html" title="Includes">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<div class="spirit-nav">
+<a accesskey="p" href="safely_constructible.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../reference.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="includes.html"><img src="../../images/next.png" alt="Next"></a>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="strict_variant.reference.type_trait_dominates"></a><a class="link" href="type_trait_dominates.html" title="Type trait dominates">Type trait
+      <code class="computeroutput"><span class="identifier">dominates</span></code></a>
+</h3></div></div></div>
+<p>
+        The <code class="computeroutput"><span class="identifier">dominates</span></code> type trait
+        plays a role in modifying the overload set when construction or making an
+        assingment to variant using the <code class="computeroutput"><span class="identifier">T</span>
+        <span class="special">&amp;&amp;</span></code> (forwarding-reference)
+        constructor.
+      </p>
+<p>
+        <code class="computeroutput"><span class="identifier">dominates</span></code> is a predicate
+        which is used to eliminate a type from the overload set in the case that
+        a "stronger match" is present, which overload resolution wouldn't
+        normally eliminate.
+      </p>
+<h4>
+<a name="strict_variant.reference.type_trait_dominates.h0"></a>
+        <span><a name="strict_variant.reference.type_trait_dominates.valid_expressions"></a></span><a class="link" href="type_trait_dominates.html#strict_variant.reference.type_trait_dominates.valid_expressions">Valid
+        Expressions</a>
+      </h4>
+<div class="informaltable"><table class="table">
+<colgroup>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>
+                <p>
+                  <code class="computeroutput"><span class="identifier">T</span><span class="special">,</span>
+                  <span class="identifier">U</span><span class="special">,</span>
+                  <span class="identifier">V</span></code>
+                </p>
+              </th>
+<th>
+                <p>
+                  any types
+                </p>
+              </th>
+</tr></thead>
+<tbody><tr>
+<td>
+                <p>
+                  <code class="computeroutput"><span class="identifier">strict_variant</span><span class="special">::</span><span class="identifier">dominates</span><span class="special">&lt;</span><span class="identifier">U</span><span class="special">,</span> <span class="identifier">V</span><span class="special">,</span> <span class="identifier">T</span><span class="special">&gt;::</span><span class="identifier">value</span></code>
+                </p>
+              </td>
+<td>
+                <p>
+                  <code class="computeroutput"><span class="keyword">true</span></code> if <code class="computeroutput"><span class="identifier">U</span></code> is a strictly better match
+                  for <code class="computeroutput"><span class="identifier">T</span></code> than <code class="computeroutput"><span class="identifier">V</span></code>.
+                </p>
+              </td>
+</tr></tbody>
+</table></div>
+<h4>
+<a name="strict_variant.reference.type_trait_dominates.h1"></a>
+        <span><a name="strict_variant.reference.type_trait_dominates.synopsis"></a></span><a class="link" href="type_trait_dominates.html#strict_variant.reference.type_trait_dominates.synopsis">Synopsis</a>
+      </h4>
+<pre class="programlisting"><span class="identifier">The</span> <span class="keyword">default</span> <span class="identifier">implementation</span> <span class="identifier">affects</span> <span class="identifier">only</span> <span class="special">[</span><span class="error">'</span><span class="identifier">numeric</span><span class="special">]</span> <span class="identifier">types</span> <span class="special">--</span> <span class="identifier">in</span> <span class="keyword">this</span> <span class="identifier">library</span><span class="special">,</span> <span class="string">"numeric"</span> <span class="identifier">means</span> <span class="string">"an arithmetic type or reference to arithmetic type, possibly CV-qualified."</span>
+
+<span class="special">[</span><span class="identifier">strict_variant_dominates_trait</span><span class="special">]</span>
+
+<span class="identifier">It</span> <span class="identifier">turns</span> <span class="identifier">out</span> <span class="identifier">that</span> <span class="keyword">this</span> <span class="keyword">default</span> <span class="identifier">definition</span> <span class="identifier">is</span> <span class="identifier">equivalent</span> <span class="identifier">to</span><span class="special">:</span>
+
+<span class="string">"If all of `T, U, V` are `numeric`, and `U`, `V` are the same class (`integral`, `floating point`, `character`, `bool`, `wchar_t`), then `U` dominates `V` if it is less or equal rank, and is only `unsigned` if `V` is also. In other words, the conversion `U -&gt; V` represents increase in the rank and / or converts signed to unsigned."</span>
+</pre>
+<h4>
+<a name="strict_variant.reference.type_trait_dominates.h2"></a>
+        <span><a name="strict_variant.reference.type_trait_dominates.notes"></a></span><a class="link" href="type_trait_dominates.html#strict_variant.reference.type_trait_dominates.notes">Notes</a>
+      </h4>
+<p>
+        See also <code class="computeroutput"><span class="identifier">variant</span><span class="special">::</span><span class="identifier">variant</span><span class="special">(</span><span class="identifier">T</span> <span class="special">&amp;&amp;)</span></code>
+        constructor.
+      </p>
+<p>
+        Before overload resolution takes place, all of the value types of the variant
+        are considered.
+      </p>
+<div class="itemizedlist"><ul class="itemizedlist" type="disc">
+<li class="listitem">
+            Those that <code class="computeroutput"><span class="identifier">T</span></code> cannot be
+            safely converted to are eliminated.
+          </li>
+<li class="listitem">
+            Those which are dominated by another type (which has a safe conversion
+            from <code class="computeroutput"><span class="identifier">T</span></code>) are also eliminated.
+          </li>
+</ul></div>
+<p>
+        Overload resolution takes place with the remaining types.
+      </p>
+<p>
+        You <span class="emphasis"><em>may</em></span> specialize <code class="computeroutput"><span class="identifier">dominates</span></code>
+        as you please in order to modify the overload resolution process further.
+      </p>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright &#169; 2016 Chris Beck<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="safely_constructible.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../reference.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="includes.html"><img src="../../images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>
