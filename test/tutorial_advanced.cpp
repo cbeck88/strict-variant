@@ -1,8 +1,8 @@
 #include <cassert>
+#include <iostream>
 #include <strict_variant/variant.hpp>
 #include <string>
 #include <vector>
-#include <iostream>
 
 using namespace strict_variant;
 
@@ -30,8 +30,7 @@ struct my_struct {
 };
 //->
 my_struct::my_struct()
-  : v(emplace_tag<std::string>{}, "foo")
-{}
+  : v(emplace_tag<std::string>{}, "foo") {}
 //]
 
 //[ strict_variant_tutorial_generalizing_ctor
@@ -41,19 +40,21 @@ the "generalizing" constructor. This was also supported by `boost::variant`.
 */
 
 //<-
-void test_one() {
-//->
+void
+test_one() {
+  //->
   variant<int, double> v;
   variant<int, double, std::string> v2{v};
-//<-
+  //<-
 }
 //->
 
 //`This constructor also allows reordering the types, and adding or removing `recursive_wrapper`.
 
 //<-
-void test_two() {
-//->
+void
+test_two() {
+  //->
   variant<int, double> v;
   variant<double, int> v2{v};
 
@@ -61,27 +62,30 @@ void test_two() {
   v3 = v;
   v2 = v3;
   v = v2;
-//<-
+  //<-
 }
 //->
 
 //]
 
-void test_three() {
-//[ strict_variant_tutorial_lambda_visitor
+void
+test_three() {
+  //[ strict_variant_tutorial_lambda_visitor
   //` You can also use a lambda as a visitor in some cases:
 
   strict_variant::variant<int, float> v;
   v = 5;
 
   // Prints 10
-  std::cout << strict_variant::apply_visitor([](double d) -> double { return d * 2; }, v) << std::endl;
+  std::cout << strict_variant::apply_visitor([](double d) -> double { return d * 2; }, v)
+            << std::endl;
 
   v = 7.5f;
 
   // Prints 22.5
-  std::cout << strict_variant::apply_visitor([](double d) -> double { return d * 3; }, v) << std::endl;
-//]
+  std::cout << strict_variant::apply_visitor([](double d) -> double { return d * 3; }, v)
+            << std::endl;
+  //]
 }
 
 //[ strict_variant_tutorial_generic_visitor
@@ -97,7 +101,9 @@ struct formatter {
   std::string operator()(const std::string & s) const { return s; }
 
   template <typename T, typename = typename std::enable_if<std::is_arithmetic<T>::value>::type>
-  std::string operator()(T t) const { return "[" + std::to_string(t) + "]"; }
+  std::string operator()(T t) const {
+    return "[" + std::to_string(t) + "]";
+  }
 
   template <typename T>
   std::string operator()(const std::vector<T> & vec) const {
@@ -114,8 +120,9 @@ struct formatter {
 //` This generic visitor is appropriate for a wide variety of variants:
 
 //<-
-void test_four() {
-//->
+void
+test_four() {
+  //->
   variant<int, double> v1;
   variant<float, std::string, std::vector<int>> v2;
   variant<long, std::vector<std::vector<std::string>>> v3;
@@ -123,10 +130,8 @@ void test_four() {
   apply_visitor(formatter{}, v1);
   apply_visitor(formatter{}, v2);
   apply_visitor(formatter{}, v3);
-//]
-
+  //]
 }
-
 
 //[ strict_variant_tutorial_throwing_assignment_goal_code
 
@@ -136,30 +141,35 @@ class X {
   std::string bar;
 
 public:
-  X () noexcept;
-  X (const X &) noexcept(false);
+  X() noexcept;
+  X(const X &) noexcept(false);
 
   X & operator=(const X &) noexcept(false);
 };
 
 // A variant containing X
-void goal() {
+void
+goal() {
   variant<int, X> v;
-//=  v = 5;
-//=  v = X();  // Error: No assignment if X has a throwing move!
+  //=  v = 5;
+  //=  v = X();  // Error: No assignment if X has a throwing move!
 }
 
 //]
 
 X::X() noexcept {}
-X::X(const X&) noexcept(false) {}
-X & X::operator=(const X&) noexcept(false) { return *this; }
+X::X(const X &) noexcept(false) {}
+X &
+X::operator=(const X &) noexcept(false) {
+  return *this;
+}
 
 namespace fix1 {
 
 //[ strict_variant_tutorial_throwing_assignment_fix1
 //` Use a `recursive_wrapper`.
-void goal() {
+void
+goal() {
   variant<int, recursive_wrapper<X>> v;
   v = 5;
   v = X();
@@ -171,8 +181,10 @@ void goal() {
 namespace fix2 {
 
 //[ strict_variant_tutorial_throwing_assignment_fix2
-//` Use `easy_variant` instead. It's the same, but it implicitly applies wrappers to value types with a throwing move.
-void goal() {
+//` Use `easy_variant` instead. It's the same, but it implicitly applies wrappers to value types
+// with a throwing move.
+void
+goal() {
   easy_variant<int, X> v;
   v = 5;
   v = X();
@@ -185,7 +197,8 @@ namespace fix3 {
 
 //[ strict_variant_tutorial_throwing_assignment_fix3
 //` Use `emplace` instead of assignment. This works even if `X` is not copyable or moveable.
-void goal() {
+void
+goal() {
   variant<int, X> v;
   v.emplace<int>(5);
   v.emplace<X>();
@@ -193,7 +206,6 @@ void goal() {
 //]
 
 } // end namespace fix3
-
 
 int
 main() {

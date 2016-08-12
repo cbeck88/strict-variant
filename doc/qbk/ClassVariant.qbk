@@ -197,17 +197,7 @@ provide rollback-semantics if an exception is thrown while changing the type of 
 
    Here are some concrete annotated examples:
 
-   ```
-     variant<short, long> v{10};                  // Selects `long`, `short` is not safely constructible from `int`.
-     variant<int, long> v{10};                    // Selects `int`, it is lower rank. (`int` dominates `long`.)
-     variant<long, long long> v{10};              // Selects `long`, it is lower rank. (`long` dominates `long long`.)
-     variant<int, unsigned int> v{10};            // Selects `int`, it has a better conversion (identity)
-     variant<long, unsigned int> v{10};           // Ambiguous -- neither `long` nor `unsigned int` dominates.
-     variant<long long, unsigned long> v{10};     // Ambiguous -- neither `long long` nor `unsigned long` dominates.
-
-     variant<unsigned int, unsigned long> v{10u}; // Selects `unsigned int`, it is lower rank.
-     variant<long, unsigned long long> v{10u};    // Selects `unsigned long long`, because `unsigned -> signed` is considered unsafe.
-   ```
+   [strict_variant_forwarding_reference_ctor_examples]
 
    Even when ties among fundamental types are broken, overload resolution might still be ambiguous with other, user-defined types in the variant.
   ]]

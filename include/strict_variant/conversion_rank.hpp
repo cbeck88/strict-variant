@@ -120,8 +120,7 @@ struct safe_by_rank {
   static constexpr int ra = mpl::rank_numeric<A>::value;
   static constexpr int rb = mpl::rank_numeric<B>::value;
 
-  static constexpr bool value =
-    same_class && (same_sign || sign_to_unsign) && (ra >= rb);
+  static constexpr bool value = same_class && (same_sign || sign_to_unsign) && (ra >= rb);
 };
 
 // Technically, the standard specifies that `char, signed char, unsigned char`

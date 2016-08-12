@@ -75,12 +75,12 @@ template <template <unsigned> class F, unsigned u, unsigned... us>
 struct ulist_filter<F, ulist<u, us...>> {
   using recurse_t = typename ulist_filter<F, ulist<us...>>::type;
 
-  using type = typename std::conditional<F<u>::value, Concat_t<ulist<u>, recurse_t>, recurse_t>::type;
+  using type =
+    typename std::conditional<F<u>::value, Concat_t<ulist<u>, recurse_t>, recurse_t>::type;
 };
 
 template <template <unsigned> class F, typename UL>
 using ulist_filter_t = typename ulist_filter<F, UL>::type;
-
 
 } // end namespace mpl
 } // end namespace strict_variant

@@ -125,31 +125,31 @@ static_assert(safely_constructible<const char *, char * const>::value, "failed a
 static_assert(!safely_constructible<char *, const char * const>::value, "failed a unit test");
 
 //[ strict_variant_safely_constructible_examples
-  static_assert(safely_constructible<unsigned char, char>::value, "");
-  static_assert(!safely_constructible<char, unsigned char>::value, "");
- 
-  static_assert(safely_constructible<unsigned int, int>::value, "");
-  static_assert(!safely_constructible<int, char>::value, "");
-  static_assert(!safely_constructible<int, bool>::value, "");
-  static_assert(!safely_constructible<char, bool>::value, "");
+static_assert(safely_constructible<unsigned char, char>::value, "");
+static_assert(!safely_constructible<char, unsigned char>::value, "");
 
-  static_assert(safely_constructible<double, float>::value, "");
-  static_assert(!safely_constructible<float, double>::value, "");
-  static_assert(!safely_constructible<int, double>::value, "");
-  static_assert(!safely_constructible<double, int>::value, "");
+static_assert(safely_constructible<unsigned int, int>::value, "");
+static_assert(!safely_constructible<int, char>::value, "");
+static_assert(!safely_constructible<int, bool>::value, "");
+static_assert(!safely_constructible<char, bool>::value, "");
 
-  static_assert(!safely_constructible<bool, const char *>::value, "");
-  static_assert(!safely_constructible<const void *, const char *>::value, "");
+static_assert(safely_constructible<double, float>::value, "");
+static_assert(!safely_constructible<float, double>::value, "");
+static_assert(!safely_constructible<int, double>::value, "");
+static_assert(!safely_constructible<double, int>::value, "");
 
-  static_assert(safely_constructible<const char *, char *>::value, "");
-  static_assert(!safely_constructible<char *, const char *>::value, "");
+static_assert(!safely_constructible<bool, const char *>::value, "");
+static_assert(!safely_constructible<const void *, const char *>::value, "");
 
-  static_assert(safely_constructible<const char *, decltype("foo")>::value, "");
-  static_assert(!safely_constructible<char *, decltype("foo")>::value, "");
+static_assert(safely_constructible<const char *, char *>::value, "");
+static_assert(!safely_constructible<char *, const char *>::value, "");
 
-  static_assert(safely_constructible<std::string, const char *>::value, "");
-  static_assert(safely_constructible<std::string, decltype("foo")>::value, "");
-  static_assert(!safely_constructible<const char *, std::string>::value, "");
+static_assert(safely_constructible<const char *, decltype("foo")>::value, "");
+static_assert(!safely_constructible<char *, decltype("foo")>::value, "");
+
+static_assert(safely_constructible<std::string, const char *>::value, "");
+static_assert(safely_constructible<std::string, decltype("foo")>::value, "");
+static_assert(!safely_constructible<const char *, std::string>::value, "");
 //]
 
 } // end anonymous namespace
@@ -200,12 +200,10 @@ static_assert(std::is_nothrow_move_constructible<variant<int, double>>::value,
 template <typename U, typename V>
 struct allow_variant_construction : safely_constructible<unwrap_type_t<U>, V> {};
 
-static_assert(allow_variant_construction<std::string, const char *>::value,
-              "failed a unit test");
+static_assert(allow_variant_construction<std::string, const char *>::value, "failed a unit test");
 static_assert(allow_variant_construction<std::string, const std::string &>::value,
               "failed a unit test");
-static_assert(allow_variant_construction<std::string, std::string &&>::value,
-              "failed a unit test");
+static_assert(allow_variant_construction<std::string, std::string &&>::value, "failed a unit test");
 static_assert(!allow_variant_construction<int, const char *>::value, "failed a unit test");
 static_assert(allow_variant_construction<int, int>::value, "failed a unit test");
 static_assert(!allow_variant_construction<int, double>::value, "failed a unit test");
@@ -213,12 +211,9 @@ static_assert(!allow_variant_construction<double, int>::value, "failed a unit te
 static_assert(allow_variant_construction<double, double>::value, "failed a unit test");
 
 static_assert(allow_variant_construction<int, const int &>::value, "failed a unit test");
-static_assert(!allow_variant_construction<int, const double &>::value,
-              "failed a unit test");
-static_assert(!allow_variant_construction<double, const int &>::value,
-              "failed a unit test");
-static_assert(allow_variant_construction<double, const double &>::value,
-              "failed a unit test");
+static_assert(!allow_variant_construction<int, const double &>::value, "failed a unit test");
+static_assert(!allow_variant_construction<double, const int &>::value, "failed a unit test");
+static_assert(allow_variant_construction<double, const double &>::value, "failed a unit test");
 
 static_assert(allow_variant_construction<int, int &&>::value, "failed a unit test");
 static_assert(!allow_variant_construction<int, double &&>::value, "failed a unit test");
@@ -229,14 +224,12 @@ static_assert(allow_variant_construction<float, float &&>::value, "failed a unit
 static_assert(!allow_variant_construction<float, double &&>::value, "failed a unit test");
 static_assert(allow_variant_construction<double, float &&>::value, "failed a unit test");
 
-static_assert(allow_variant_construction<std::string, std::string>::value,
-              "failed a unit test");
+static_assert(allow_variant_construction<std::string, std::string>::value, "failed a unit test");
 static_assert(
   allow_variant_construction<recursive_wrapper<std::string>, const std::string &>::value,
   "failed a unit test");
-static_assert(
-  allow_variant_construction<recursive_wrapper<std::string>, const std::string>::value,
-  "failed a unit test");
+static_assert(allow_variant_construction<recursive_wrapper<std::string>, const std::string>::value,
+              "failed a unit test");
 
 // Test noexcept annotations
 
@@ -907,6 +900,62 @@ struct test_struct {
 UNIT_TEST(incomplete_default_ctor) {
   auto v = test_func();
   auto w = test_func();
+}
+
+    static_assert(std::is_same<mpl::ulist<0>,
+                           typename filter_overloads<int, mpl::TypeList<int, float>>::type>::value,
+              "");
+
+UNIT_TEST(forwarding_reference_ctor_examples) {
+
+  // clang-format off
+  //[strict_variant_forwarding_reference_ctor_examples
+  //<-
+  {
+    //->
+    variant<short, long> v{10};                   // Selects `long`, `short` is not safely constructible from `int`.
+    //<-
+    TEST_EQ(v.which(), 1);
+  }
+  {
+    //->
+    variant<int, long> v{10};                     // Selects `int`, it is lower rank. (`int` dominates `long`.)
+    //<-
+    TEST_EQ(v.which(), 0);
+  }
+  {
+    //->
+    variant<long, long long> v{10};               // Selects `long`, it is lower rank. (dominates)
+    //<-
+    TEST_EQ(v.which(), 0);
+  }
+  {
+    //->
+    variant<int, unsigned int> v{10};             // Selects `int`, it has a better conversion (identity)
+    //<-
+    TEST_EQ(v.which(), 0);
+  }
+  {
+    //->
+    //=variant<long, unsigned int> v{10};            // Neither dominates.
+    //=variant<long long, unsigned long> v{10};      // Neither dominates.
+    //<-
+    static_assert(filter_overloads<int&&, mpl::TypeList<long, unsigned int>>::type::size == 2, "");
+    static_assert(filter_overloads<int&&, mpl::TypeList<long long, unsigned long>>::type::size == 2, "");
+  } {
+    //->
+    variant<unsigned int, unsigned long> v{10u};  // Selects `unsigned int`, it is lower rank.
+    //<-
+    TEST_EQ(v.which(), 0);
+  }
+  {
+    //->
+    variant<long, unsigned long long> v{10u};     // `unsigned -> signed long` is considered unsafe.
+    //]
+    TEST_EQ(v.which(), 1);
+  }
+
+  // clang-format on
 }
 
 } // end namespace strict_variant

@@ -20,11 +20,11 @@
  *   https://github.com/jarro2783/thenewcpp
  */
 
+#include <strict_variant/filter_overloads.hpp>
 #include <strict_variant/mpl/find_with.hpp>
 #include <strict_variant/mpl/std_traits.hpp>
 #include <strict_variant/mpl/typelist.hpp>
 #include <strict_variant/mpl/ulist.hpp>
-#include <strict_variant/filter_overloads.hpp>
 #include <strict_variant/recursive_wrapper.hpp>
 #include <strict_variant/safely_constructible.hpp>
 #include <strict_variant/variant_detail.hpp>
@@ -175,20 +175,23 @@ private:
     using target_type = typename init_helper<idx>::target_type;
 
     template <typename V>
-    void operator()(V && v, target_type val) noexcept(noexcept(
-      std::forward<V>(v).template initialize<idx>(std::move(val)))) {
+    void operator()(V && v, target_type val) noexcept(
+      noexcept(std::forward<V>(v).template initialize<idx>(std::move(val)))) {
       std::forward<V>(v).template initialize<idx>(std::move(val));
     }
   };
 
   // Main object, created using inheritance
   // T should be a forwarding reference
-  template <typename T, typename UL = typename filter_overloads<T, mpl::ulist_map_t<init_helper, mpl::count_t<sizeof...(Types) + 1>>>::type>
+  template <
+    typename T,
+    typename UL =
+      typename filter_overloads<T, mpl::ulist_map_t<init_helper,
+                                                    mpl::count_t<sizeof...(Types) + 1>>>::type>
   struct initializer;
 
   template <typename T, unsigned... us>
-  struct initializer<T, mpl::ulist<us...>>
-    : initializer_base<T, us>... {};
+  struct initializer<T, mpl::ulist<us...>> : initializer_base<T, us>... {};
 
   /*
   template <typename T>
