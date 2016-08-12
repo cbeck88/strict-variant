@@ -181,34 +181,29 @@ provide rollback-semantics if an exception is thrown while changing the type of 
 
    Attempts to convert `T` to one of the value types of this variant, or an expression convertible to such.
 
-   This is resolved using overload resolution.
+   This is resolved using overload resolution, with each of the ['value types] as a candidate.
 
-   However, the overload resolution process is modified using SFINAE, when the
-   `variant` contains ['fundamental types].
+   However, before overload resolution occurs, some candidates are elminated.
+
+   Candidates are eliminated in ['two phases]:
 
    [itemized_list
-     [Only ['safe conversions] of fundamental types are permitted. Conversions which are not [link strict_variant.reference.safely_constructible safe] do not participate in overload resolution. (See `strict_variant::safely_constructible`.)]
-     [If multiple ['safe conversions] to fundamental types are possible, only those of the lowest rank are permitted. Those of higher rank do not participate in overload resolution.]]
+     [First, types which are not [link strict_variant.reference.safely_constructible safely constructible] from `T` are elminated.]
+     [Second, types which are [link strict_variant.reference.dominates dominated] by one of the remaining types are eliminated.]]
 
-   It turns out that when assigning a fundamental type to a variant, if there are fundamental types in the variant also, these rules break any ties among the fundamental types.
+   Overload resolution occurs with the remaining types.
 
-   Here are some examples that show how ties will be broken when assigning some fundamental types.
-
-   [variablelist When assigning
-      [[`float`][ The permitted conversions, in order of priority, are `float`, `double`, `long double`.]]
-      [[`double`][ The permitted conversions, in order of priority, are `double`, `long double`.]]
-      [[`unsigned int`][ The permitted conversions, in order of priority, are `unsigned int`, `unsigned long`, `unsigned long long`.]]
-      [[`signed int`][ The permitted conversions, in order of priority, are `signed int`, `unsigned int`, `signed long`, `signed long long`.]]
-      [[`char`][ The permitted conversions, in order of priority, are `char`, `unsigned char`.]]]
+   By default, these steps only affect value types which are `arithmetic` types or pointers, in the case that the passed argument is an arithmetic type or pointer.
 
    Here are some concrete annotated examples:
 
    ```
-     variant<int, long> v{10};                    // Selects `int`, it is lower rank.
-     variant<long, long long> v{10};              // Selects `long`, it is lower rank.
+     variant<short, long> v{10};                  // Selects `long`, `short` is not safely constructible from `int`.
+     variant<int, long> v{10};                    // Selects `int`, it is lower rank. (`int` dominates `long`.)
+     variant<long, long long> v{10};              // Selects `long`, it is lower rank. (`long` dominates `long long`.)
      variant<int, unsigned int> v{10};            // Selects `int`, it has a better conversion (identity)
-     variant<long, unsigned int> v{10};           // Selects `unsigned int`, it is lower rank.
-     variant<long long, unsigned long> v{10};     // Selects `long long`, because `int -> unsigned long` is considered unsafe.
+     variant<long, unsigned int> v{10};           // Ambiguous -- neither `long` nor `unsigned int` dominates.
+     variant<long long, unsigned long> v{10};     // Ambiguous -- neither `long long` nor `unsigned long` dominates.
 
      variant<unsigned int, unsigned long> v{10u}; // Selects `unsigned int`, it is lower rank.
      variant<long, unsigned long long> v{10u};    // Selects `unsigned long long`, because `unsigned -> signed` is considered unsafe.

@@ -1,4 +1,4 @@
-[section Type trait `dominates`]
+[section:dominates Type trait `dominates`]
 
 The `dominates` type trait plays a role in modifying the overload set when construction
 or making an assingment to variant using the `T &&` (forwarding-reference) constructor.
@@ -31,6 +31,11 @@ Before overload resolution takes place, all of the value types of the variant ar
 
 Overload resolution takes place with the remaining types.
 
-You ['may] specialize `dominates` as you please in order to modify the overload resolution process further.
+[note You ['may] specialize `dominates` as you please in order to modify the overload resolution process further.
+
+      However, be advised that it may be best to take care that `dominates` is induced by a partial order. When the `dominates` trait is used, only one step occurs.
+      If `A`, `B`, and `C` are candidates in some conversion, and `A` dominates `B`, `B` dominates `C`, and `C` dominates `A`, *all* types will be removed.
+      The fact that `B` was eliminated by a domination condition won't protect `C` from being eliminated for instance. If `dominates` represents a partial order,
+      then such cycles cannot occur and `dominates` will never result in all candidates being eliminated.]
 
 [endsect]

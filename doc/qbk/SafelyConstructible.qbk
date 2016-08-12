@@ -29,14 +29,12 @@ This also affects what happens when assigning an arbitrary value to a `variant`.
 * Signed can be converted to unsigned, but the reverse is not allowed (since it is implementation-defined).
 * Conversions like `char *` to `const char *` are permitted, and standard conversions like array-to-pointer are permitted, but otherwise no pointer conversions are permitted.
 
+For types outside of the above classes, `safely_constructible` falls back to `std::is_constructible`.
+
 [h3 Examples]
 
 [strict_variant_safely_constructible_examples]
 
-[h3 Notes]
-
-For types outside of the above classes, `safely_constructible` falls back to `std::is_constructible`.
-
-You ['may] specialize `safely_constructible` as you please in order to modify the behavior of `strict_variant`.
+[note You ['may] specialize `safely_constructible` as you please in order to modify the behavior of `strict_variant`.]
 
 [endsect]
