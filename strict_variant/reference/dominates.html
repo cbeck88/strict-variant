@@ -15,8 +15,7 @@
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="strict_variant.reference.type_trait_dominates"></a><a class="link" href="type_trait_dominates.html" title="Type trait dominates">Type trait
-      <code class="computeroutput"><span class="identifier">dominates</span></code></a>
+<a name="strict_variant.reference.dominates"></a><a class="link" href="dominates.html" title="Type trait dominates">Type trait <code class="computeroutput"><span class="identifier">dominates</span></code></a>
 </h3></div></div></div>
 <p>
         The <code class="computeroutput"><span class="identifier">dominates</span></code> type trait
@@ -32,9 +31,8 @@
         normally eliminate.
       </p>
 <h4>
-<a name="strict_variant.reference.type_trait_dominates.h0"></a>
-        <span><a name="strict_variant.reference.type_trait_dominates.valid_expressions"></a></span><a class="link" href="type_trait_dominates.html#strict_variant.reference.type_trait_dominates.valid_expressions">Valid
-        Expressions</a>
+<a name="strict_variant.reference.dominates.h0"></a>
+        <span><a name="strict_variant.reference.dominates.valid_expressions"></a></span><a class="link" href="dominates.html#strict_variant.reference.dominates.valid_expressions">Valid Expressions</a>
       </h4>
 <div class="informaltable"><table class="table">
 <colgroup>
@@ -70,8 +68,8 @@
 </tr></tbody>
 </table></div>
 <h4>
-<a name="strict_variant.reference.type_trait_dominates.h1"></a>
-        <span><a name="strict_variant.reference.type_trait_dominates.synopsis"></a></span><a class="link" href="type_trait_dominates.html#strict_variant.reference.type_trait_dominates.synopsis">Synopsis</a>
+<a name="strict_variant.reference.dominates.h1"></a>
+        <span><a name="strict_variant.reference.dominates.synopsis"></a></span><a class="link" href="dominates.html#strict_variant.reference.dominates.synopsis">Synopsis</a>
       </h4>
 <pre class="programlisting"><span class="identifier">The</span> <span class="keyword">default</span> <span class="identifier">implementation</span> <span class="identifier">affects</span> <span class="identifier">only</span> <span class="special">[</span><span class="error">'</span><span class="identifier">numeric</span><span class="special">]</span> <span class="identifier">types</span> <span class="special">--</span> <span class="identifier">in</span> <span class="keyword">this</span> <span class="identifier">library</span><span class="special">,</span> <span class="string">"numeric"</span> <span class="identifier">means</span> <span class="string">"an arithmetic type or reference to arithmetic type, possibly CV-qualified."</span>
 
@@ -82,8 +80,8 @@
 <span class="string">"If all of `T, U, V` are `numeric`, and `U`, `V` are the same class (`integral`, `floating point`, `character`, `bool`, `wchar_t`), then `U` dominates `V` if it is less or equal rank, and is only `unsigned` if `V` is also. In other words, the conversion `U -&gt; V` represents increase in the rank and / or converts signed to unsigned."</span>
 </pre>
 <h4>
-<a name="strict_variant.reference.type_trait_dominates.h2"></a>
-        <span><a name="strict_variant.reference.type_trait_dominates.notes"></a></span><a class="link" href="type_trait_dominates.html#strict_variant.reference.type_trait_dominates.notes">Notes</a>
+<a name="strict_variant.reference.dominates.h2"></a>
+        <span><a name="strict_variant.reference.dominates.notes"></a></span><a class="link" href="dominates.html#strict_variant.reference.dominates.notes">Notes</a>
       </h4>
 <p>
         See also <code class="computeroutput"><span class="identifier">variant</span><span class="special">::</span><span class="identifier">variant</span><span class="special">(</span><span class="identifier">T</span> <span class="special">&amp;&amp;)</span></code>
@@ -111,10 +109,26 @@
 <td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="../../images/note.png"></td>
 <th align="left">Note</th>
 </tr>
-<tr><td align="left" valign="top"><p>
+<tr><td align="left" valign="top">
+<p>
           You <span class="emphasis"><em>may</em></span> specialize <code class="computeroutput"><span class="identifier">dominates</span></code>
           as you please in order to modify the overload resolution process further.
-        </p></td></tr>
+        </p>
+<p>
+          However, be advised that it may be best to take care that <code class="computeroutput"><span class="identifier">dominates</span></code> is induced by a partial order.
+          When the <code class="computeroutput"><span class="identifier">dominates</span></code> trait
+          is used, only one step occurs. If <code class="computeroutput"><span class="identifier">A</span></code>,
+          <code class="computeroutput"><span class="identifier">B</span></code>, and <code class="computeroutput"><span class="identifier">C</span></code>
+          are candidates in some conversion, and <code class="computeroutput"><span class="identifier">A</span></code>
+          dominates <code class="computeroutput"><span class="identifier">B</span></code>, <code class="computeroutput"><span class="identifier">B</span></code> dominates <code class="computeroutput"><span class="identifier">C</span></code>,
+          and <code class="computeroutput"><span class="identifier">C</span></code> dominates <code class="computeroutput"><span class="identifier">A</span></code>, <span class="bold"><strong>all</strong></span>
+          types will be removed. The fact that <code class="computeroutput"><span class="identifier">B</span></code>
+          was eliminated by a domination condition won't protect <code class="computeroutput"><span class="identifier">C</span></code>
+          from being eliminated for instance. If <code class="computeroutput"><span class="identifier">dominates</span></code>
+          represents a partial order, then such cycles cannot occur and <code class="computeroutput"><span class="identifier">dominates</span></code> will never result in all candidates
+          being eliminated.
+        </p>
+</td></tr>
 </table></div>
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>

@@ -36,8 +36,7 @@
         for example, in an initializer list, it looks like this:
       </p>
 <pre class="programlisting"><span class="identifier">my_struct</span><span class="special">::</span><span class="identifier">my_struct</span><span class="special">()</span>
-  <span class="special">:</span> <span class="identifier">v</span><span class="special">(</span><span class="identifier">emplace_tag</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">&gt;{},</span> <span class="string">"foo"</span><span class="special">)</span>
-<span class="special">{}</span>
+  <span class="special">:</span> <span class="identifier">v</span><span class="special">(</span><span class="identifier">emplace_tag</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">&gt;{},</span> <span class="string">"foo"</span><span class="special">)</span> <span class="special">{}</span>
 </pre>
 <h4>
 <a name="strict_variant.tutorial.advanced_usage.h1"></a>
@@ -99,12 +98,14 @@
 <span class="identifier">v</span> <span class="special">=</span> <span class="number">5</span><span class="special">;</span>
 
 <span class="comment">// Prints 10</span>
-<span class="identifier">std</span><span class="special">::</span><span class="identifier">cout</span> <span class="special">&lt;&lt;</span> <span class="identifier">strict_variant</span><span class="special">::</span><span class="identifier">apply_visitor</span><span class="special">([](</span><span class="keyword">double</span> <span class="identifier">d</span><span class="special">)</span> <span class="special">-&gt;</span> <span class="keyword">double</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">d</span> <span class="special">*</span> <span class="number">2</span><span class="special">;</span> <span class="special">},</span> <span class="identifier">v</span><span class="special">)</span> <span class="special">&lt;&lt;</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">endl</span><span class="special">;</span>
+<span class="identifier">std</span><span class="special">::</span><span class="identifier">cout</span> <span class="special">&lt;&lt;</span> <span class="identifier">strict_variant</span><span class="special">::</span><span class="identifier">apply_visitor</span><span class="special">([](</span><span class="keyword">double</span> <span class="identifier">d</span><span class="special">)</span> <span class="special">-&gt;</span> <span class="keyword">double</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">d</span> <span class="special">*</span> <span class="number">2</span><span class="special">;</span> <span class="special">},</span> <span class="identifier">v</span><span class="special">)</span>
+          <span class="special">&lt;&lt;</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">endl</span><span class="special">;</span>
 
 <span class="identifier">v</span> <span class="special">=</span> <span class="number">7.5f</span><span class="special">;</span>
 
 <span class="comment">// Prints 22.5</span>
-<span class="identifier">std</span><span class="special">::</span><span class="identifier">cout</span> <span class="special">&lt;&lt;</span> <span class="identifier">strict_variant</span><span class="special">::</span><span class="identifier">apply_visitor</span><span class="special">([](</span><span class="keyword">double</span> <span class="identifier">d</span><span class="special">)</span> <span class="special">-&gt;</span> <span class="keyword">double</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">d</span> <span class="special">*</span> <span class="number">3</span><span class="special">;</span> <span class="special">},</span> <span class="identifier">v</span><span class="special">)</span> <span class="special">&lt;&lt;</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">endl</span><span class="special">;</span>
+<span class="identifier">std</span><span class="special">::</span><span class="identifier">cout</span> <span class="special">&lt;&lt;</span> <span class="identifier">strict_variant</span><span class="special">::</span><span class="identifier">apply_visitor</span><span class="special">([](</span><span class="keyword">double</span> <span class="identifier">d</span><span class="special">)</span> <span class="special">-&gt;</span> <span class="keyword">double</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">d</span> <span class="special">*</span> <span class="number">3</span><span class="special">;</span> <span class="special">},</span> <span class="identifier">v</span><span class="special">)</span>
+          <span class="special">&lt;&lt;</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">endl</span><span class="special">;</span>
 </pre>
 <h5>
 <a name="strict_variant.tutorial.advanced_usage.h4"></a>
@@ -122,7 +123,9 @@
   <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="keyword">operator</span><span class="special">()(</span><span class="keyword">const</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="special">&amp;</span> <span class="identifier">s</span><span class="special">)</span> <span class="keyword">const</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">s</span><span class="special">;</span> <span class="special">}</span>
 
   <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">,</span> <span class="keyword">typename</span> <span class="special">=</span> <span class="keyword">typename</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">enable_if</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">is_arithmetic</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;::</span><span class="identifier">value</span><span class="special">&gt;::</span><span class="identifier">type</span><span class="special">&gt;</span>
-  <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="keyword">operator</span><span class="special">()(</span><span class="identifier">T</span> <span class="identifier">t</span><span class="special">)</span> <span class="keyword">const</span> <span class="special">{</span> <span class="keyword">return</span> <span class="string">"["</span> <span class="special">+</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">to_string</span><span class="special">(</span><span class="identifier">t</span><span class="special">)</span> <span class="special">+</span> <span class="string">"]"</span><span class="special">;</span> <span class="special">}</span>
+  <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="keyword">operator</span><span class="special">()(</span><span class="identifier">T</span> <span class="identifier">t</span><span class="special">)</span> <span class="keyword">const</span> <span class="special">{</span>
+    <span class="keyword">return</span> <span class="string">"["</span> <span class="special">+</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">to_string</span><span class="special">(</span><span class="identifier">t</span><span class="special">)</span> <span class="special">+</span> <span class="string">"]"</span><span class="special">;</span>
+  <span class="special">}</span>
 
   <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
   <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="keyword">operator</span><span class="special">()(</span><span class="keyword">const</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span> <span class="special">&amp;</span> <span class="identifier">vec</span><span class="special">)</span> <span class="keyword">const</span> <span class="special">{</span>
@@ -244,17 +247,18 @@
   <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">bar</span><span class="special">;</span>
 
 <span class="keyword">public</span><span class="special">:</span>
-  <span class="identifier">X</span> <span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
-  <span class="identifier">X</span> <span class="special">(</span><span class="keyword">const</span> <span class="identifier">X</span> <span class="special">&amp;)</span> <span class="keyword">noexcept</span><span class="special">(</span><span class="keyword">false</span><span class="special">);</span>
+  <span class="identifier">X</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
+  <span class="identifier">X</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">X</span> <span class="special">&amp;)</span> <span class="keyword">noexcept</span><span class="special">(</span><span class="keyword">false</span><span class="special">);</span>
 
   <span class="identifier">X</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span><span class="keyword">const</span> <span class="identifier">X</span> <span class="special">&amp;)</span> <span class="keyword">noexcept</span><span class="special">(</span><span class="keyword">false</span><span class="special">);</span>
 <span class="special">};</span>
 
 <span class="comment">// A variant containing X</span>
-<span class="keyword">void</span> <span class="identifier">goal</span><span class="special">()</span> <span class="special">{</span>
+<span class="keyword">void</span>
+<span class="identifier">goal</span><span class="special">()</span> <span class="special">{</span>
   <span class="identifier">variant</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">,</span> <span class="identifier">X</span><span class="special">&gt;</span> <span class="identifier">v</span><span class="special">;</span>
-  <span class="identifier">v</span> <span class="special">=</span> <span class="number">5</span><span class="special">;</span>
-  <span class="identifier">v</span> <span class="special">=</span> <span class="identifier">X</span><span class="special">();</span>  <span class="comment">// Error: No assignment if X has a throwing move!</span>
+    <span class="identifier">v</span> <span class="special">=</span> <span class="number">5</span><span class="special">;</span>
+    <span class="identifier">v</span> <span class="special">=</span> <span class="identifier">X</span><span class="special">();</span>  <span class="comment">// Error: No assignment if X has a throwing move!</span>
 <span class="special">}</span>
 </pre>
 <p>
@@ -267,7 +271,8 @@
 <p class="simpara">
             Use a <code class="computeroutput"><span class="identifier">recursive_wrapper</span></code>.
           </p>
-<pre class="programlisting"><span class="keyword">void</span> <span class="identifier">goal</span><span class="special">()</span> <span class="special">{</span>
+<pre class="programlisting"><span class="keyword">void</span>
+<span class="identifier">goal</span><span class="special">()</span> <span class="special">{</span>
   <span class="identifier">variant</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">,</span> <span class="identifier">recursive_wrapper</span><span class="special">&lt;</span><span class="identifier">X</span><span class="special">&gt;&gt;</span> <span class="identifier">v</span><span class="special">;</span>
   <span class="identifier">v</span> <span class="special">=</span> <span class="number">5</span><span class="special">;</span>
   <span class="identifier">v</span> <span class="special">=</span> <span class="identifier">X</span><span class="special">();</span>
@@ -277,10 +282,11 @@
 <li class="listitem">
 <p class="simpara">
             Use <code class="computeroutput"><span class="identifier">easy_variant</span></code> instead.
-            It's the same, but it implicitly applies wrappers to value types with
-            a throwing move.
+            It's the same, but it implicitly applies wrappers to value types
           </p>
-<pre class="programlisting"><span class="keyword">void</span> <span class="identifier">goal</span><span class="special">()</span> <span class="special">{</span>
+<pre class="programlisting"><span class="comment">// with a throwing move.</span>
+<span class="keyword">void</span>
+<span class="identifier">goal</span><span class="special">()</span> <span class="special">{</span>
   <span class="identifier">easy_variant</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">,</span> <span class="identifier">X</span><span class="special">&gt;</span> <span class="identifier">v</span><span class="special">;</span>
   <span class="identifier">v</span> <span class="special">=</span> <span class="number">5</span><span class="special">;</span>
   <span class="identifier">v</span> <span class="special">=</span> <span class="identifier">X</span><span class="special">();</span>
@@ -293,7 +299,8 @@
             assignment. This works even if <code class="computeroutput"><span class="identifier">X</span></code>
             is not copyable or moveable.
           </p>
-<pre class="programlisting"><span class="keyword">void</span> <span class="identifier">goal</span><span class="special">()</span> <span class="special">{</span>
+<pre class="programlisting"><span class="keyword">void</span>
+<span class="identifier">goal</span><span class="special">()</span> <span class="special">{</span>
   <span class="identifier">variant</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">,</span> <span class="identifier">X</span><span class="special">&gt;</span> <span class="identifier">v</span><span class="special">;</span>
   <span class="identifier">v</span><span class="special">.</span><span class="identifier">emplace</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">&gt;(</span><span class="number">5</span><span class="special">);</span>
   <span class="identifier">v</span><span class="special">.</span><span class="identifier">emplace</span><span class="special">&lt;</span><span class="identifier">X</span><span class="special">&gt;();</span>

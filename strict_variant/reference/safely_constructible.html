@@ -7,11 +7,11 @@
 <link rel="home" href="../../index.html" title="Chapter&#160;1.&#160;Strict Variant 0.0">
 <link rel="up" href="../reference.html" title="Reference">
 <link rel="prev" href="class_template_recursive_wrapper.html" title="Class template recursive_wrapper">
-<link rel="next" href="type_trait_dominates.html" title="Type trait dominates">
+<link rel="next" href="dominates.html" title="Type trait dominates">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
 <div class="spirit-nav">
-<a accesskey="p" href="class_template_recursive_wrapper.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../reference.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="type_trait_dominates.html"><img src="../../images/next.png" alt="Next"></a>
+<a accesskey="p" href="class_template_recursive_wrapper.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../reference.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="dominates.html"><img src="../../images/next.png" alt="Next"></a>
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
@@ -134,6 +134,10 @@
             conversions are permitted.
           </li>
 </ul></div>
+<p>
+        For types outside of the above classes, <code class="computeroutput"><span class="identifier">safely_constructible</span></code>
+        falls back to <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">is_constructible</span></code>.
+      </p>
 <h4>
 <a name="strict_variant.reference.safely_constructible.h2"></a>
         <span><a name="strict_variant.reference.safely_constructible.examples"></a></span><a class="link" href="safely_constructible.html#strict_variant.reference.safely_constructible.examples">Examples</a>
@@ -164,18 +168,16 @@
 <span class="keyword">static_assert</span><span class="special">(</span><span class="identifier">safely_constructible</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">,</span> <span class="keyword">decltype</span><span class="special">(</span><span class="string">"foo"</span><span class="special">)&gt;::</span><span class="identifier">value</span><span class="special">,</span> <span class="string">""</span><span class="special">);</span>
 <span class="keyword">static_assert</span><span class="special">(!</span><span class="identifier">safely_constructible</span><span class="special">&lt;</span><span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">&gt;::</span><span class="identifier">value</span><span class="special">,</span> <span class="string">""</span><span class="special">);</span>
 </pre>
-<h4>
-<a name="strict_variant.reference.safely_constructible.h3"></a>
-        <span><a name="strict_variant.reference.safely_constructible.notes"></a></span><a class="link" href="safely_constructible.html#strict_variant.reference.safely_constructible.notes">Notes</a>
-      </h4>
-<p>
-        For types outside of the above classes, <code class="computeroutput"><span class="identifier">safely_constructible</span></code>
-        falls back to <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">is_constructible</span></code>.
-      </p>
-<p>
-        You <span class="emphasis"><em>may</em></span> specialize <code class="computeroutput"><span class="identifier">safely_constructible</span></code>
-        as you please in order to modify the behavior of <code class="computeroutput"><span class="identifier">strict_variant</span></code>.
-      </p>
+<div class="note"><table border="0" summary="Note">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="../../images/note.png"></td>
+<th align="left">Note</th>
+</tr>
+<tr><td align="left" valign="top"><p>
+          You <span class="emphasis"><em>may</em></span> specialize <code class="computeroutput"><span class="identifier">safely_constructible</span></code>
+          as you please in order to modify the behavior of <code class="computeroutput"><span class="identifier">strict_variant</span></code>.
+        </p></td></tr>
+</table></div>
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
 <td align="left"></td>
@@ -187,7 +189,7 @@
 </tr></table>
 <hr>
 <div class="spirit-nav">
-<a accesskey="p" href="class_template_recursive_wrapper.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../reference.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="type_trait_dominates.html"><img src="../../images/next.png" alt="Next"></a>
+<a accesskey="p" href="class_template_recursive_wrapper.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../reference.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="dominates.html"><img src="../../images/next.png" alt="Next"></a>
 </div>
 </body>
 </html>

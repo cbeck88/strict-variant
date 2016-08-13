@@ -9,7 +9,7 @@ strict_variant/reference.html
 strict_variant/reference/class_template_variant.html
 strict_variant/reference/class_template_recursive_wrapper.html
 strict_variant/reference/safely_constructible.html
-strict_variant/reference/type_trait_dominates.html
+strict_variant/reference/dominates.html
 strict_variant/reference/includes.html
 strict_variant/reference/configuration.html
 strict_variant/remarks.html

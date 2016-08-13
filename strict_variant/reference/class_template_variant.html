@@ -361,80 +361,44 @@
               to such.
             </p>
 <p>
-              This is resolved using overload resolution.
+              This is resolved using overload resolution, with each of the <span class="emphasis"><em>value
+              types</em></span> as a candidate.
             </p>
 <p>
-              However, the overload resolution process is modified using SFINAE,
-              when the <code class="computeroutput"><span class="identifier">variant</span></code> contains
-              <span class="emphasis"><em>fundamental types</em></span>.
+              However, before overload resolution occurs, some candidates are elminated.
+            </p>
+<p>
+              Candidates are eliminated in <span class="emphasis"><em>two phases</em></span>:
             </p>
 <div class="itemizedlist"><ul class="itemizedlist" type="disc">
 <li class="listitem">
-                  Only <span class="emphasis"><em>safe conversions</em></span> of fundamental types
-                  are permitted. Conversions which are not <a class="link" href="safely_constructible.html" title="Type trait safely_constructible">safe</a>
-                  do not participate in overload resolution. (See <code class="computeroutput"><span class="identifier">strict_variant</span><span class="special">::</span><span class="identifier">safely_constructible</span></code>.)
+                  First, types which are not <a class="link" href="safely_constructible.html" title="Type trait safely_constructible">safely
+                  constructible</a> from <code class="computeroutput"><span class="identifier">T</span></code>
+                  are elminated.
                 </li>
 <li class="listitem">
-                  If multiple <span class="emphasis"><em>safe conversions</em></span> to fundamental
-                  types are possible, only those of the lowest rank are permitted.
-                  Those of higher rank do not participate in overload resolution.
+                  Second, types which are <a class="link" href="dominates.html" title="Type trait dominates">dominated</a>
+                  by one of the remaining types are eliminated.
                 </li>
 </ul></div>
 <p>
-              It turns out that when assigning a fundamental type to a variant, if
-              there are fundamental types in the variant also, these rules break
-              any ties among the fundamental types.
+              Overload resolution occurs with the remaining types.
             </p>
 <p>
-              Here are some examples that show how ties will be broken when assigning
-              some fundamental types.
+              By default, these steps only affect value types which are <code class="computeroutput"><span class="identifier">arithmetic</span></code> types or pointers, in
+              the case that the passed argument is an arithmetic type or pointer.
             </p>
-<div class="variablelist">
-<p class="title"><b>When assigning</b></p>
-<dl>
-<dt><span class="term"><code class="computeroutput"><span class="keyword">float</span></code></span></dt>
-<dd>
-                    The permitted conversions, in order of priority, are <code class="computeroutput"><span class="keyword">float</span></code>, <code class="computeroutput"><span class="keyword">double</span></code>,
-                    <code class="computeroutput"><span class="keyword">long</span> <span class="keyword">double</span></code>.
-                  </dd>
-<dt><span class="term"><code class="computeroutput"><span class="keyword">double</span></code></span></dt>
-<dd><p>
-                    The permitted conversions, in order of priority, are <code class="computeroutput"><span class="keyword">double</span></code>, <code class="computeroutput"><span class="keyword">long</span>
-                    <span class="keyword">double</span></code>.
-                  </p></dd>
-<dt><span class="term"><code class="computeroutput"><span class="keyword">unsigned</span> <span class="keyword">int</span></code></span></dt>
-<dd><p>
-                    The permitted conversions, in order of priority, are <code class="computeroutput"><span class="keyword">unsigned</span> <span class="keyword">int</span></code>,
-                    <code class="computeroutput"><span class="keyword">unsigned</span> <span class="keyword">long</span></code>,
-                    <code class="computeroutput"><span class="keyword">unsigned</span> <span class="keyword">long</span>
-                    <span class="keyword">long</span></code>.
-                  </p></dd>
-<dt><span class="term"><code class="computeroutput"><span class="keyword">signed</span> <span class="keyword">int</span></code></span></dt>
-<dd><p>
-                    The permitted conversions, in order of priority, are <code class="computeroutput"><span class="keyword">signed</span> <span class="keyword">int</span></code>,
-                    <code class="computeroutput"><span class="keyword">unsigned</span> <span class="keyword">int</span></code>,
-                    <code class="computeroutput"><span class="keyword">signed</span> <span class="keyword">long</span></code>,
-                    <code class="computeroutput"><span class="keyword">signed</span> <span class="keyword">long</span>
-                    <span class="keyword">long</span></code>.
-                  </p></dd>
-<dt><span class="term"><code class="computeroutput"><span class="keyword">char</span></code></span></dt>
-<dd><p>
-                    The permitted conversions, in order of priority, are <code class="computeroutput"><span class="keyword">char</span></code>, <code class="computeroutput"><span class="keyword">unsigned</span>
-                    <span class="keyword">char</span></code>.
-                  </p></dd>
-</dl>
-</div>
 <p>
               Here are some concrete annotated examples:
             </p>
-<pre class="programlisting"><span class="identifier">variant</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">,</span> <span class="keyword">long</span><span class="special">&gt;</span> <span class="identifier">v</span><span class="special">{</span><span class="number">10</span><span class="special">};</span>                    <span class="comment">// Selects `int`, it is lower rank.</span>
-<span class="identifier">variant</span><span class="special">&lt;</span><span class="keyword">long</span><span class="special">,</span> <span class="keyword">long</span> <span class="keyword">long</span><span class="special">&gt;</span> <span class="identifier">v</span><span class="special">{</span><span class="number">10</span><span class="special">};</span>              <span class="comment">// Selects `long`, it is lower rank.</span>
-<span class="identifier">variant</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">,</span> <span class="keyword">unsigned</span> <span class="keyword">int</span><span class="special">&gt;</span> <span class="identifier">v</span><span class="special">{</span><span class="number">10</span><span class="special">};</span>            <span class="comment">// Selects `int`, it has a better conversion (identity)</span>
-<span class="identifier">variant</span><span class="special">&lt;</span><span class="keyword">long</span><span class="special">,</span> <span class="keyword">unsigned</span> <span class="keyword">int</span><span class="special">&gt;</span> <span class="identifier">v</span><span class="special">{</span><span class="number">10</span><span class="special">};</span>           <span class="comment">// Selects `unsigned int`, it is lower rank.</span>
-<span class="identifier">variant</span><span class="special">&lt;</span><span class="keyword">long</span> <span class="keyword">long</span><span class="special">,</span> <span class="keyword">unsigned</span> <span class="keyword">long</span><span class="special">&gt;</span> <span class="identifier">v</span><span class="special">{</span><span class="number">10</span><span class="special">};</span>     <span class="comment">// Selects `long long`, because `int -&gt; unsigned long` is considered unsafe.</span>
-
-<span class="identifier">variant</span><span class="special">&lt;</span><span class="keyword">unsigned</span> <span class="keyword">int</span><span class="special">,</span> <span class="keyword">unsigned</span> <span class="keyword">long</span><span class="special">&gt;</span> <span class="identifier">v</span><span class="special">{</span><span class="number">10u</span><span class="special">};</span> <span class="comment">// Selects `unsigned int`, it is lower rank.</span>
-<span class="identifier">variant</span><span class="special">&lt;</span><span class="keyword">long</span><span class="special">,</span> <span class="keyword">unsigned</span> <span class="keyword">long</span> <span class="keyword">long</span><span class="special">&gt;</span> <span class="identifier">v</span><span class="special">{</span><span class="number">10u</span><span class="special">};</span>    <span class="comment">// Selects `unsigned long long`, because `unsigned -&gt; signed` is considered unsafe.</span>
+<pre class="programlisting"><span class="identifier">variant</span><span class="special">&lt;</span><span class="keyword">short</span><span class="special">,</span> <span class="keyword">long</span><span class="special">&gt;</span> <span class="identifier">v</span><span class="special">{</span><span class="number">10</span><span class="special">};</span>                   <span class="comment">// Selects `long`, `short` is not safely constructible from `int`.</span>
+<span class="identifier">variant</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">,</span> <span class="keyword">long</span><span class="special">&gt;</span> <span class="identifier">v</span><span class="special">{</span><span class="number">10</span><span class="special">};</span>                     <span class="comment">// Selects `int`, it is lower rank. (`int` dominates `long`.)</span>
+<span class="identifier">variant</span><span class="special">&lt;</span><span class="keyword">long</span><span class="special">,</span> <span class="keyword">long</span> <span class="keyword">long</span><span class="special">&gt;</span> <span class="identifier">v</span><span class="special">{</span><span class="number">10</span><span class="special">};</span>               <span class="comment">// Selects `long`, it is lower rank. (dominates)</span>
+<span class="identifier">variant</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">,</span> <span class="keyword">unsigned</span> <span class="keyword">int</span><span class="special">&gt;</span> <span class="identifier">v</span><span class="special">{</span><span class="number">10</span><span class="special">};</span>             <span class="comment">// Selects `int`, it has a better conversion (identity)</span>
+<span class="identifier">variant</span><span class="special">&lt;</span><span class="keyword">long</span><span class="special">,</span> <span class="keyword">unsigned</span> <span class="keyword">int</span><span class="special">&gt;</span> <span class="identifier">v</span><span class="special">{</span><span class="number">10</span><span class="special">};</span>            <span class="comment">// Neither dominates.</span>
+<span class="identifier">variant</span><span class="special">&lt;</span><span class="keyword">long</span> <span class="keyword">long</span><span class="special">,</span> <span class="keyword">unsigned</span> <span class="keyword">long</span><span class="special">&gt;</span> <span class="identifier">v</span><span class="special">{</span><span class="number">10</span><span class="special">};</span>      <span class="comment">// Neither dominates.</span>
+<span class="identifier">variant</span><span class="special">&lt;</span><span class="keyword">unsigned</span> <span class="keyword">int</span><span class="special">,</span> <span class="keyword">unsigned</span> <span class="keyword">long</span><span class="special">&gt;</span> <span class="identifier">v</span><span class="special">{</span><span class="number">10u</span><span class="special">};</span>  <span class="comment">// Selects `unsigned int`, it is lower rank.</span>
+<span class="identifier">variant</span><span class="special">&lt;</span><span class="keyword">long</span><span class="special">,</span> <span class="keyword">unsigned</span> <span class="keyword">long</span> <span class="keyword">long</span><span class="special">&gt;</span> <span class="identifier">v</span><span class="special">{</span><span class="number">10u</span><span class="special">};</span>     <span class="comment">// `unsigned -&gt; signed long` is considered unsafe.</span>
 </pre>
 <p>
               Even when ties among fundamental types are broken, overload resolution
@@ -444,10 +408,10 @@
 <dt><span class="term"><code class="computeroutput"><span class="identifier">variant</span><span class="special">(</span><span class="identifier">emplace_tag</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;,</span> <span class="identifier">Args</span> <span class="special">&amp;&amp;</span>
           <span class="special">...</span> <span class="identifier">args</span><span class="special">)</span></code></span></dt>
 <dd>
-<p>
+<p class="simpara">
               Emplace-constructs a variant.
             </p>
-<p>
+<p class="simpara">
               Constructs a value of type <code class="computeroutput"><span class="identifier">T</span></code>
               in the storage. Any additional arguments <code class="computeroutput"><span class="identifier">args</span></code>
               are forwarded to <code class="computeroutput"><span class="identifier">T</span></code>'s
