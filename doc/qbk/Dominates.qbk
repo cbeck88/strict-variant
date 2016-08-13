@@ -8,17 +8,19 @@ the case that a "stronger match" is present, which overload resolution wouldn't 
 
 [h3 Valid Expressions]
 [table
-  [[`T, U, V`] [ any types]]
-  [[`strict_variant::dominates<U, V, T>::value`][ `true` if `U` is a strictly better match for `T` than `V`. ]]]
+  [[expression] [value]]
+  [[`A, B, C`] [ any types]]
+  [[`strict_variant::dominates<A, B, C>::value`][ `true` if `A` is a strictly better match for `C` than `B` is for `C`. ]]]
 
 [h3 Synopsis]
-  The default implementation affects only ['numeric] types -- in this library, "numeric" means "an arithmetic type or reference to arithmetic type, possibly CV-qualified."
 
-  [strict_variant_dominates_trait]
+The default implementation affects only ['numeric] types -- in this library, "numeric" means "an arithmetic type or reference to arithmetic type, possibly CV-qualified."
 
-  It turns out that this default definition is equivalent to:
+[strict_variant_dominates_trait]
 
-  "If all of `T, U, V` are `numeric`, and `U`, `V` are the same class (`integral`, `floating point`, `character`, `bool`, `wchar_t`), then `U` dominates `V` if it is less or equal rank, and is only `unsigned` if `V` is also. In other words, the conversion `U -> V` represents increase in the rank and / or converts signed to unsigned."
+It turns out that this default definition is equivalent to:
+
+"If all of `T, U, V` are `numeric`, and `U`, `V` are the same class (`integral`, `floating point`, `character`, `bool`, `wchar_t`), then `U` dominates `V` if it is less or equal rank, and is only `unsigned` if `V` is also. In other words, the conversion `U -> V` represents increase in the rank and / or converts signed to unsigned. Otherwise, `U` does not dominate `V`."
 
 [h3 Notes]
 
@@ -27,15 +29,15 @@ See also `variant::variant(T &&)` constructor.
 Before overload resolution takes place, all of the value types of the variant are considered.
 
 * Those that `T` cannot be safely converted to are eliminated.
-* Those which are dominated by another type (which has a safe conversion from `T`) are also eliminated.
+* Those which are dominated by one of the remaining types are then also eliminated.
 
-Overload resolution takes place with the remaining types.
+Overload resolution takes place with the types remaining after that.
 
 [note You ['may] specialize `dominates` as you please in order to modify the overload resolution process further.
 
-      However, be advised that it may be best to take care that `dominates` is induced by a partial order. When the `dominates` trait is used, only one step occurs.
-      If `A`, `B`, and `C` are candidates in some conversion, and `A` dominates `B`, `B` dominates `C`, and `C` dominates `A`, *all* types will be removed.
-      The fact that `B` was eliminated by a domination condition won't protect `C` from being eliminated for instance. If `dominates` represents a partial order,
-      then such cycles cannot occur and `dominates` will never result in all candidates being eliminated.]
+      However, be advised that it may be best to take care that, for any fixed type `C`, the relation `dominates<A, B, C>::value` behaves as a partial order (when first two parameters are varied).
+      The reason is that if `X`, `Y`, and `Z` are candidates in some conversion, and `X` dominates `Y`, `Y` dominates `Z`, and `Z` dominates `X`, then *all* types will be removed.
+      The fact `Y` was eliminated because of being dominated by `X` doesn't prevent `Z` from being eliminated for instance. If `dominates` is induced by a partial order,
+      then such "cycles" cannot occur and `dominates` will never result in all candidates being eliminated. The default definition has this property.]
 
 [endsect]
