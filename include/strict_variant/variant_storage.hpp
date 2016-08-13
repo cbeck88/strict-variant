@@ -80,19 +80,20 @@ struct storage {
 
   /***
    * Typed access which pierces recursive_wrapper if detail::false_ is passed
+   * "Internal" (non-piercing) access is achieved if detail::true_ is passed
    */
-  template <size_t index, typename Internal>
-  value_t<index> & get_value(const Internal &) & {
+  template <size_t index>
+  value_t<index> & get_value(const detail::true_ &) & {
     return *reinterpret_cast<value_t<index> *>(this->address());
   }
 
-  template <size_t index, typename Internal>
-  const value_t<index> & get_value(const Internal &) const & {
+  template <size_t index>
+  const value_t<index> & get_value(const detail::true_ &) const & {
     return *reinterpret_cast<const value_t<index> *>(this->address());
   }
 
-  template <size_t index, typename Internal>
-  value_t<index> && get_value(const Internal &) && {
+  template <size_t index>
+  value_t<index> && get_value(const detail::true_ &) && {
     return std::move(*reinterpret_cast<value_t<index> *>(this->address()));
   }
 
