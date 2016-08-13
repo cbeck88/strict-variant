@@ -42,43 +42,80 @@
 <thead><tr>
 <th>
                 <p>
-                  <code class="computeroutput"><span class="identifier">T</span><span class="special">,</span>
-                  <span class="identifier">U</span><span class="special">,</span>
-                  <span class="identifier">V</span></code>
+                  expression
                 </p>
               </th>
 <th>
                 <p>
-                  any types
+                  value
                 </p>
               </th>
 </tr></thead>
-<tbody><tr>
+<tbody>
+<tr>
 <td>
                 <p>
-                  <code class="computeroutput"><span class="identifier">strict_variant</span><span class="special">::</span><span class="identifier">dominates</span><span class="special">&lt;</span><span class="identifier">U</span><span class="special">,</span> <span class="identifier">V</span><span class="special">,</span> <span class="identifier">T</span><span class="special">&gt;::</span><span class="identifier">value</span></code>
+                  <code class="computeroutput"><span class="identifier">A</span><span class="special">,</span>
+                  <span class="identifier">B</span><span class="special">,</span>
+                  <span class="identifier">C</span></code>
                 </p>
               </td>
 <td>
                 <p>
-                  <code class="computeroutput"><span class="keyword">true</span></code> if <code class="computeroutput"><span class="identifier">U</span></code> is a strictly better match
-                  for <code class="computeroutput"><span class="identifier">T</span></code> than <code class="computeroutput"><span class="identifier">V</span></code>.
+                  any types
                 </p>
               </td>
-</tr></tbody>
+</tr>
+<tr>
+<td>
+                <p>
+                  <code class="computeroutput"><span class="identifier">strict_variant</span><span class="special">::</span><span class="identifier">dominates</span><span class="special">&lt;</span><span class="identifier">A</span><span class="special">,</span> <span class="identifier">B</span><span class="special">,</span> <span class="identifier">C</span><span class="special">&gt;::</span><span class="identifier">value</span></code>
+                </p>
+              </td>
+<td>
+                <p>
+                  <code class="computeroutput"><span class="keyword">true</span></code> if <code class="computeroutput"><span class="identifier">A</span></code> is a strictly better match
+                  for <code class="computeroutput"><span class="identifier">C</span></code> than <code class="computeroutput"><span class="identifier">B</span></code> is for <code class="computeroutput"><span class="identifier">C</span></code>.
+                </p>
+              </td>
+</tr>
+</tbody>
 </table></div>
 <h4>
 <a name="strict_variant.reference.dominates.h1"></a>
         <span><a name="strict_variant.reference.dominates.synopsis"></a></span><a class="link" href="dominates.html#strict_variant.reference.dominates.synopsis">Synopsis</a>
       </h4>
-<pre class="programlisting"><span class="identifier">The</span> <span class="keyword">default</span> <span class="identifier">implementation</span> <span class="identifier">affects</span> <span class="identifier">only</span> <span class="special">[</span><span class="error">'</span><span class="identifier">numeric</span><span class="special">]</span> <span class="identifier">types</span> <span class="special">--</span> <span class="identifier">in</span> <span class="keyword">this</span> <span class="identifier">library</span><span class="special">,</span> <span class="string">"numeric"</span> <span class="identifier">means</span> <span class="string">"an arithmetic type or reference to arithmetic type, possibly CV-qualified."</span>
+<p>
+        The default implementation affects only <span class="emphasis"><em>numeric</em></span> types
+        -- in this library, "numeric" means "an arithmetic type or
+        reference to arithmetic type, possibly CV-qualified."
+      </p>
+<pre class="programlisting"><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">A</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">B</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">C</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">ENABLE</span> <span class="special">=</span> <span class="keyword">void</span><span class="special">&gt;</span>
+<span class="keyword">struct</span> <span class="identifier">dominates</span> <span class="special">:</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">false_type</span> <span class="special">{};</span>
 
-<span class="special">[</span><span class="identifier">strict_variant_dominates_trait</span><span class="special">]</span>
-
-<span class="identifier">It</span> <span class="identifier">turns</span> <span class="identifier">out</span> <span class="identifier">that</span> <span class="keyword">this</span> <span class="keyword">default</span> <span class="identifier">definition</span> <span class="identifier">is</span> <span class="identifier">equivalent</span> <span class="identifier">to</span><span class="special">:</span>
-
-<span class="string">"If all of `T, U, V` are `numeric`, and `U`, `V` are the same class (`integral`, `floating point`, `character`, `bool`, `wchar_t`), then `U` dominates `V` if it is less or equal rank, and is only `unsigned` if `V` is also. In other words, the conversion `U -&gt; V` represents increase in the rank and / or converts signed to unsigned."</span>
+<span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">A</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">B</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">C</span><span class="special">&gt;</span>
+<span class="keyword">struct</span> <span class="identifier">dominates</span><span class="special">&lt;</span><span class="identifier">A</span><span class="special">,</span> <span class="identifier">B</span><span class="special">,</span> <span class="identifier">C</span><span class="special">,</span>
+                 <span class="identifier">mpl</span><span class="special">::</span><span class="identifier">enable_if_t</span><span class="special">&lt;</span><span class="identifier">is_numeric</span><span class="special">&lt;</span><span class="identifier">A</span><span class="special">&gt;::</span><span class="identifier">value</span> <span class="special">&amp;&amp;</span> <span class="identifier">is_numeric</span><span class="special">&lt;</span><span class="identifier">B</span><span class="special">&gt;::</span><span class="identifier">value</span>
+                                  <span class="special">&amp;&amp;</span> <span class="identifier">is_numeric</span><span class="special">&lt;</span><span class="identifier">C</span><span class="special">&gt;::</span><span class="identifier">value</span> <span class="special">&amp;&amp;</span> <span class="special">!</span><span class="identifier">safely_constructible</span><span class="special">&lt;</span><span class="identifier">A</span><span class="special">,</span> <span class="identifier">B</span><span class="special">&gt;::</span><span class="identifier">value</span>
+                                  <span class="special">&amp;&amp;</span> <span class="identifier">safely_constructible</span><span class="special">&lt;</span><span class="identifier">B</span><span class="special">,</span> <span class="identifier">A</span><span class="special">&gt;::</span><span class="identifier">value</span><span class="special">&gt;&gt;</span> <span class="special">:</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">true_type</span> <span class="special">{};</span>
 </pre>
+<p>
+        It turns out that this default definition is equivalent to:
+      </p>
+<p>
+        "If all of <code class="computeroutput"><span class="identifier">T</span><span class="special">,</span>
+        <span class="identifier">U</span><span class="special">,</span> <span class="identifier">V</span></code> are <code class="computeroutput"><span class="identifier">numeric</span></code>,
+        and <code class="computeroutput"><span class="identifier">U</span></code>, <code class="computeroutput"><span class="identifier">V</span></code>
+        are the same class (<code class="computeroutput"><span class="identifier">integral</span></code>,
+        <code class="computeroutput"><span class="identifier">floating</span> <span class="identifier">point</span></code>,
+        <code class="computeroutput"><span class="identifier">character</span></code>, <code class="computeroutput"><span class="keyword">bool</span></code>, <code class="computeroutput"><span class="keyword">wchar_t</span></code>),
+        then <code class="computeroutput"><span class="identifier">U</span></code> dominates <code class="computeroutput"><span class="identifier">V</span></code> if it is less or equal rank, and is only
+        <code class="computeroutput"><span class="keyword">unsigned</span></code> if <code class="computeroutput"><span class="identifier">V</span></code>
+        is also. In other words, the conversion <code class="computeroutput"><span class="identifier">U</span>
+        <span class="special">-&gt;</span> <span class="identifier">V</span></code>
+        represents increase in the rank and / or converts signed to unsigned. Otherwise,
+        <code class="computeroutput"><span class="identifier">U</span></code> does not dominate <code class="computeroutput"><span class="identifier">V</span></code>."
+      </p>
 <h4>
 <a name="strict_variant.reference.dominates.h2"></a>
         <span><a name="strict_variant.reference.dominates.notes"></a></span><a class="link" href="dominates.html#strict_variant.reference.dominates.notes">Notes</a>
@@ -97,12 +134,12 @@
             safely converted to are eliminated.
           </li>
 <li class="listitem">
-            Those which are dominated by another type (which has a safe conversion
-            from <code class="computeroutput"><span class="identifier">T</span></code>) are also eliminated.
+            Those which are dominated by one of the remaining types are then also
+            eliminated.
           </li>
 </ul></div>
 <p>
-        Overload resolution takes place with the remaining types.
+        Overload resolution takes place with the types remaining after that.
       </p>
 <div class="note"><table border="0" summary="Note">
 <tr>
@@ -115,18 +152,21 @@
           as you please in order to modify the overload resolution process further.
         </p>
 <p>
-          However, be advised that it may be best to take care that <code class="computeroutput"><span class="identifier">dominates</span></code> is induced by a partial order.
-          When the <code class="computeroutput"><span class="identifier">dominates</span></code> trait
-          is used, only one step occurs. If <code class="computeroutput"><span class="identifier">A</span></code>,
-          <code class="computeroutput"><span class="identifier">B</span></code>, and <code class="computeroutput"><span class="identifier">C</span></code>
-          are candidates in some conversion, and <code class="computeroutput"><span class="identifier">A</span></code>
-          dominates <code class="computeroutput"><span class="identifier">B</span></code>, <code class="computeroutput"><span class="identifier">B</span></code> dominates <code class="computeroutput"><span class="identifier">C</span></code>,
-          and <code class="computeroutput"><span class="identifier">C</span></code> dominates <code class="computeroutput"><span class="identifier">A</span></code>, <span class="bold"><strong>all</strong></span>
-          types will be removed. The fact that <code class="computeroutput"><span class="identifier">B</span></code>
-          was eliminated by a domination condition won't protect <code class="computeroutput"><span class="identifier">C</span></code>
-          from being eliminated for instance. If <code class="computeroutput"><span class="identifier">dominates</span></code>
-          represents a partial order, then such cycles cannot occur and <code class="computeroutput"><span class="identifier">dominates</span></code> will never result in all candidates
-          being eliminated.
+          However, be advised that it may be best to take care that, for any fixed
+          type <code class="computeroutput"><span class="identifier">C</span></code>, the relation <code class="computeroutput"><span class="identifier">dominates</span><span class="special">&lt;</span><span class="identifier">A</span><span class="special">,</span> <span class="identifier">B</span><span class="special">,</span> <span class="identifier">C</span><span class="special">&gt;::</span><span class="identifier">value</span></code> behaves as a partial order (when
+          first two parameters are varied). The reason is that if <code class="computeroutput"><span class="identifier">X</span></code>,
+          <code class="computeroutput"><span class="identifier">Y</span></code>, and <code class="computeroutput"><span class="identifier">Z</span></code>
+          are candidates in some conversion, and <code class="computeroutput"><span class="identifier">X</span></code>
+          dominates <code class="computeroutput"><span class="identifier">Y</span></code>, <code class="computeroutput"><span class="identifier">Y</span></code> dominates <code class="computeroutput"><span class="identifier">Z</span></code>,
+          and <code class="computeroutput"><span class="identifier">Z</span></code> dominates <code class="computeroutput"><span class="identifier">X</span></code>, then <span class="bold"><strong>all</strong></span>
+          types will be removed. The fact <code class="computeroutput"><span class="identifier">Y</span></code>
+          was eliminated because of being dominated by <code class="computeroutput"><span class="identifier">X</span></code>
+          doesn't prevent <code class="computeroutput"><span class="identifier">Z</span></code> from
+          being eliminated for instance. If <code class="computeroutput"><span class="identifier">dominates</span></code>
+          is induced by a partial order, then such "cycles" cannot occur
+          and <code class="computeroutput"><span class="identifier">dominates</span></code> will never
+          result in all candidates being eliminated. The default definition has this
+          property.
         </p>
 </td></tr>
 </table></div>
