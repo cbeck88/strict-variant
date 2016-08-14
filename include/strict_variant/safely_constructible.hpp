@@ -115,9 +115,8 @@ template <typename A, typename B>
 struct safely_constructible<A, B, mpl::enable_if_t<(decay_to_arithmetic<A>::value
                                                     && decay_to_ptr<B>::value)
                                                    || (decay_to_ptr<A>::value
-                                                       && decay_to_arithmetic<B>::value)>> {
-  static constexpr bool value = false;
-};
+                                                       && decay_to_arithmetic<B>::value)>>
+  : std::false_type {};
 //]
 
 } // end namespace strict_variant
