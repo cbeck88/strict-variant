@@ -284,12 +284,13 @@ This happens commonly when using variant types to interface with some scripting 
 ```
 
 To make it easier to get good results when manipulating a variant like this,
-`strict_variant` prevents many implicit conversions from occurring when two fundamental
+`strict_variant` prevents many implicit conversions from occurring when two arithmetic or pointer types
 types are involved.
 
 [h4 Safe Conversions]
 
-When assigning or constructing a variant,
+When assigning or constructing a variant, some conversions which may be "surprising" or which
+are not totally portable are not permitted.
 
 * Implicit conversions are not permitted between any two of the following classes:  
   * Integer types (`short`, `int`, `long`, `long long`, and unsigned variations)
@@ -332,25 +333,8 @@ With `boost::variant`, code like this is okay:
 
 With `strict_variant`, it isn't -- neither conversion `const char *` to `const void *` or to `bool` is permitted to occur implicitly here.
 
-In a more subtle example, this is not ambiguous:
-
-```
-  strict_variant<long long, unsigned long long> v;
-
-  v = 100;
-  v = 100u;
-```
-
-With `boost::variant`, either of these is ambiguous, and you would have to use
-`static_cast<long long>(100)` or something like `v = 100ULL`.
-
-With `strict_variant`,
-it's not allowed to combine widening with `signed -> unsigned`. So `int` to `unsigned long long`
-is eliminated. And `unsigned -> signed` can't happen implicitly at all, so `unsigned int` to `long long`
-is eliminated when we are assigning `100u`.
-
 [note `strict_variant` conversion rules can only affect the result when the type contained in the variant
-is a fundamental type.
+is an arithmetic type or a pointer type.
 
 When the type contained is a user-defined type, all the normal conversions take effect --
 if your type is constructible from `unsigned long long`, we can't prevent the compiler from selecting it
@@ -364,7 +348,7 @@ make static assertions that certain conversions are or aren't permitted.
 [h4 Rank-based Priority]
 
 A second aspect of `strict_variant` is that we adopt a rank-based priority policy to resolve some overload ambiguities
-involving fundamental types.
+involving arithmetic types.
 
 Consider the following overloaded function:
 
@@ -385,16 +369,14 @@ a loss of information in some sense. (After the promotion, our knowledge of the 
 of the value are worse than they were before.) If later when they are visiting
 that value, they want to promote it to a larger type, that is easy to arrange.
 
-Therefore, when an assignment is made to `strict_variant`, if there are multiple
-integral types, it prioritizes them by rank. If a "safe conversion" is possible
-using types of a multiple ranks, only those of smallest rank are introduced into
-overload resolution, and the larger ones are not considered.
+Therefore, when an integral value is assigned to `strict_variant`, if there are multiple
+integral value types which permit a safe conversion, it prioritizes them by rank and sign.
+If for one of the candidates, there is another candidate which has strictly lower rank / sign,
+it is "dominated" by the lower rank candidate, and does not participate in overload resolution.
 
-These rules allow us to resolve any ties when converting from fundamental types
-to signed or unsigned integral types `short, int, long, long long`, signed or unsigned character types,
-and floating point types. (Note that the winner of these ties could still be ambiguous with a user-defined type which is also a member of the variant.)
-
-[note Here "rank" refers to a fixed integer defined by the library for each type, consistent with the conversion rank defined by the standard. The actual sizes of the types on your implementation don't matter here.]
+For instance, `int` is safely convertible to both `long` and `long long`. But `long` dominates
+`long long` when making arithmetic conversions, so `long long` is eliminated, and `long` is
+selected unambigously when assigning an `int` to `strict_variant<long, long long>`.
 
 [h4 Emplace]
 

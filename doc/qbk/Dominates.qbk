@@ -6,36 +6,27 @@ or making an assingment to variant using the `T &&` (forwarding-reference) const
 `dominates` is a predicate which is used to eliminate a type from the overload set in
 the case that a "stronger match" is present, which overload resolution wouldn't normally eliminate.
 
+`dominates` is used to implement the "priority" for integral types described in the [link strict_variant.intro.design design].
+
 [h3 Valid Expressions]
 [table
   [[expression] [value]]
   [[`A, B, C`] [ any types]]
-  [[`strict_variant::dominates<A, B, C>::value`][ `true` if `A` is a strictly better match for `C` than `B` is for `C`. ]]]
+  [[`strict_variant::dominates<A, B, C>::value`][ `true` if `A` is a ['strictly better] match for `C` than `B` is for `C`. ]]]
 
 [h3 Synopsis]
 
-The default implementation affects only ['numeric] types -- in this library, "numeric" means "an arithmetic type or reference to arithmetic type, possibly CV-qualified."
+The default implementation affects arithmetic types or types which ['decay] to arithmetic, which means they have have CV and/or reference qualifiers.
 
 [strict_variant_dominates_trait]
 
-It turns out that this default definition is equivalent to:
-
-"If all of `T, U, V` are `numeric`, and `U`, `V` are the same class (`integral`, `floating point`, `character`, `bool`, `wchar_t`), then `U` dominates `V` if it is less or equal rank, and is only `unsigned` if `V` is also. In other words, the conversion `U -> V` represents increase in the rank and / or converts signed to unsigned. Otherwise, `U` does not dominate `V`."
-
 [h3 Notes]
 
-See also `variant::variant(T &&)` constructor.
-
-Before overload resolution takes place, all of the value types of the variant are considered.
-
-* Those that `T` cannot be safely converted to are eliminated.
-* Those which are dominated by one of the remaining types are then also eliminated.
-
-Overload resolution takes place with the types remaining after that.
+See also `variant::variant(T &&)` constructor documentation.
 
 [note You ['may] specialize `dominates` as you please in order to modify the overload resolution process further.
 
-      However, be advised that it may be best to take care that, for any fixed type `C`, the relation `dominates<A, B, C>::value` behaves as a partial order (when first two parameters are varied).
+      However, it may be best to take care that, for any fixed type `C`, the relation `dominates<A, B, C>::value` behaves as a partial order (when first two parameters are varied).
       The reason is that if `X`, `Y`, and `Z` are candidates in some conversion, and `X` dominates `Y`, `Y` dominates `Z`, and `Z` dominates `X`, then *all* types will be removed.
       The fact `Y` was eliminated because of being dominated by `X` doesn't prevent `Z` from being eliminated for instance. If `dominates` is induced by a partial order,
       then such "cycles" cannot occur and `dominates` will never result in all candidates being eliminated. The default definition has this property.]
