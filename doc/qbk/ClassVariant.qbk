@@ -183,7 +183,7 @@ provide rollback-semantics if an exception is thrown while changing the type of 
 
    This is resolved using overload resolution, with each of the ['value types] as a candidate.
 
-   However, before overload resolution occurs, some candidates are elminated.
+   However, before overload resolution occurs, some candidates are eliminated, if for instance they represent a non-portable conversion.
 
    Candidates are eliminated in ['two phases]:
 
@@ -193,13 +193,21 @@ provide rollback-semantics if an exception is thrown while changing the type of 
 
    Overload resolution occurs with the remaining types.
 
-   By default, these steps only affect value types which are `arithmetic` types or pointers, in the case that the passed argument is an arithmetic type or pointer.
+   Unless you customize those type traits, the behavior is only modified in the case of
+   [itemized_list
+    [value types which ['decay to an `arithmetic` type or a pointer].]
+    [`T` itself ['decays to an `arithmetic` type or a pointer].]]
+
+   This feature acts to prevent:
+   * Narrowing conversions, on any platform.
+   * Implicit conversions to / from `bool`, pointers, and others.
+   * Certain kinds of overload ambiguity when there are many integral types in the variant.
 
    Here are some concrete annotated examples:
 
    [strict_variant_forwarding_reference_ctor_examples]
 
-   Even when ties among fundamental types are broken, overload resolution might still be ambiguous with other, user-defined types in the variant.
+   See those type traits for more detail.
   ]]
 
 [[`variant(emplace_tag<T>, Args && ... args)`]

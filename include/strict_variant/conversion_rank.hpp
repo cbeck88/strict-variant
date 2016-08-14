@@ -100,34 +100,5 @@ struct is_unsigned : std::is_unsigned<T> {};
 template <>
 struct is_unsigned<char> : std::false_type {};
 
-/***
- * Compare two types to see if they are same class, sign and rank A >= rank B,
- * or it is a signed -> unsigned conversion of same rank
- *
- * Rationale:
- * For two integral types, signed -> unsigned is allowed if they have the same
- * rank.
- *
- * This conversion is well-defined by the standard to be a no-op for most
- * implementations.
- * (Since it means there is no truncation.)
- * [conv.integral][2]
- *
- * For things like signed char -> unsigned int, we don't allow it, since it's
- * potentially confusing that this won't be the same as
- * signed char -> unsigned char -> unsigned int.
- */
-template <typename A, typename B>
-struct safe_by_rank {
-  static constexpr bool same_class =
-    (mpl::classify_arithmetic<A>::value == mpl::classify_arithmetic<B>::value);
-  static constexpr bool unsign_to_sign = !mpl::is_unsigned<A>::value && mpl::is_unsigned<B>::value;
-
-  static constexpr int ra = mpl::arithmetic_rank<A>::value;
-  static constexpr int rb = mpl::arithmetic_rank<B>::value;
-
-  static constexpr bool value = same_class && !unsign_to_sign && (ra >= rb);
-};
-
 } // end namespace mpl
 } // end namespace strict_variant

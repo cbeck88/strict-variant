@@ -1,7 +1,7 @@
 [section:safely_constructible Type relationship `safely_constructible`]
 
 The `safely_constructible` type trait is a refinement of `std::is_constructible`,
-which has special behavior for fundamental types and forbids certain conversions.
+which has special behavior for fundamental types and pointer types and forbids certain conversions.
 
 [h3 Valid Expressions]
 
@@ -10,7 +10,7 @@ which has special behavior for fundamental types and forbids certain conversions
   [[`T, U`] [ any types]]
   [[`safely_constructible<T, U>::value`][ `true` if a `variant` for which `T` is one of the value types should be constructible from `U`. ]]]
 
-[h3 Definition]
+[h3 Notes]
 
 * Conversions between any two [link strict_variant.reference.arithmetic_category arithmetic categories], or between one of those categories and a pointer type,
   are considered unsafe.
@@ -28,5 +28,15 @@ When `T` or `U` is not in one of the above categories, `safely_constructible` fa
 [strict_variant_safely_constructible_examples]
 
 [note You ['may] specialize `safely_constructible` as you please in order to modify the behavior of `strict_variant`.]
+
+[h3 Definition]
+
+The complete definition of the `safely_constructible` template is given:
+
+[strict_variant_safely_constructible]
+
+The helper `safe_arithmetic_conversion` is defined in terms of sign, [link strict_variant.reference.arithmetic_category arithmetic category] and [link strict_variant.reference.arithmetic_rank arithmetic rank] of its arguments.
+
+[strict_variant_safe_arithmetic_conversion]
 
 [endsect]

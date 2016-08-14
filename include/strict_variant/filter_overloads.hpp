@@ -41,6 +41,7 @@ struct Find_Any_In_List<P, mpl::TypeList<Ts...>> : Find_Any<P, Ts...> {};
 
 } // end namespace mpl
 
+// filter_overloads implements filtering rules for in variant(T&&) ctor
 template <typename T, typename TL>
 struct filter_overloads;
 

@@ -12,6 +12,35 @@
 namespace strict_variant {
 
 /***
+ * Metafunction `safe_arithmetic_conversion`
+ *
+ * Type relationship on two parameters, both should be arithmetic types.
+ *
+ * Identifies a subset of conversions which
+ * - Do not cross the "arithmetic categories" that we defined.
+ * - Are *totally portable*: No narrowing or implementation-defined behavior.
+ *
+ * This means:
+ *   - Arithmetic category must be the same
+ *   - Arithmetic rank must be nondecreasing
+ *   - Unsigned -> Signed is not allowed.
+ */
+
+//[ strict_variant_safe_arithmetic_conversion
+template <typename A, typename B>
+struct safe_arithmetic_conversion {
+  static constexpr bool same_class =
+    (mpl::classify_arithmetic<A>::value == mpl::classify_arithmetic<B>::value);
+  static constexpr bool unsign_to_sign = !mpl::is_unsigned<A>::value && mpl::is_unsigned<B>::value;
+
+  static constexpr int ra = mpl::arithmetic_rank<A>::value;
+  static constexpr int rb = mpl::arithmetic_rank<B>::value;
+
+  static constexpr bool value = same_class && !unsign_to_sign && (ra >= rb);
+};
+//]
+
+/***
  * Metafunction `safely_constructible`:
  *   A metafunction yielding a bool which detects is A is constructible from B without using
  *   conversions that we consider "unsafe". Roughly this means, information could potentially
@@ -49,7 +78,9 @@ namespace strict_variant {
  *   but not int -> unsigned long. You have to do that in two steps.
  */
 
+//[ strict_variant_safely_constructible
 // Helper metafunction which checks if type is arithmetic after decay.
+// This is the same as, `is_arithmetic` modulo `const` and references.
 template <typename T>
 struct is_numeric : std::is_arithmetic<mpl::decay_t<T>> {};
 
@@ -61,10 +92,10 @@ struct is_ptr : std::is_pointer<mpl::decay_t<T>> {};
 template <typename A, typename B, typename ENABLE = void>
 struct safely_constructible : std::is_constructible<A, B> {};
 
-// If both are numeric, then decay and pass to safe_by_rank
+// If both are numeric, then decay and pass to safe_arithmetic_conversion
 template <typename A, typename B>
 struct safely_constructible<A, B, mpl::enable_if_t<is_numeric<A>::value && is_numeric<B>::value>>
-  : public mpl::safe_by_rank<mpl::decay_t<A>,
+  : public safe_arithmetic_conversion<mpl::decay_t<A>,
                              mpl::decay_t<B>> {};
 
 // If both are pointer after decay, then check if they are the same or represent T * -> const T *.
@@ -84,5 +115,6 @@ struct safely_constructible<A, B, mpl::enable_if_t<(is_numeric<A>::value && is_p
                                                    || (is_ptr<A>::value && is_numeric<B>::value)>> {
   static constexpr bool value = false;
 };
+//]
 
 } // end namespace strict_variant

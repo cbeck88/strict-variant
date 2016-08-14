@@ -19,6 +19,7 @@
 [import ../../include/strict_variant/conversion_rank.hpp]
 [import ../../include/strict_variant/filter_overloads.hpp]
 [import ../../include/strict_variant/recursive_wrapper.hpp]
+[import ../../include/strict_variant/safely_constructible.hpp]
 
 [section:intro Introduction]
 [include Motivation.qbk]
