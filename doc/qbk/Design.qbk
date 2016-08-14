@@ -360,14 +360,14 @@ Consider the following overloaded function:
 ```
 
 Under standard C++ rules, this function call is ambiguous: The argument `f` is
-an `int`, and both `long` and `long long` can be obtained from `int` by promotion.
+an `int`, and both `long` and `long long` can be obtained from `int` by conversion.
 Since neither has a worse conversion, there is no best conversion.
 
 When assigning to a `variant` however, by far the most common situation is that
-the user wants to use the "smallest" type that will fit, since promotion represents
-a loss of information in some sense. (After the promotion, our knowledge of the bounds
+the user wants to use the "smallest" type that will fit, since "widening" represents
+a loss of information in some sense. (After the widening conversion, our knowledge of the bounds
 of the value are worse than they were before.) If later when they are visiting
-that value, they want to promote it to a larger type, that is easy to arrange.
+that value, they want to convert it to a larger type, that is easy to arrange.
 
 Therefore, when an integral value is assigned to `strict_variant`, if there are multiple
 integral value types which permit a safe conversion, it prioritizes them by rank and sign.

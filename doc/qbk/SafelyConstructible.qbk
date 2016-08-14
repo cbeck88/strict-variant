@@ -39,4 +39,7 @@ The helper `safe_arithmetic_conversion` is defined in terms of sign, [link stric
 
 [strict_variant_safe_arithmetic_conversion]
 
+The type `char` requires special treatment, because it is implementation-defined if it is `signed` or `unsigned`. Since we'd like to eliminate implementation-specific behavior,
+an arithmetic conversion involving `char` is permitted only when it would be permitted for both `signed char` and `unsigned char`.
+
 [endsect]

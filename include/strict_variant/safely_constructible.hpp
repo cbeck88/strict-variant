@@ -31,13 +31,26 @@ template <typename A, typename B>
 struct safe_arithmetic_conversion {
   static constexpr bool same_class =
     (mpl::classify_arithmetic<A>::value == mpl::classify_arithmetic<B>::value);
-  static constexpr bool unsign_to_sign = !mpl::is_unsigned<A>::value && mpl::is_unsigned<B>::value;
+  static constexpr bool unsign_to_sign = !std::is_unsigned<A>::value && std::is_unsigned<B>::value;
 
   static constexpr int ra = mpl::arithmetic_rank<A>::value;
   static constexpr int rb = mpl::arithmetic_rank<B>::value;
 
   static constexpr bool value = same_class && !unsign_to_sign && (ra >= rb);
 };
+
+template <typename A>
+struct safe_arithmetic_conversion<A, char> {
+  static constexpr bool value = safe_arithmetic_conversion<A, signed char>::value && safe_arithmetic_conversion<A, unsigned char>::value;
+};
+
+template <typename B>
+struct safe_arithmetic_conversion<char, B> {
+  static constexpr bool value = safe_arithmetic_conversion<signed char, B>::value && safe_arithmetic_conversion<unsigned char, B>::value;
+};
+
+template <>
+struct safe_arithmetic_conversion<char, char> : std::true_type {};
 //]
 
 /***

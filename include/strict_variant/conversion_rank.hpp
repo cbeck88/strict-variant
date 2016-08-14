@@ -75,9 +75,10 @@ struct arithmetic_rank;
 RANK(bool, 0);
 
 RANK(signed char, 0);
-URANK(char, 1);
-RANK(char16_t, 2);
-RANK(char32_t, 3);
+RANK(char, 0);
+RANK(unsigned char, 0);
+RANK(char16_t, 1);
+RANK(char32_t, 2);
 
 URANK(short, 0);
 URANK(int, 1);
@@ -89,16 +90,6 @@ RANK(double, 1);
 RANK(long double, 2);
 
 #undef RANK
-
-/***
- * As a hack, we consider `char` always to be signed, regardless of implementation.
- * This is why `signed char` is simply one lower rank than `char` and `unsigned char`.
- */
-template <typename T>
-struct is_unsigned : std::is_unsigned<T> {};
-
-template <>
-struct is_unsigned<char> : std::false_type {};
 
 } // end namespace mpl
 } // end namespace strict_variant
