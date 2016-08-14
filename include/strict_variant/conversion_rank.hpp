@@ -8,8 +8,9 @@
 /***
  * Some metafunctions that support safely_constructible type_trait
  *
- * Permits to classify all fundamental types
+ * Permits to classify all fundamental arithmetic types
      integral, character, wide_char, bool, floating point
+ *
  * and assign numeric ranks to them which are *portable*.
  *
  * These ranks should be the same on any standards-conforming implementation of
@@ -18,23 +19,31 @@
 
 #include <type_traits>
 
+//[ strict_variant_arithmetic_category
 namespace strict_variant {
 namespace mpl {
 
-enum class numeric_class : char { integer, character, wide_char, boolean, floating };
+enum class arithmetic_category : char { integer, character, wide_char, boolean, floating };
 
 template <typename T, typename ENABLE = void>
-struct classify_numeric;
+struct classify_arithmetic;
+
+} // end namespace mpl
+} // end namespace strict_variant
+//]
+
+namespace strict_variant {
+namespace mpl {
 
 template <typename T>
-struct classify_numeric<T, typename std::enable_if<std::is_integral<T>::value>::type> {
-  static constexpr numeric_class value = numeric_class::integer;
+struct classify_arithmetic<T, typename std::enable_if<std::is_integral<T>::value>::type> {
+  static constexpr arithmetic_category value = arithmetic_category::integer;
 };
 
 #define CLASSIFY(T, C)                                                                             \
   template <>                                                                                      \
-  struct classify_numeric<T, void> {                                                               \
-    static constexpr numeric_class value = numeric_class::C;                                       \
+  struct classify_arithmetic<T, void> {                                                               \
+    static constexpr arithmetic_category value = arithmetic_category::C;                                       \
   }
 
 CLASSIFY(char, character);
@@ -51,11 +60,11 @@ CLASSIFY(long double, floating);
 #undef CLASSIFY
 
 template <typename T>
-struct rank_numeric;
+struct arithmetic_rank;
 
 #define RANK(T, V)                                                                                 \
   template <>                                                                                      \
-  struct rank_numeric<T> {                                                                         \
+  struct arithmetic_rank<T> {                                                                      \
     static constexpr int value = V;                                                                \
   }
 
@@ -70,10 +79,10 @@ URANK(char, 1);
 RANK(char16_t, 2);
 RANK(char32_t, 3);
 
-URANK(short, 1);
-URANK(int, 2);
-URANK(long, 3);
-URANK(long long, 4);
+URANK(short, 0);
+URANK(int, 1);
+URANK(long, 2);
+URANK(long long, 3);
 
 RANK(float, 0);
 RANK(double, 1);
@@ -110,15 +119,15 @@ struct is_unsigned<char> : std::false_type {};
 template <typename A, typename B>
 struct safe_by_rank {
   static constexpr bool same_class =
-    (mpl::classify_numeric<A>::value == mpl::classify_numeric<B>::value);
+    (mpl::classify_arithmetic<A>::value == mpl::classify_arithmetic<B>::value);
   static constexpr bool sa = mpl::is_unsigned<A>::value;
   static constexpr bool sb = mpl::is_unsigned<B>::value;
 
   static constexpr bool same_sign = (sa == sb);
   static constexpr bool sign_to_unsign = (sa && !sb);
 
-  static constexpr int ra = mpl::rank_numeric<A>::value;
-  static constexpr int rb = mpl::rank_numeric<B>::value;
+  static constexpr int ra = mpl::arithmetic_rank<A>::value;
+  static constexpr int rb = mpl::arithmetic_rank<B>::value;
 
   static constexpr bool value = same_class && (same_sign || sign_to_unsign) && (ra >= rb);
 };

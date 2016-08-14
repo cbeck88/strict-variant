@@ -1,4 +1,4 @@
-[section:dominates Type trait `dominates`]
+[section:dominates Type relationship `dominates`]
 
 The `dominates` type trait plays a role in modifying the overload set when construction
 or making an assingment to variant using the `T &&` (forwarding-reference) constructor.

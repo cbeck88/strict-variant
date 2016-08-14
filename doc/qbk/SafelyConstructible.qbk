@@ -1,11 +1,7 @@
-[section:safely_constructible Type trait `safely_constructible`]
+[section:safely_constructible Type relationship `safely_constructible`]
 
 The `safely_constructible` type trait is a refinement of `std::is_constructible`,
-but which has special behavior for fundamental types, and forbids certain conversions.
-
-This trait is used to modify overload resolution in the `variant(T&&)` constructor.
-"Unsafe" conversions are eliminated using SFINAE, and don't participate in overload resolution.
-This also affects what happens when assigning an arbitrary value to a `variant`.
+which has special behavior for fundamental types and forbids certain conversions.
 
 [h3 Valid Expressions]
 
@@ -16,20 +12,15 @@ This also affects what happens when assigning an arbitrary value to a `variant`.
 
 [h3 Definition]
 
-* Conversions between the following class are considered "unsafe":
-  * Integer types (`short`, `int`, `long`, `long long`, and unsigned variations)
-  * Floating point types (`float`, `double`, `long double`)
-  * Character types (`char`, `char16_t`, `char32_t`, and `signed` and `unsigned char`)
-  * Pointer types
-  * `bool`
-  * `wchar_t`
+* Conversions between any two [link strict_variant.reference.arithmetic_category arithmetic categories], or between one of those categories and a pointer type,
+  are considered unsafe.
 * If a conversion ['could] be narrowing on some conforming implementation of C++, then it is not safe.  
   (So, `long long` cannot be converted to `long` and `long` cannot be converted to `int`,
   even if you are on a 32-bit machine and they have the same size for you, because it could be narrowing on a 64-bit machine.)
 * Signed can be converted to unsigned, but the reverse is not allowed (since it is implementation-defined).
 * Conversions like `char *` to `const char *` are permitted, and standard conversions like array-to-pointer are permitted, but otherwise no pointer conversions are permitted.
 
-For types outside of the above classes, `safely_constructible` falls back to `std::is_constructible`.
+When `T` or `U` is not in one of the above categories, `safely_constructible` falls back to `std::is_constructible`.
 
 [h3 Examples]
 

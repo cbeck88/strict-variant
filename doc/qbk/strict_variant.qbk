@@ -16,8 +16,9 @@
 [import ../../test/variant.cpp]
 [import ../../test/tutorial_basic.cpp]
 [import ../../test/tutorial_advanced.cpp]
-[import ../../include/strict_variant/recursive_wrapper.hpp]
+[import ../../include/strict_variant/conversion_rank.hpp]
 [import ../../include/strict_variant/filter_overloads.hpp]
+[import ../../include/strict_variant/recursive_wrapper.hpp]
 
 [section:intro Introduction]
 [include Motivation.qbk]
@@ -32,6 +33,7 @@
 [section:reference Reference]
 [include ClassVariant.qbk]
 [include ClassRecursiveWrapper.qbk]
+[include ArithmeticCategory.qbk]
 [include SafelyConstructible.qbk]
 [include Dominates.qbk]
 [include Includes.qbk]
