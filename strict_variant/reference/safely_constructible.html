@@ -1,34 +1,28 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
-<title>Type trait safely_constructible</title>
+<title>Type relationship safely_constructible</title>
 <link rel="stylesheet" href="../../boostbook.css" type="text/css">
 <meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
 <link rel="home" href="../../index.html" title="Chapter&#160;1.&#160;Strict Variant 0.0">
 <link rel="up" href="../reference.html" title="Reference">
-<link rel="prev" href="class_template_recursive_wrapper.html" title="Class template recursive_wrapper">
-<link rel="next" href="dominates.html" title="Type trait dominates">
+<link rel="prev" href="arithmetic_rank.html" title="Type trait arithmetic_rank">
+<link rel="next" href="dominates.html" title="Type relationship dominates">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
 <div class="spirit-nav">
-<a accesskey="p" href="class_template_recursive_wrapper.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../reference.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="dominates.html"><img src="../../images/next.png" alt="Next"></a>
+<a accesskey="p" href="arithmetic_rank.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../reference.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="dominates.html"><img src="../../images/next.png" alt="Next"></a>
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="strict_variant.reference.safely_constructible"></a><a class="link" href="safely_constructible.html" title="Type trait safely_constructible">Type trait
+<a name="strict_variant.reference.safely_constructible"></a><a class="link" href="safely_constructible.html" title="Type relationship safely_constructible">Type relationship
       <code class="computeroutput"><span class="identifier">safely_constructible</span></code></a>
 </h3></div></div></div>
 <p>
         The <code class="computeroutput"><span class="identifier">safely_constructible</span></code>
         type trait is a refinement of <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">is_constructible</span></code>,
-        but which has special behavior for fundamental types, and forbids certain
-        conversions.
-      </p>
-<p>
-        This trait is used to modify overload resolution in the <code class="computeroutput"><span class="identifier">variant</span><span class="special">(</span><span class="identifier">T</span><span class="special">&amp;&amp;)</span></code>
-        constructor. "Unsafe" conversions are eliminated using SFINAE,
-        and don't participate in overload resolution. This also affects what happens
-        when assigning an arbitrary value to a <code class="computeroutput"><span class="identifier">variant</span></code>.
+        which has special behavior for fundamental types and pointer types and forbids
+        certain conversions.
       </p>
 <h4>
 <a name="strict_variant.reference.safely_constructible.h0"></a>
@@ -83,36 +77,13 @@
 </table></div>
 <h4>
 <a name="strict_variant.reference.safely_constructible.h1"></a>
-        <span><a name="strict_variant.reference.safely_constructible.definition"></a></span><a class="link" href="safely_constructible.html#strict_variant.reference.safely_constructible.definition">Definition</a>
+        <span><a name="strict_variant.reference.safely_constructible.notes"></a></span><a class="link" href="safely_constructible.html#strict_variant.reference.safely_constructible.notes">Notes</a>
       </h4>
 <div class="itemizedlist"><ul class="itemizedlist" type="disc">
 <li class="listitem">
-            Conversions between the following class are considered "unsafe":
-            <div class="itemizedlist"><ul class="itemizedlist" type="circle">
-<li class="listitem">
-                  Integer types (<code class="computeroutput"><span class="keyword">short</span></code>,
-                  <code class="computeroutput"><span class="keyword">int</span></code>, <code class="computeroutput"><span class="keyword">long</span></code>, <code class="computeroutput"><span class="keyword">long</span>
-                  <span class="keyword">long</span></code>, and unsigned variations)
-                </li>
-<li class="listitem">
-                  Floating point types (<code class="computeroutput"><span class="keyword">float</span></code>,
-                  <code class="computeroutput"><span class="keyword">double</span></code>, <code class="computeroutput"><span class="keyword">long</span> <span class="keyword">double</span></code>)
-                </li>
-<li class="listitem">
-                  Character types (<code class="computeroutput"><span class="keyword">char</span></code>,
-                  <code class="computeroutput"><span class="keyword">char16_t</span></code>, <code class="computeroutput"><span class="keyword">char32_t</span></code>, and <code class="computeroutput"><span class="keyword">signed</span></code>
-                  and <code class="computeroutput"><span class="keyword">unsigned</span> <span class="keyword">char</span></code>)
-                </li>
-<li class="listitem">
-                  Pointer types
-                </li>
-<li class="listitem">
-                  <code class="computeroutput"><span class="keyword">bool</span></code>
-                </li>
-<li class="listitem">
-                  <code class="computeroutput"><span class="keyword">wchar_t</span></code>
-                </li>
-</ul></div>
+            Conversions between any two <a class="link" href="arithmetic_category.html" title="Type trait arithmetic_category">arithmetic
+            categories</a>, or between one of those categories and a pointer type,
+            are considered unsafe.
           </li>
 <li class="listitem">
             If a conversion <span class="emphasis"><em>could</em></span> be narrowing on some conforming
@@ -120,7 +91,9 @@
             <span class="keyword">long</span></code> cannot be converted to <code class="computeroutput"><span class="keyword">long</span></code> and <code class="computeroutput"><span class="keyword">long</span></code>
             cannot be converted to <code class="computeroutput"><span class="keyword">int</span></code>,
             even if you are on a 32-bit machine and they have the same size for you,
-            because it could be narrowing on a 64-bit machine.)
+            because it could be narrowing on a 64-bit machine.) This is determined
+            by checking if the <a class="link" href="arithmetic_rank.html" title="Type trait arithmetic_rank">arithmetic
+            rank</a> decreases as a result of the conversion.
           </li>
 <li class="listitem">
             Signed can be converted to unsigned, but the reverse is not allowed (since
@@ -135,7 +108,8 @@
           </li>
 </ul></div>
 <p>
-        For types outside of the above classes, <code class="computeroutput"><span class="identifier">safely_constructible</span></code>
+        When <code class="computeroutput"><span class="identifier">T</span></code> or <code class="computeroutput"><span class="identifier">U</span></code>
+        is not in one of the above categories, <code class="computeroutput"><span class="identifier">safely_constructible</span></code>
         falls back to <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">is_constructible</span></code>.
       </p>
 <h4>
@@ -178,6 +152,94 @@
           as you please in order to modify the behavior of <code class="computeroutput"><span class="identifier">strict_variant</span></code>.
         </p></td></tr>
 </table></div>
+<h4>
+<a name="strict_variant.reference.safely_constructible.h3"></a>
+        <span><a name="strict_variant.reference.safely_constructible.definition"></a></span><a class="link" href="safely_constructible.html#strict_variant.reference.safely_constructible.definition">Definition</a>
+      </h4>
+<p>
+        The complete definition of the <code class="computeroutput"><span class="identifier">safely_constructible</span></code>
+        template is given:
+      </p>
+<pre class="programlisting"><span class="comment">// Helper metafunction which checks if type is arithmetic after decay.</span>
+<span class="comment">// This is the same as, `is_arithmetic` modulo `const` and references.</span>
+<span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
+<span class="keyword">struct</span> <span class="identifier">decay_to_arithmetic</span> <span class="special">:</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">is_arithmetic</span><span class="special">&lt;</span><span class="identifier">mpl</span><span class="special">::</span><span class="identifier">decay_t</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;&gt;</span> <span class="special">{};</span>
+
+<span class="comment">// Helper metafunction which checks if type is pointer after decay,</span>
+<span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
+<span class="keyword">struct</span> <span class="identifier">decay_to_ptr</span> <span class="special">:</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">is_pointer</span><span class="special">&lt;</span><span class="identifier">mpl</span><span class="special">::</span><span class="identifier">decay_t</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;&gt;</span> <span class="special">{};</span>
+
+<span class="comment">// Primary template, falls back to std::is_constructible</span>
+<span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">A</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">B</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">ENABLE</span> <span class="special">=</span> <span class="keyword">void</span><span class="special">&gt;</span>
+<span class="keyword">struct</span> <span class="identifier">safely_constructible</span> <span class="special">:</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">is_constructible</span><span class="special">&lt;</span><span class="identifier">A</span><span class="special">,</span> <span class="identifier">B</span><span class="special">&gt;</span> <span class="special">{};</span>
+
+<span class="comment">// If both are arithmetic, then decay and pass to safe_arithmetic_conversion</span>
+<span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">A</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">B</span><span class="special">&gt;</span>
+<span class="keyword">struct</span> <span class="identifier">safely_constructible</span><span class="special">&lt;</span><span class="identifier">A</span><span class="special">,</span> <span class="identifier">B</span><span class="special">,</span> <span class="identifier">mpl</span><span class="special">::</span><span class="identifier">enable_if_t</span><span class="special">&lt;</span><span class="identifier">decay_to_arithmetic</span><span class="special">&lt;</span><span class="identifier">A</span><span class="special">&gt;::</span><span class="identifier">value</span>
+                                                   <span class="special">&amp;&amp;</span> <span class="identifier">decay_to_arithmetic</span><span class="special">&lt;</span><span class="identifier">B</span><span class="special">&gt;::</span><span class="identifier">value</span><span class="special">&gt;&gt;</span>
+  <span class="special">:</span> <span class="identifier">safe_arithmetic_conversion</span><span class="special">&lt;</span><span class="identifier">mpl</span><span class="special">::</span><span class="identifier">decay_t</span><span class="special">&lt;</span><span class="identifier">A</span><span class="special">&gt;,</span> <span class="identifier">mpl</span><span class="special">::</span><span class="identifier">decay_t</span><span class="special">&lt;</span><span class="identifier">B</span><span class="special">&gt;&gt;</span> <span class="special">{};</span>
+
+<span class="comment">// If both are pointer after decay, then check if they are the same or represent T * -&gt; const T *.</span>
+<span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">A</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">B</span><span class="special">&gt;</span>
+<span class="keyword">struct</span> <span class="identifier">safely_constructible</span><span class="special">&lt;</span><span class="identifier">A</span><span class="special">,</span> <span class="identifier">B</span><span class="special">,</span>
+                            <span class="identifier">mpl</span><span class="special">::</span><span class="identifier">enable_if_t</span><span class="special">&lt;</span><span class="identifier">decay_to_ptr</span><span class="special">&lt;</span><span class="identifier">A</span><span class="special">&gt;::</span><span class="identifier">value</span> <span class="special">&amp;&amp;</span> <span class="identifier">decay_to_ptr</span><span class="special">&lt;</span><span class="identifier">B</span><span class="special">&gt;::</span><span class="identifier">value</span><span class="special">&gt;&gt;</span> <span class="special">{</span>
+  <span class="keyword">using</span> <span class="identifier">A2</span> <span class="special">=</span> <span class="identifier">mpl</span><span class="special">::</span><span class="identifier">decay_t</span><span class="special">&lt;</span><span class="identifier">A</span><span class="special">&gt;;</span>
+  <span class="keyword">using</span> <span class="identifier">B2</span> <span class="special">=</span> <span class="identifier">mpl</span><span class="special">::</span><span class="identifier">decay_t</span><span class="special">&lt;</span><span class="identifier">B</span><span class="special">&gt;;</span>
+  <span class="keyword">static</span> <span class="keyword">constexpr</span> <span class="keyword">bool</span> <span class="identifier">value</span> <span class="special">=</span>
+    <span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">is_same</span><span class="special">&lt;</span><span class="identifier">A2</span><span class="special">,</span> <span class="identifier">B2</span><span class="special">&gt;::</span><span class="identifier">value</span> <span class="special">||</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">is_same</span><span class="special">&lt;</span><span class="identifier">mpl</span><span class="special">::</span><span class="identifier">remove_const_t</span><span class="special">&lt;</span><span class="identifier">mpl</span><span class="special">::</span><span class="identifier">remove_pointer_t</span><span class="special">&lt;</span><span class="identifier">A2</span><span class="special">&gt;&gt;,</span>
+                                                 <span class="identifier">mpl</span><span class="special">::</span><span class="identifier">remove_pointer_t</span><span class="special">&lt;</span><span class="identifier">B2</span><span class="special">&gt;&gt;::</span><span class="identifier">value</span><span class="special">)</span>
+    <span class="special">&amp;&amp;</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">is_constructible</span><span class="special">&lt;</span><span class="identifier">A</span><span class="special">,</span> <span class="identifier">B</span><span class="special">&gt;::</span><span class="identifier">value</span><span class="special">;</span>
+<span class="special">};</span>
+
+<span class="comment">// If one is arithmetic and the other is pointer, after decay, it is forbidden.</span>
+<span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">A</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">B</span><span class="special">&gt;</span>
+<span class="keyword">struct</span> <span class="identifier">safely_constructible</span><span class="special">&lt;</span><span class="identifier">A</span><span class="special">,</span> <span class="identifier">B</span><span class="special">,</span> <span class="identifier">mpl</span><span class="special">::</span><span class="identifier">enable_if_t</span><span class="special">&lt;(</span><span class="identifier">decay_to_arithmetic</span><span class="special">&lt;</span><span class="identifier">A</span><span class="special">&gt;::</span><span class="identifier">value</span>
+                                                    <span class="special">&amp;&amp;</span> <span class="identifier">decay_to_ptr</span><span class="special">&lt;</span><span class="identifier">B</span><span class="special">&gt;::</span><span class="identifier">value</span><span class="special">)</span>
+                                                   <span class="special">||</span> <span class="special">(</span><span class="identifier">decay_to_ptr</span><span class="special">&lt;</span><span class="identifier">A</span><span class="special">&gt;::</span><span class="identifier">value</span>
+                                                       <span class="special">&amp;&amp;</span> <span class="identifier">decay_to_arithmetic</span><span class="special">&lt;</span><span class="identifier">B</span><span class="special">&gt;::</span><span class="identifier">value</span><span class="special">)&gt;&gt;</span>
+  <span class="special">:</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">false_type</span> <span class="special">{};</span>
+</pre>
+<p>
+        The helper <code class="computeroutput"><span class="identifier">safe_arithmetic_conversion</span></code>
+        is defined in terms of sign, <a class="link" href="arithmetic_category.html" title="Type trait arithmetic_category">arithmetic
+        category</a> and <a class="link" href="arithmetic_rank.html" title="Type trait arithmetic_rank">arithmetic
+        rank</a> of its arguments.
+      </p>
+<pre class="programlisting"><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">A</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">B</span><span class="special">&gt;</span>
+<span class="keyword">struct</span> <span class="identifier">safe_arithmetic_conversion</span> <span class="special">{</span>
+  <span class="keyword">static</span> <span class="keyword">constexpr</span> <span class="keyword">bool</span> <span class="identifier">same_class</span> <span class="special">=</span>
+    <span class="special">(</span><span class="identifier">mpl</span><span class="special">::</span><span class="identifier">classify_arithmetic</span><span class="special">&lt;</span><span class="identifier">A</span><span class="special">&gt;::</span><span class="identifier">value</span> <span class="special">==</span> <span class="identifier">mpl</span><span class="special">::</span><span class="identifier">classify_arithmetic</span><span class="special">&lt;</span><span class="identifier">B</span><span class="special">&gt;::</span><span class="identifier">value</span><span class="special">);</span>
+  <span class="keyword">static</span> <span class="keyword">constexpr</span> <span class="keyword">bool</span> <span class="identifier">unsign_to_sign</span> <span class="special">=</span> <span class="special">!</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">is_unsigned</span><span class="special">&lt;</span><span class="identifier">A</span><span class="special">&gt;::</span><span class="identifier">value</span> <span class="special">&amp;&amp;</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">is_unsigned</span><span class="special">&lt;</span><span class="identifier">B</span><span class="special">&gt;::</span><span class="identifier">value</span><span class="special">;</span>
+
+  <span class="keyword">static</span> <span class="keyword">constexpr</span> <span class="keyword">int</span> <span class="identifier">ra</span> <span class="special">=</span> <span class="identifier">mpl</span><span class="special">::</span><span class="identifier">arithmetic_rank</span><span class="special">&lt;</span><span class="identifier">A</span><span class="special">&gt;::</span><span class="identifier">value</span><span class="special">;</span>
+  <span class="keyword">static</span> <span class="keyword">constexpr</span> <span class="keyword">int</span> <span class="identifier">rb</span> <span class="special">=</span> <span class="identifier">mpl</span><span class="special">::</span><span class="identifier">arithmetic_rank</span><span class="special">&lt;</span><span class="identifier">B</span><span class="special">&gt;::</span><span class="identifier">value</span><span class="special">;</span>
+
+  <span class="keyword">static</span> <span class="keyword">constexpr</span> <span class="keyword">bool</span> <span class="identifier">value</span> <span class="special">=</span> <span class="identifier">same_class</span> <span class="special">&amp;&amp;</span> <span class="special">!</span><span class="identifier">unsign_to_sign</span> <span class="special">&amp;&amp;</span> <span class="special">(</span><span class="identifier">ra</span> <span class="special">&gt;=</span> <span class="identifier">rb</span><span class="special">);</span>
+<span class="special">};</span>
+
+<span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">A</span><span class="special">&gt;</span>
+<span class="keyword">struct</span> <span class="identifier">safe_arithmetic_conversion</span><span class="special">&lt;</span><span class="identifier">A</span><span class="special">,</span> <span class="keyword">char</span><span class="special">&gt;</span> <span class="special">{</span>
+  <span class="keyword">static</span> <span class="keyword">constexpr</span> <span class="keyword">bool</span> <span class="identifier">value</span> <span class="special">=</span> <span class="identifier">safe_arithmetic_conversion</span><span class="special">&lt;</span><span class="identifier">A</span><span class="special">,</span> <span class="keyword">signed</span> <span class="keyword">char</span><span class="special">&gt;::</span><span class="identifier">value</span> <span class="special">&amp;&amp;</span> <span class="identifier">safe_arithmetic_conversion</span><span class="special">&lt;</span><span class="identifier">A</span><span class="special">,</span> <span class="keyword">unsigned</span> <span class="keyword">char</span><span class="special">&gt;::</span><span class="identifier">value</span><span class="special">;</span>
+<span class="special">};</span>
+
+<span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">B</span><span class="special">&gt;</span>
+<span class="keyword">struct</span> <span class="identifier">safe_arithmetic_conversion</span><span class="special">&lt;</span><span class="keyword">char</span><span class="special">,</span> <span class="identifier">B</span><span class="special">&gt;</span> <span class="special">{</span>
+  <span class="keyword">static</span> <span class="keyword">constexpr</span> <span class="keyword">bool</span> <span class="identifier">value</span> <span class="special">=</span> <span class="identifier">safe_arithmetic_conversion</span><span class="special">&lt;</span><span class="keyword">signed</span> <span class="keyword">char</span><span class="special">,</span> <span class="identifier">B</span><span class="special">&gt;::</span><span class="identifier">value</span> <span class="special">&amp;&amp;</span> <span class="identifier">safe_arithmetic_conversion</span><span class="special">&lt;</span><span class="keyword">unsigned</span> <span class="keyword">char</span><span class="special">,</span> <span class="identifier">B</span><span class="special">&gt;::</span><span class="identifier">value</span><span class="special">;</span>
+<span class="special">};</span>
+
+<span class="keyword">template</span> <span class="special">&lt;&gt;</span>
+<span class="keyword">struct</span> <span class="identifier">safe_arithmetic_conversion</span><span class="special">&lt;</span><span class="keyword">char</span><span class="special">,</span> <span class="keyword">char</span><span class="special">&gt;</span> <span class="special">:</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">true_type</span> <span class="special">{};</span>
+</pre>
+<p>
+        The type <code class="computeroutput"><span class="keyword">char</span></code> requires special
+        treatment, because it is implementation-defined if it is <code class="computeroutput"><span class="keyword">signed</span></code>
+        or <code class="computeroutput"><span class="keyword">unsigned</span></code>. Since we'd like
+        to eliminate implementation-specific behavior, an arithmetic conversion involving
+        <code class="computeroutput"><span class="keyword">char</span></code> is permitted only when
+        it would be permitted for both <code class="computeroutput"><span class="keyword">signed</span>
+        <span class="keyword">char</span></code> and <code class="computeroutput"><span class="keyword">unsigned</span>
+        <span class="keyword">char</span></code>.
+      </p>
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
 <td align="left"></td>
@@ -189,7 +251,7 @@
 </tr></table>
 <hr>
 <div class="spirit-nav">
-<a accesskey="p" href="class_template_recursive_wrapper.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../reference.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="dominates.html"><img src="../../images/next.png" alt="Next"></a>
+<a accesskey="p" href="arithmetic_rank.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../reference.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="dominates.html"><img src="../../images/next.png" alt="Next"></a>
 </div>
 </body>
 </html>

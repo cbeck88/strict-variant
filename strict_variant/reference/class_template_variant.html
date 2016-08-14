@@ -365,19 +365,20 @@
               types</em></span> as a candidate.
             </p>
 <p>
-              However, before overload resolution occurs, some candidates are elminated.
+              However, before overload resolution occurs, some candidates are eliminated,
+              if for instance they represent a non-portable conversion.
             </p>
 <p>
               Candidates are eliminated in <span class="emphasis"><em>two phases</em></span>:
             </p>
 <div class="itemizedlist"><ul class="itemizedlist" type="disc">
 <li class="listitem">
-                  First, types which are not <a class="link" href="safely_constructible.html" title="Type trait safely_constructible">safely
+                  First, types which are not <a class="link" href="safely_constructible.html" title="Type relationship safely_constructible">safely
                   constructible</a> from <code class="computeroutput"><span class="identifier">T</span></code>
                   are elminated.
                 </li>
 <li class="listitem">
-                  Second, types which are <a class="link" href="dominates.html" title="Type trait dominates">dominated</a>
+                  Second, types which are <a class="link" href="dominates.html" title="Type relationship dominates">dominated</a>
                   by one of the remaining types are eliminated.
                 </li>
 </ul></div>
@@ -385,8 +386,25 @@
               Overload resolution occurs with the remaining types.
             </p>
 <p>
-              By default, these steps only affect value types which are <code class="computeroutput"><span class="identifier">arithmetic</span></code> types or pointers, in
-              the case that the passed argument is an arithmetic type or pointer.
+              Unless you customize those type traits, the behavior is only modified
+              in the case of
+            </p>
+<div class="itemizedlist"><ul class="itemizedlist" type="disc">
+<li class="listitem">
+                  value types which <span class="emphasis"><em>decay to an <code class="computeroutput"><span class="identifier">arithmetic</span></code>
+                  type or a pointer</em></span>.
+                </li>
+<li class="listitem">
+                  <code class="computeroutput"><span class="identifier">T</span></code> itself <span class="emphasis"><em>decays
+                  to an <code class="computeroutput"><span class="identifier">arithmetic</span></code>
+                  type or a pointer</em></span>.
+                </li>
+</ul></div>
+<p>
+              This feature acts to prevent: * Narrowing conversions, on any platform.
+              * Implicit conversions to / from <code class="computeroutput"><span class="keyword">bool</span></code>,
+              pointers, and others. * Certain kinds of overload ambiguity when there
+              are many integral types in the variant.
             </p>
 <p>
               Here are some concrete annotated examples:
@@ -401,8 +419,7 @@
 <span class="identifier">variant</span><span class="special">&lt;</span><span class="keyword">long</span><span class="special">,</span> <span class="keyword">unsigned</span> <span class="keyword">long</span> <span class="keyword">long</span><span class="special">&gt;</span> <span class="identifier">v</span><span class="special">{</span><span class="number">10u</span><span class="special">};</span>     <span class="comment">// `unsigned -&gt; signed long` is considered unsafe.</span>
 </pre>
 <p>
-              Even when ties among fundamental types are broken, overload resolution
-              might still be ambiguous with other, user-defined types in the variant.
+              See those type traits for more detail.
             </p>
 </dd>
 <dt><span class="term"><code class="computeroutput"><span class="identifier">variant</span><span class="special">(</span><span class="identifier">emplace_tag</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;,</span> <span class="identifier">Args</span> <span class="special">&amp;&amp;</span>

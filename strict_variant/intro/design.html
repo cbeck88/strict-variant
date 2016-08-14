@@ -436,7 +436,8 @@
 <p>
         To make it easier to get good results when manipulating a variant like this,
         <code class="computeroutput"><span class="identifier">strict_variant</span></code> prevents many
-        implicit conversions from occurring when two fundamental types are involved.
+        implicit conversions from occurring when two arithmetic or pointer types
+        types are involved.
       </p>
 <h5>
 <a name="strict_variant.intro.design.h9"></a>
@@ -444,7 +445,8 @@
         Conversions</a>
       </h5>
 <p>
-        When assigning or constructing a variant,
+        When assigning or constructing a variant, some conversions which may be "surprising"
+        or which are not totally portable are not permitted.
       </p>
 <div class="itemizedlist"><ul class="itemizedlist" type="disc">
 <li class="listitem">
@@ -521,32 +523,6 @@
         <span class="special">*</span></code> or to <code class="computeroutput"><span class="keyword">bool</span></code>
         is permitted to occur implicitly here.
       </p>
-<p>
-        In a more subtle example, this is not ambiguous:
-      </p>
-<pre class="programlisting"><span class="identifier">strict_variant</span><span class="special">&lt;</span><span class="keyword">long</span> <span class="keyword">long</span><span class="special">,</span> <span class="keyword">unsigned</span> <span class="keyword">long</span> <span class="keyword">long</span><span class="special">&gt;</span> <span class="identifier">v</span><span class="special">;</span>
-
-<span class="identifier">v</span> <span class="special">=</span> <span class="number">100</span><span class="special">;</span>
-<span class="identifier">v</span> <span class="special">=</span> <span class="number">100u</span><span class="special">;</span>
-</pre>
-<p>
-        With <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code>, either of these is ambiguous,
-        and you would have to use <code class="computeroutput"><span class="keyword">static_cast</span><span class="special">&lt;</span><span class="keyword">long</span> <span class="keyword">long</span><span class="special">&gt;(</span><span class="number">100</span><span class="special">)</span></code> or something
-        like <code class="computeroutput"><span class="identifier">v</span> <span class="special">=</span>
-        <span class="number">100ULL</span></code>.
-      </p>
-<p>
-        With <code class="computeroutput"><span class="identifier">strict_variant</span></code>, it's
-        not allowed to combine widening with <code class="computeroutput"><span class="keyword">signed</span>
-        <span class="special">-&gt;</span> <span class="keyword">unsigned</span></code>.
-        So <code class="computeroutput"><span class="keyword">int</span></code> to <code class="computeroutput"><span class="keyword">unsigned</span>
-        <span class="keyword">long</span> <span class="keyword">long</span></code>
-        is eliminated. And <code class="computeroutput"><span class="keyword">unsigned</span> <span class="special">-&gt;</span> <span class="keyword">signed</span></code>
-        can't happen implicitly at all, so <code class="computeroutput"><span class="keyword">unsigned</span>
-        <span class="keyword">int</span></code> to <code class="computeroutput"><span class="keyword">long</span>
-        <span class="keyword">long</span></code> is eliminated when we are assigning
-        <code class="computeroutput"><span class="number">100u</span></code>.
-      </p>
 <div class="note"><table border="0" summary="Note">
 <tr>
 <td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="../../images/note.png"></td>
@@ -556,7 +532,7 @@
 <p>
           <code class="computeroutput"><span class="identifier">strict_variant</span></code> conversion
           rules can only affect the result when the type contained in the variant
-          is a fundamental type.
+          is an arithmetic type or a pointer type.
         </p>
 <p>
           When the type contained is a user-defined type, all the normal conversions
@@ -569,7 +545,7 @@
 </td></tr>
 </table></div>
 <p>
-        The actual test is performed by <a class="link" href="../reference/safely_constructible.html" title="Type trait safely_constructible">a
+        The actual test is performed by <a class="link" href="../reference/safely_constructible.html" title="Type relationship safely_constructible">a
         type trait</a>, <code class="computeroutput"><span class="identifier">strict_variant</span><span class="special">::</span><span class="identifier">safely_constructible</span></code>,
         which refines <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">is_constructible</span></code>. You can make tests against
         that if you want to e.g. make static assertions that certain conversions
@@ -583,7 +559,7 @@
 <p>
         A second aspect of <code class="computeroutput"><span class="identifier">strict_variant</span></code>
         is that we adopt a rank-based priority policy to resolve some overload ambiguities
-        involving fundamental types.
+        involving arithmetic types.
       </p>
 <p>
         Consider the following overloaded function:
@@ -598,43 +574,34 @@
         <code class="computeroutput"><span class="identifier">f</span></code> is an <code class="computeroutput"><span class="keyword">int</span></code>,
         and both <code class="computeroutput"><span class="keyword">long</span></code> and <code class="computeroutput"><span class="keyword">long</span> <span class="keyword">long</span></code>
         can be obtained from <code class="computeroutput"><span class="keyword">int</span></code> by
-        promotion. Since neither has a worse conversion, there is no best conversion.
+        conversion. Since neither has a worse conversion, there is no best conversion.
       </p>
 <p>
         When assigning to a <code class="computeroutput"><span class="identifier">variant</span></code>
         however, by far the most common situation is that the user wants to use the
-        "smallest" type that will fit, since promotion represents a loss
-        of information in some sense. (After the promotion, our knowledge of the
-        bounds of the value are worse than they were before.) If later when they
-        are visiting that value, they want to promote it to a larger type, that is
-        easy to arrange.
+        "smallest" type that will fit, since "widening" represents
+        a loss of information in some sense. (After the widening conversion, our
+        knowledge of the bounds of the value are worse than they were before.) If
+        later when they are visiting that value, they want to convert it to a larger
+        type, that is easy to arrange.
       </p>
 <p>
-        Therefore, when an assignment is made to <code class="computeroutput"><span class="identifier">strict_variant</span></code>,
-        if there are multiple integral types, it prioritizes them by rank. If a "safe
-        conversion" is possible using types of a multiple ranks, only those
-        of smallest rank are introduced into overload resolution, and the larger
-        ones are not considered.
+        Therefore, when an integral value is assigned to <code class="computeroutput"><span class="identifier">strict_variant</span></code>,
+        if there are multiple integral value types which permit a safe conversion,
+        it prioritizes them by rank and sign. If for one of the candidates, there
+        is another candidate which has strictly lower rank / sign, it is "dominated"
+        by the lower rank candidate, and does not participate in overload resolution.
       </p>
 <p>
-        These rules allow us to resolve any ties when converting from fundamental
-        types to signed or unsigned integral types <code class="computeroutput"><span class="keyword">short</span><span class="special">,</span> <span class="keyword">int</span><span class="special">,</span>
-        <span class="keyword">long</span><span class="special">,</span> <span class="keyword">long</span> <span class="keyword">long</span></code>,
-        signed or unsigned character types, and floating point types. (Note that
-        the winner of these ties could still be ambiguous with a user-defined type
-        which is also a member of the variant.)
+        For instance, <code class="computeroutput"><span class="keyword">int</span></code> is safely
+        convertible to both <code class="computeroutput"><span class="keyword">long</span></code> and
+        <code class="computeroutput"><span class="keyword">long</span> <span class="keyword">long</span></code>.
+        But <code class="computeroutput"><span class="keyword">long</span></code> dominates <code class="computeroutput"><span class="keyword">long</span> <span class="keyword">long</span></code>
+        when making arithmetic conversions, so <code class="computeroutput"><span class="keyword">long</span>
+        <span class="keyword">long</span></code> is eliminated, and <code class="computeroutput"><span class="keyword">long</span></code> is selected unambigously when assigning
+        an <code class="computeroutput"><span class="keyword">int</span></code> to <code class="computeroutput"><span class="identifier">strict_variant</span><span class="special">&lt;</span><span class="keyword">long</span><span class="special">,</span>
+        <span class="keyword">long</span> <span class="keyword">long</span><span class="special">&gt;</span></code>.
       </p>
-<div class="note"><table border="0" summary="Note">
-<tr>
-<td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="../../images/note.png"></td>
-<th align="left">Note</th>
-</tr>
-<tr><td align="left" valign="top"><p>
-          Here "rank" refers to a fixed integer defined by the library
-          for each type, consistent with the conversion rank defined by the standard.
-          The actual sizes of the types on your implementation don't matter here.
-        </p></td></tr>
-</table></div>
 <h5>
 <a name="strict_variant.intro.design.h11"></a>
         <span><a name="strict_variant.intro.design.emplace"></a></span><a class="link" href="design.html#strict_variant.intro.design.emplace">Emplace</a>

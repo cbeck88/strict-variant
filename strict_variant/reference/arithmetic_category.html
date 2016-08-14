@@ -1,0 +1,297 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<title>Type trait arithmetic_category</title>
+<link rel="stylesheet" href="../../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="../../index.html" title="Chapter&#160;1.&#160;Strict Variant 0.0">
+<link rel="up" href="../reference.html" title="Reference">
+<link rel="prev" href="class_template_recursive_wrapper.html" title="Class template recursive_wrapper">
+<link rel="next" href="arithmetic_rank.html" title="Type trait arithmetic_rank">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<div class="spirit-nav">
+<a accesskey="p" href="class_template_recursive_wrapper.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../reference.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="arithmetic_rank.html"><img src="../../images/next.png" alt="Next"></a>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="strict_variant.reference.arithmetic_category"></a><a class="link" href="arithmetic_category.html" title="Type trait arithmetic_category">Type trait
+      <code class="computeroutput"><span class="identifier">arithmetic_category</span></code></a>
+</h3></div></div></div>
+<p>
+        In C++, the term <span class="emphasis"><em>arithmetic type</em></span> refers to a fundamental
+        type which is either <span class="emphasis"><em>integral</em></span> or <span class="emphasis"><em>floating
+        point</em></span>.
+      </p>
+<p>
+        As part of the definition of <code class="computeroutput"><span class="identifier">safely_constructible</span></code>,
+        <code class="computeroutput"><span class="identifier">strict_variant</span></code> makes a finer
+        classification of these types, and assigns a portable <span class="emphasis"><em>conversion
+        rank</em></span> to each such type.
+      </p>
+<p>
+        The type trait <code class="computeroutput"><span class="identifier">arithmetic_category</span></code>
+        computes the category of a given arithmetic type.
+      </p>
+<h4>
+<a name="strict_variant.reference.arithmetic_category.h0"></a>
+        <span><a name="strict_variant.reference.arithmetic_category.declaration"></a></span><a class="link" href="arithmetic_category.html#strict_variant.reference.arithmetic_category.declaration">Declaration</a>
+      </h4>
+<pre class="programlisting"><span class="keyword">namespace</span> <span class="identifier">strict_variant</span> <span class="special">{</span>
+<span class="keyword">namespace</span> <span class="identifier">mpl</span> <span class="special">{</span>
+
+<span class="keyword">enum</span> <span class="keyword">class</span> <span class="identifier">arithmetic_category</span> <span class="special">:</span> <span class="keyword">char</span> <span class="special">{</span> <span class="identifier">integer</span><span class="special">,</span> <span class="identifier">character</span><span class="special">,</span> <span class="identifier">wide_char</span><span class="special">,</span> <span class="identifier">boolean</span><span class="special">,</span> <span class="identifier">floating</span> <span class="special">};</span>
+
+<span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">ENABLE</span> <span class="special">=</span> <span class="keyword">void</span><span class="special">&gt;</span>
+<span class="keyword">struct</span> <span class="identifier">classify_arithmetic</span><span class="special">;</span>
+
+<span class="special">}</span> <span class="comment">// end namespace mpl</span>
+<span class="special">}</span> <span class="comment">// end namespace strict_variant</span>
+</pre>
+<h4>
+<a name="strict_variant.reference.arithmetic_category.h1"></a>
+        <span><a name="strict_variant.reference.arithmetic_category.valid_expressions"></a></span><a class="link" href="arithmetic_category.html#strict_variant.reference.arithmetic_category.valid_expressions">Valid
+        Expressions</a>
+      </h4>
+<div class="informaltable"><table class="table">
+<colgroup>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>
+                <p>
+                  expression
+                </p>
+              </th>
+<th>
+                <p>
+                  value
+                </p>
+              </th>
+</tr></thead>
+<tbody>
+<tr>
+<td>
+                <p>
+                  <code class="computeroutput"><span class="identifier">T</span></code>
+                </p>
+              </td>
+<td>
+                <p>
+                  any arithmetic type
+                </p>
+              </td>
+</tr>
+<tr>
+<td>
+                <p>
+                  <code class="computeroutput"><span class="identifier">strict_variant</span><span class="special">::</span><span class="identifier">mpl</span><span class="special">::</span><span class="identifier">arithmetic_category</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;::</span><span class="identifier">value</span></code>
+                </p>
+              </td>
+<td>
+                <p>
+                  The <code class="computeroutput"><span class="identifier">arithmetic_category</span></code>
+                  of <code class="computeroutput"><span class="identifier">T</span></code>.
+                </p>
+              </td>
+</tr>
+</tbody>
+</table></div>
+<h4>
+<a name="strict_variant.reference.arithmetic_category.h2"></a>
+        <span><a name="strict_variant.reference.arithmetic_category.definition"></a></span><a class="link" href="arithmetic_category.html#strict_variant.reference.arithmetic_category.definition">Definition</a>
+      </h4>
+<div class="informaltable"><table class="table">
+<colgroup>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>
+                <p>
+                  Fundmental Type
+                </p>
+              </th>
+<th>
+                <p>
+                  <code class="computeroutput"><span class="identifier">arithmetic_category</span></code>
+                </p>
+              </th>
+</tr></thead>
+<tbody>
+<tr>
+<td>
+                <p>
+                  <code class="computeroutput"><span class="special">(</span><span class="keyword">unsigned</span><span class="special">)</span> <span class="keyword">short</span></code>
+                </p>
+              </td>
+<td>
+                <p>
+                  <code class="computeroutput"><span class="identifier">integer</span></code>
+                </p>
+              </td>
+</tr>
+<tr>
+<td>
+                <p>
+                  <code class="computeroutput"><span class="special">(</span><span class="keyword">unsigned</span><span class="special">)</span> <span class="keyword">int</span></code>
+                </p>
+              </td>
+<td>
+              </td>
+</tr>
+<tr>
+<td>
+                <p>
+                  <code class="computeroutput"><span class="special">(</span><span class="keyword">unsigned</span><span class="special">)</span> <span class="keyword">long</span></code>
+                </p>
+              </td>
+<td>
+              </td>
+</tr>
+<tr>
+<td>
+                <p>
+                  <code class="computeroutput"><span class="special">(</span><span class="keyword">unsigned</span><span class="special">)</span> <span class="keyword">long</span>
+                  <span class="keyword">long</span></code>
+                </p>
+              </td>
+<td class="auto-generated">&#160;</td>
+</tr>
+<tr>
+<td>
+                <p>
+                  <code class="computeroutput"><span class="keyword">signed</span> <span class="keyword">char</span></code>
+                </p>
+              </td>
+<td>
+                <p>
+                  <code class="computeroutput"><span class="identifier">character</span></code>
+                </p>
+              </td>
+</tr>
+<tr>
+<td>
+                <p>
+                  <code class="computeroutput"><span class="keyword">char</span></code>
+                </p>
+              </td>
+<td>
+              </td>
+</tr>
+<tr>
+<td>
+                <p>
+                  <code class="computeroutput"><span class="keyword">unsigned</span> <span class="keyword">char</span></code>
+                </p>
+              </td>
+<td>
+              </td>
+</tr>
+<tr>
+<td>
+                <p>
+                  <code class="computeroutput"><span class="keyword">char16_t</span></code>
+                </p>
+              </td>
+<td>
+              </td>
+</tr>
+<tr>
+<td>
+                <p>
+                  <code class="computeroutput"><span class="keyword">char32_t</span></code>
+                </p>
+              </td>
+<td>
+              </td>
+</tr>
+<tr>
+<td>
+                <p>
+                  <code class="computeroutput"><span class="keyword">float</span></code>
+                </p>
+              </td>
+<td>
+                <p>
+                  <code class="computeroutput"><span class="identifier">floating</span></code>
+                </p>
+              </td>
+</tr>
+<tr>
+<td>
+                <p>
+                  <code class="computeroutput"><span class="keyword">double</span></code>
+                </p>
+              </td>
+<td>
+              </td>
+</tr>
+<tr>
+<td>
+                <p>
+                  <code class="computeroutput"><span class="keyword">long</span> <span class="keyword">double</span></code>
+                </p>
+              </td>
+<td>
+              </td>
+</tr>
+<tr>
+<td>
+                <p>
+                  <code class="computeroutput"><span class="keyword">bool</span></code>
+                </p>
+              </td>
+<td>
+                <p>
+                  <code class="computeroutput"><span class="identifier">boolean</span></code>
+                </p>
+              </td>
+</tr>
+<tr>
+<td>
+                <p>
+                  <code class="computeroutput"><span class="keyword">wchar_t</span></code>
+                </p>
+              </td>
+<td>
+                <p>
+                  <code class="computeroutput"><span class="identifier">wide_char</span></code>
+                </p>
+              </td>
+</tr>
+</tbody>
+</table></div>
+<div class="note"><table border="0" summary="Note">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="../../images/note.png"></td>
+<th align="left">Note</th>
+</tr>
+<tr><td align="left" valign="top">
+<p>
+          You are free to specialize this trait to support other arithmetic types,
+          such as implementation-specific extended integers.
+        </p>
+<p>
+          By default, any type for which <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">is_integral</span></code>
+          reports <code class="computeroutput"><span class="keyword">true</span></code> and which is
+          not listed above will be categorized as <code class="computeroutput"><span class="identifier">integer</span></code>.
+        </p>
+</td></tr>
+</table></div>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright &#169; 2016 Chris Beck<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="class_template_recursive_wrapper.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../reference.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="arithmetic_rank.html"><img src="../../images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>

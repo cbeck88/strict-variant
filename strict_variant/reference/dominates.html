@@ -1,12 +1,12 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
-<title>Type trait dominates</title>
+<title>Type relationship dominates</title>
 <link rel="stylesheet" href="../../boostbook.css" type="text/css">
 <meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
 <link rel="home" href="../../index.html" title="Chapter&#160;1.&#160;Strict Variant 0.0">
 <link rel="up" href="../reference.html" title="Reference">
-<link rel="prev" href="safely_constructible.html" title="Type trait safely_constructible">
+<link rel="prev" href="safely_constructible.html" title="Type relationship safely_constructible">
 <link rel="next" href="includes.html" title="Includes">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -15,7 +15,8 @@
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="strict_variant.reference.dominates"></a><a class="link" href="dominates.html" title="Type trait dominates">Type trait <code class="computeroutput"><span class="identifier">dominates</span></code></a>
+<a name="strict_variant.reference.dominates"></a><a class="link" href="dominates.html" title="Type relationship dominates">Type relationship
+      <code class="computeroutput"><span class="identifier">dominates</span></code></a>
 </h3></div></div></div>
 <p>
         The <code class="computeroutput"><span class="identifier">dominates</span></code> type trait
@@ -29,6 +30,10 @@
         which is used to eliminate a type from the overload set in the case that
         a "stronger match" is present, which overload resolution wouldn't
         normally eliminate.
+      </p>
+<p>
+        <code class="computeroutput"><span class="identifier">dominates</span></code> is used to implement
+        the "priority" for integral types described in the <a class="link" href="../intro/design.html" title="Design">design</a>.
       </p>
 <h4>
 <a name="strict_variant.reference.dominates.h0"></a>
@@ -74,8 +79,9 @@
               </td>
 <td>
                 <p>
-                  <code class="computeroutput"><span class="keyword">true</span></code> if <code class="computeroutput"><span class="identifier">A</span></code> is a strictly better match
-                  for <code class="computeroutput"><span class="identifier">C</span></code> than <code class="computeroutput"><span class="identifier">B</span></code> is for <code class="computeroutput"><span class="identifier">C</span></code>.
+                  <code class="computeroutput"><span class="keyword">true</span></code> if <code class="computeroutput"><span class="identifier">A</span></code> is a <span class="emphasis"><em>strictly better</em></span>
+                  match for <code class="computeroutput"><span class="identifier">C</span></code> than
+                  <code class="computeroutput"><span class="identifier">B</span></code> is for <code class="computeroutput"><span class="identifier">C</span></code>.
                 </p>
               </td>
 </tr>
@@ -86,60 +92,26 @@
         <span><a name="strict_variant.reference.dominates.synopsis"></a></span><a class="link" href="dominates.html#strict_variant.reference.dominates.synopsis">Synopsis</a>
       </h4>
 <p>
-        The default implementation affects only <span class="emphasis"><em>numeric</em></span> types
-        -- in this library, "numeric" means "an arithmetic type or
-        reference to arithmetic type, possibly CV-qualified."
+        The default implementation affects arithmetic types or types which <span class="emphasis"><em>decay</em></span>
+        to arithmetic, which means they have have CV and/or reference qualifiers.
       </p>
 <pre class="programlisting"><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">A</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">B</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">C</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">ENABLE</span> <span class="special">=</span> <span class="keyword">void</span><span class="special">&gt;</span>
 <span class="keyword">struct</span> <span class="identifier">dominates</span> <span class="special">:</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">false_type</span> <span class="special">{};</span>
 
 <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">A</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">B</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">C</span><span class="special">&gt;</span>
 <span class="keyword">struct</span> <span class="identifier">dominates</span><span class="special">&lt;</span><span class="identifier">A</span><span class="special">,</span> <span class="identifier">B</span><span class="special">,</span> <span class="identifier">C</span><span class="special">,</span>
-                 <span class="identifier">mpl</span><span class="special">::</span><span class="identifier">enable_if_t</span><span class="special">&lt;</span><span class="identifier">is_numeric</span><span class="special">&lt;</span><span class="identifier">A</span><span class="special">&gt;::</span><span class="identifier">value</span> <span class="special">&amp;&amp;</span> <span class="identifier">is_numeric</span><span class="special">&lt;</span><span class="identifier">B</span><span class="special">&gt;::</span><span class="identifier">value</span>
-                                  <span class="special">&amp;&amp;</span> <span class="identifier">is_numeric</span><span class="special">&lt;</span><span class="identifier">C</span><span class="special">&gt;::</span><span class="identifier">value</span> <span class="special">&amp;&amp;</span> <span class="special">!</span><span class="identifier">safely_constructible</span><span class="special">&lt;</span><span class="identifier">A</span><span class="special">,</span> <span class="identifier">B</span><span class="special">&gt;::</span><span class="identifier">value</span>
+                 <span class="identifier">mpl</span><span class="special">::</span><span class="identifier">enable_if_t</span><span class="special">&lt;</span><span class="identifier">decay_to_arithmetic</span><span class="special">&lt;</span><span class="identifier">A</span><span class="special">&gt;::</span><span class="identifier">value</span> <span class="special">&amp;&amp;</span> <span class="identifier">decay_to_arithmetic</span><span class="special">&lt;</span><span class="identifier">B</span><span class="special">&gt;::</span><span class="identifier">value</span>
+                                  <span class="special">&amp;&amp;</span> <span class="identifier">decay_to_arithmetic</span><span class="special">&lt;</span><span class="identifier">C</span><span class="special">&gt;::</span><span class="identifier">value</span>
+                                  <span class="special">&amp;&amp;</span> <span class="special">!</span><span class="identifier">safely_constructible</span><span class="special">&lt;</span><span class="identifier">A</span><span class="special">,</span> <span class="identifier">B</span><span class="special">&gt;::</span><span class="identifier">value</span>
                                   <span class="special">&amp;&amp;</span> <span class="identifier">safely_constructible</span><span class="special">&lt;</span><span class="identifier">B</span><span class="special">,</span> <span class="identifier">A</span><span class="special">&gt;::</span><span class="identifier">value</span><span class="special">&gt;&gt;</span> <span class="special">:</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">true_type</span> <span class="special">{};</span>
 </pre>
-<p>
-        It turns out that this default definition is equivalent to:
-      </p>
-<p>
-        "If all of <code class="computeroutput"><span class="identifier">T</span><span class="special">,</span>
-        <span class="identifier">U</span><span class="special">,</span> <span class="identifier">V</span></code> are <code class="computeroutput"><span class="identifier">numeric</span></code>,
-        and <code class="computeroutput"><span class="identifier">U</span></code>, <code class="computeroutput"><span class="identifier">V</span></code>
-        are the same class (<code class="computeroutput"><span class="identifier">integral</span></code>,
-        <code class="computeroutput"><span class="identifier">floating</span> <span class="identifier">point</span></code>,
-        <code class="computeroutput"><span class="identifier">character</span></code>, <code class="computeroutput"><span class="keyword">bool</span></code>, <code class="computeroutput"><span class="keyword">wchar_t</span></code>),
-        then <code class="computeroutput"><span class="identifier">U</span></code> dominates <code class="computeroutput"><span class="identifier">V</span></code> if it is less or equal rank, and is only
-        <code class="computeroutput"><span class="keyword">unsigned</span></code> if <code class="computeroutput"><span class="identifier">V</span></code>
-        is also. In other words, the conversion <code class="computeroutput"><span class="identifier">U</span>
-        <span class="special">-&gt;</span> <span class="identifier">V</span></code>
-        represents increase in the rank and / or converts signed to unsigned. Otherwise,
-        <code class="computeroutput"><span class="identifier">U</span></code> does not dominate <code class="computeroutput"><span class="identifier">V</span></code>."
-      </p>
 <h4>
 <a name="strict_variant.reference.dominates.h2"></a>
         <span><a name="strict_variant.reference.dominates.notes"></a></span><a class="link" href="dominates.html#strict_variant.reference.dominates.notes">Notes</a>
       </h4>
 <p>
         See also <code class="computeroutput"><span class="identifier">variant</span><span class="special">::</span><span class="identifier">variant</span><span class="special">(</span><span class="identifier">T</span> <span class="special">&amp;&amp;)</span></code>
-        constructor.
-      </p>
-<p>
-        Before overload resolution takes place, all of the value types of the variant
-        are considered.
-      </p>
-<div class="itemizedlist"><ul class="itemizedlist" type="disc">
-<li class="listitem">
-            Those that <code class="computeroutput"><span class="identifier">T</span></code> cannot be
-            safely converted to are eliminated.
-          </li>
-<li class="listitem">
-            Those which are dominated by one of the remaining types are then also
-            eliminated.
-          </li>
-</ul></div>
-<p>
-        Overload resolution takes place with the types remaining after that.
+        constructor documentation.
       </p>
 <div class="note"><table border="0" summary="Note">
 <tr>
@@ -152,8 +124,8 @@
           as you please in order to modify the overload resolution process further.
         </p>
 <p>
-          However, be advised that it may be best to take care that, for any fixed
-          type <code class="computeroutput"><span class="identifier">C</span></code>, the relation <code class="computeroutput"><span class="identifier">dominates</span><span class="special">&lt;</span><span class="identifier">A</span><span class="special">,</span> <span class="identifier">B</span><span class="special">,</span> <span class="identifier">C</span><span class="special">&gt;::</span><span class="identifier">value</span></code> behaves as a partial order (when
+          However, it may be best to take care that, for any fixed type <code class="computeroutput"><span class="identifier">C</span></code>, the relation <code class="computeroutput"><span class="identifier">dominates</span><span class="special">&lt;</span><span class="identifier">A</span><span class="special">,</span> <span class="identifier">B</span><span class="special">,</span>
+          <span class="identifier">C</span><span class="special">&gt;::</span><span class="identifier">value</span></code> behaves as a partial order (when
           first two parameters are varied). The reason is that if <code class="computeroutput"><span class="identifier">X</span></code>,
           <code class="computeroutput"><span class="identifier">Y</span></code>, and <code class="computeroutput"><span class="identifier">Z</span></code>
           are candidates in some conversion, and <code class="computeroutput"><span class="identifier">X</span></code>
