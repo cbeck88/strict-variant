@@ -42,8 +42,8 @@ struct classify_arithmetic<T, typename std::enable_if<std::is_integral<T>::value
 
 #define CLASSIFY(T, C)                                                                             \
   template <>                                                                                      \
-  struct classify_arithmetic<T, void> {                                                               \
-    static constexpr arithmetic_category value = arithmetic_category::C;                                       \
+  struct classify_arithmetic<T, void> {                                                            \
+    static constexpr arithmetic_category value = arithmetic_category::C;                           \
   }
 
 CLASSIFY(char, character);

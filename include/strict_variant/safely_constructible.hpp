@@ -95,8 +95,7 @@ struct safely_constructible : std::is_constructible<A, B> {};
 // If both are numeric, then decay and pass to safe_arithmetic_conversion
 template <typename A, typename B>
 struct safely_constructible<A, B, mpl::enable_if_t<is_numeric<A>::value && is_numeric<B>::value>>
-  : public safe_arithmetic_conversion<mpl::decay_t<A>,
-                             mpl::decay_t<B>> {};
+  : public safe_arithmetic_conversion<mpl::decay_t<A>, mpl::decay_t<B>> {};
 
 // If both are pointer after decay, then check if they are the same or represent T * -> const T *.
 template <typename A, typename B>
