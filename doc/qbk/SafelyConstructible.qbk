@@ -18,7 +18,7 @@ which has special behavior for fundamental types and pointer types and forbids c
   (So, `long long` cannot be converted to `long` and `long` cannot be converted to `int`,
   even if you are on a 32-bit machine and they have the same size for you, because it could be narrowing on a 64-bit machine.)
   This is determined by checking if the [link strict_variant.reference.arithmetic_rank arithmetic rank] decreases as a result of the conversion.
-* Signed can be converted to unsigned, but the reverse is not allowed (since it is implementation-defined).
+* Signed can be converted to unsigned, but the reverse is not allowed (since it is typically implementation-defined, and may trigger warnings).
 * Conversions like `char *` to `const char *` are permitted, and standard conversions like array-to-pointer are permitted, but otherwise no pointer conversions are permitted.
 
 When `T` or `U` is not in one of the above categories, `safely_constructible` falls back to `std::is_constructible`.
