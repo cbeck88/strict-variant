@@ -94,12 +94,14 @@ struct safely_constructible : std::is_constructible<A, B> {};
 
 // If both are arithmetic, then decay and pass to safe_arithmetic_conversion
 template <typename A, typename B>
-struct safely_constructible<A, B, mpl::enable_if_t<decay_to_arithmetic<A>::value && decay_to_arithmetic<B>::value>>
+struct safely_constructible<A, B, mpl::enable_if_t<decay_to_arithmetic<A>::value
+                                                   && decay_to_arithmetic<B>::value>>
   : safe_arithmetic_conversion<mpl::decay_t<A>, mpl::decay_t<B>> {};
 
 // If both are pointer after decay, then check if they are the same or represent T * -> const T *.
 template <typename A, typename B>
-struct safely_constructible<A, B, mpl::enable_if_t<decay_to_ptr<A>::value && decay_to_ptr<B>::value>> {
+struct safely_constructible<A, B,
+                            mpl::enable_if_t<decay_to_ptr<A>::value && decay_to_ptr<B>::value>> {
   using A2 = mpl::decay_t<A>;
   using B2 = mpl::decay_t<B>;
   static constexpr bool value =
@@ -110,8 +112,10 @@ struct safely_constructible<A, B, mpl::enable_if_t<decay_to_ptr<A>::value && dec
 
 // If one is arithmetic and the other is pointer, after decay, it is forbidden.
 template <typename A, typename B>
-struct safely_constructible<A, B, mpl::enable_if_t<(decay_to_arithmetic<A>::value && decay_to_ptr<B>::value)
-                                                   || (decay_to_ptr<A>::value && decay_to_arithmetic<B>::value)>> {
+struct safely_constructible<A, B, mpl::enable_if_t<(decay_to_arithmetic<A>::value
+                                                    && decay_to_ptr<B>::value)
+                                                   || (decay_to_ptr<A>::value
+                                                       && decay_to_arithmetic<B>::value)>> {
   static constexpr bool value = false;
 };
 //]
