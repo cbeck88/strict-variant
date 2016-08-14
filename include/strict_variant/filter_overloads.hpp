@@ -25,8 +25,8 @@ struct dominates : std::false_type {};
 
 template <typename A, typename B, typename C>
 struct dominates<A, B, C,
-                 mpl::enable_if_t<is_numeric<A>::value && is_numeric<B>::value
-                                  && is_numeric<C>::value && !safely_constructible<A, B>::value
+                 mpl::enable_if_t<decay_to_arithmetic<A>::value && decay_to_arithmetic<B>::value
+                                  && decay_to_arithmetic<C>::value && !safely_constructible<A, B>::value
                                   && safely_constructible<B, A>::value>> : std::true_type {};
 //]
 

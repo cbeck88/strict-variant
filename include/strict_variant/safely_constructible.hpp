@@ -82,24 +82,24 @@ struct safe_arithmetic_conversion {
 // Helper metafunction which checks if type is arithmetic after decay.
 // This is the same as, `is_arithmetic` modulo `const` and references.
 template <typename T>
-struct is_numeric : std::is_arithmetic<mpl::decay_t<T>> {};
+struct decay_to_arithmetic : std::is_arithmetic<mpl::decay_t<T>> {};
 
 // Helper metafunction which checks if type is pointer after decay,
 template <typename T>
-struct is_ptr : std::is_pointer<mpl::decay_t<T>> {};
+struct decay_to_ptr : std::is_pointer<mpl::decay_t<T>> {};
 
 // Primary template, falls back to std::is_constructible
 template <typename A, typename B, typename ENABLE = void>
 struct safely_constructible : std::is_constructible<A, B> {};
 
-// If both are numeric, then decay and pass to safe_arithmetic_conversion
+// If both are arithmetic, then decay and pass to safe_arithmetic_conversion
 template <typename A, typename B>
-struct safely_constructible<A, B, mpl::enable_if_t<is_numeric<A>::value && is_numeric<B>::value>>
-  : public safe_arithmetic_conversion<mpl::decay_t<A>, mpl::decay_t<B>> {};
+struct safely_constructible<A, B, mpl::enable_if_t<decay_to_arithmetic<A>::value && decay_to_arithmetic<B>::value>>
+  : safe_arithmetic_conversion<mpl::decay_t<A>, mpl::decay_t<B>> {};
 
 // If both are pointer after decay, then check if they are the same or represent T * -> const T *.
 template <typename A, typename B>
-struct safely_constructible<A, B, mpl::enable_if_t<is_ptr<A>::value && is_ptr<B>::value>> {
+struct safely_constructible<A, B, mpl::enable_if_t<decay_to_ptr<A>::value && decay_to_ptr<B>::value>> {
   using A2 = mpl::decay_t<A>;
   using B2 = mpl::decay_t<B>;
   static constexpr bool value =
@@ -108,10 +108,10 @@ struct safely_constructible<A, B, mpl::enable_if_t<is_ptr<A>::value && is_ptr<B>
     && std::is_constructible<A, B>::value;
 };
 
-// If one is numeric and the other is pointer, after decay, it is forbidden.
+// If one is arithmetic and the other is pointer, after decay, it is forbidden.
 template <typename A, typename B>
-struct safely_constructible<A, B, mpl::enable_if_t<(is_numeric<A>::value && is_ptr<B>::value)
-                                                   || (is_ptr<A>::value && is_numeric<B>::value)>> {
+struct safely_constructible<A, B, mpl::enable_if_t<(decay_to_arithmetic<A>::value && decay_to_ptr<B>::value)
+                                                   || (decay_to_ptr<A>::value && decay_to_arithmetic<B>::value)>> {
   static constexpr bool value = false;
 };
 //]
