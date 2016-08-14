@@ -92,6 +92,7 @@ RANK(long double, 2);
 
 /***
  * As a hack, we consider `char` always to be signed, regardless of implementation.
+ * This is why `signed char` is simply one lower rank than `char` and `unsigned char`.
  */
 template <typename T>
 struct is_unsigned : std::is_unsigned<T> {};
@@ -120,32 +121,12 @@ template <typename A, typename B>
 struct safe_by_rank {
   static constexpr bool same_class =
     (mpl::classify_arithmetic<A>::value == mpl::classify_arithmetic<B>::value);
-  static constexpr bool sa = mpl::is_unsigned<A>::value;
-  static constexpr bool sb = mpl::is_unsigned<B>::value;
-
-  static constexpr bool same_sign = (sa == sb);
-  static constexpr bool sign_to_unsign = (sa && !sb);
+  static constexpr bool unsign_to_sign = !mpl::is_unsigned<A>::value && mpl::is_unsigned<B>::value;
 
   static constexpr int ra = mpl::arithmetic_rank<A>::value;
   static constexpr int rb = mpl::arithmetic_rank<B>::value;
 
-  static constexpr bool value = same_class && (same_sign || sign_to_unsign) && (ra >= rb);
-};
-
-// Technically, the standard specifies that `char, signed char, unsigned char`
-// have the same rank.
-//
-// However, we can't do that because we only want to allow conversions that are
-// portable everywhere, and `char` has ambiguous sign, so we don't want to allow
-// char -> signed char.
-//
-// As a hack, we defined rank of signed char to be -1 above,
-// because that almost gets the correct behavior everywhere.
-// We just need this fixup:
-
-template <>
-struct safe_by_rank<unsigned char, signed char> {
-  static constexpr bool value = true;
+  static constexpr bool value = same_class && !unsign_to_sign && (ra >= rb);
 };
 
 } // end namespace mpl

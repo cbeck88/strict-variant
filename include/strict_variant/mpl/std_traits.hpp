@@ -22,9 +22,6 @@ template <typename T>
 using remove_const_t = typename std::remove_const<T>::type;
 
 template <typename T>
-using remove_cv_t = typename std::remove_cv<T>::type;
-
-template <typename T>
 using remove_pointer_t = typename std::remove_pointer<T>::type;
 
 template <typename T>

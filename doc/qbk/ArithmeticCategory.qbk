@@ -5,11 +5,19 @@ In C++, the term ['arithmetic type] refers to a fundamental type which is either
 As part of the definition of `safely_constructible`, `strict_variant` makes a finer classification of these types,
 and assigns a portable ['conversion rank] to each such type.
 
-The type trait `arithmetic category` computes the category of a given arithmetic type.
+The type trait `arithmetic_category` computes the category of a given arithmetic type.
 
 [h3 Declaration]
 
 [strict_variant_arithmetic_category]
+
+[h3 Valid Expressions]
+
+[table
+  [[expression] [value]]
+  [[`T`] [ any arithmetic type]]
+  [[`strict_variant::mpl::arithmetic_category<T>::value`][ The `arithmetic_category` of `T`. ]]]
+
 
 [h3 Definition]
 
@@ -22,8 +30,8 @@ The type trait `arithmetic category` computes the category of a given arithmetic
   [[`signed char`] [ `character`]]
   [[`char`] []]
   [[`unsigned char`] []]
-  [[`signed char`] []]
-  [[`signed char`] []]
+  [[`char16_t`] []]
+  [[`char32_t`] []]
   [[`float`][ `floating` ]]
   [[`double`][]]
   [[`long double`][]]

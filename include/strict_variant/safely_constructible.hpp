@@ -49,49 +49,36 @@ namespace strict_variant {
  *   but not int -> unsigned long. You have to do that in two steps.
  */
 
-// Helper metafunction, which checks if a given type is integral or floating
-// point after decay and removing reference.
-// Very similar (but not the same) as std::is_arithmetic
+// Helper metafunction which checks if type is arithmetic after decay.
 template <typename T>
-struct is_numeric {
-  using T2 = mpl::remove_reference_t<mpl::decay_t<T>>;
-  static constexpr bool value = std::is_integral<T2>::value || std::is_floating_point<T2>::value;
-};
+struct is_numeric : std::is_arithmetic<mpl::decay_t<T>> {};
 
-// Helper metafunction which checks if a given type is pointer, after decay,
-// removing ref and CV
+// Helper metafunction which checks if type is pointer after decay,
 template <typename T>
-struct is_ptr {
-  using T2 = mpl::remove_cv_t<mpl::remove_reference_t<mpl::decay_t<T>>>;
-  static constexpr bool value = std::is_pointer<T2>::value;
-};
+struct is_ptr : std::is_pointer<mpl::decay_t<T>> {};
 
 // Primary template, falls back to std::is_constructible
 template <typename A, typename B, typename ENABLE = void>
-struct safely_constructible {
-  static constexpr bool value = std::is_constructible<A, B>::value;
-};
+struct safely_constructible : std::is_constructible<A, B> {};
 
-// If both are numeric, then remove references and cv and pass to safe_by_rank
+// If both are numeric, then decay and pass to safe_by_rank
 template <typename A, typename B>
 struct safely_constructible<A, B, mpl::enable_if_t<is_numeric<A>::value && is_numeric<B>::value>>
-  : public mpl::safe_by_rank<mpl::remove_cv_t<mpl::remove_reference_t<A>>,
-                             mpl::remove_cv_t<mpl::remove_reference_t<B>>> {};
+  : public mpl::safe_by_rank<mpl::decay_t<A>,
+                             mpl::decay_t<B>> {};
 
-// If both are pointer, then check if they are the same modulo CV / reference,
-// after decay of B.
+// If both are pointer after decay, then check if they are the same or represent T * -> const T *.
 template <typename A, typename B>
 struct safely_constructible<A, B, mpl::enable_if_t<is_ptr<A>::value && is_ptr<B>::value>> {
-  using A2 = mpl::remove_reference_t<mpl::remove_cv_t<A>>;
-  using B2 = mpl::remove_reference_t<mpl::remove_cv_t<mpl::decay_t<B>>>;
+  using A2 = mpl::decay_t<A>;
+  using B2 = mpl::decay_t<B>;
   static constexpr bool value =
     (std::is_same<A2, B2>::value || std::is_same<mpl::remove_const_t<mpl::remove_pointer_t<A2>>,
                                                  mpl::remove_pointer_t<B2>>::value)
     && std::is_constructible<A, B>::value;
 };
 
-// If one is numeric and the other is pointer, after decay and remove reference,
-// it is forbidden.
+// If one is numeric and the other is pointer, after decay, it is forbidden.
 template <typename A, typename B>
 struct safely_constructible<A, B, mpl::enable_if_t<(is_numeric<A>::value && is_ptr<B>::value)
                                                    || (is_ptr<A>::value && is_numeric<B>::value)>> {

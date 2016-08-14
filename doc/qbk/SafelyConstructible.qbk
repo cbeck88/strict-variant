@@ -17,6 +17,7 @@ which has special behavior for fundamental types and forbids certain conversions
 * If a conversion ['could] be narrowing on some conforming implementation of C++, then it is not safe.  
   (So, `long long` cannot be converted to `long` and `long` cannot be converted to `int`,
   even if you are on a 32-bit machine and they have the same size for you, because it could be narrowing on a 64-bit machine.)
+  This is determined by checking if the [link strict_variant.reference.arithmetic_rank arithmetic rank] decreases as a result of the conversion.
 * Signed can be converted to unsigned, but the reverse is not allowed (since it is implementation-defined).
 * Conversions like `char *` to `const char *` are permitted, and standard conversions like array-to-pointer are permitted, but otherwise no pointer conversions are permitted.
 

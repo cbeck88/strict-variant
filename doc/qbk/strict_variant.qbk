@@ -34,6 +34,7 @@
 [include ClassVariant.qbk]
 [include ClassRecursiveWrapper.qbk]
 [include ArithmeticCategory.qbk]
+[include ArithmeticRank.qbk]
 [include SafelyConstructible.qbk]
 [include Dominates.qbk]
 [include Includes.qbk]

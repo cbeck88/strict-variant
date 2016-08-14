@@ -1,0 +1,57 @@
+[section:arithmetic_rank Type trait `arithmetic_rank`]
+
+In C++, the term ['arithmetic type] refers to a fundamental type which is either ['integral] or ['floating point].
+
+As part of the definition of `safely_constructible`, `strict_variant` makes a finer classification of these types,
+and assigns a portable ['conversion rank] to each such type.
+
+The type trait `arithmetic_rank` computes the rank of a given arithmetic type.
+
+[h3 Valid Expressions]
+
+[table
+  [[expression] [value]]
+  [[`T`] [ any arithmetic type]]
+  [[`strict_variant::mpl::arithmetic_rank<T>::value`][ An `int` representing the conversion rank of `T`, within its category ]]]
+
+
+[h3 Definition]
+
+Note that for `strict_variant`, comparing these numbers is only meaningful ['within an [link strict_variant.reference.arithmetic_category arithmetic category]].
+
+The purpose of these numbers is, [' if C++ permits `A` to be narrower than `B`], and `A` and `B` are in the same category, then `A` has a lower rank than `B`.
+
+[table
+ [[Fundmental Type] [arithmetic rank]]
+  [[`(unsigned) short`] [`0`]]
+  [[`(unsigned) int`] [`1`]]
+  [[`(unsigned) long`] [`2`]]
+  [[`(unsigned) long long`] [`3`]]
+  [[`signed char`] [ `0`]]
+  [[`char`] [`1`]]
+  [[`unsigned char`] [`1`]]
+  [[`char16_t`] [`2`]]
+  [[`char32_t`] [`3`]]
+  [[`float`][ `0` ]]
+  [[`double`][`1`]]
+  [[`long double`][`2`]]
+  [[`bool`][ `0`]]
+  [[`wchar_t`][`0`]]
+]
+
+[note Our treatment of `signed char` is not quite standard.
+
+      The purpose here is to try to improve portability. On some architectures / for some configurations, `char` may be either signed or unsigned.
+
+      Part of the point of `strict_variant` is that if a compilation error due to conversions manifests in one place, it should manifest in all other places.
+      So, we treat `char` as `signed` in all places, and assign `signed char` to have one lower rank than `char` and `unsigned char`.
+
+      This hack allows basically the same set of conversions as if we think of `char` as "maybe signed", so that it cannot be implicitly converted
+      to `signed char`, and `unsigned char` cannot be implicitly converted to `char`, but otherwise the normal conversions are permitted.]
+
+[note You are free to specialize this trait to support other arithmetic types, such as implementation-specific extended integers.
+
+      By default, any type for which `std::is_integral` reports `true` and which is not listed above will be categorized as `integer`
+      But if you have e.g. an 128 bit integer type which you want to support, most likely you want to define its rank to be `4` by specializing this trait.]
+
+[endsect]
