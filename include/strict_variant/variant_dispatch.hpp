@@ -168,12 +168,24 @@ template <typename Internal, size_t num_types>
 struct visitor_dispatch {
   // static constexpr unsigned int switch_point = 4;
 
+  // Helper which takes the conjunction of a typelist of `std::integral_constant<bool>`.
+  template <typename T>
+  struct conjunction;
+
+  template <typename... Types>
+  struct conjunction<mpl::TypeList<Types...>> {
+    template <typename T>
+    struct is_false_prop : std::is_same<T, std::integral_constant<bool, false>> {};
+
+    static constexpr bool value = !mpl::Find_Any<is_false_prop, Types...>::value;
+  };
+
   // Helper which figures out return type and noexcept status, for given storage and visitor
   template <typename Storage, typename Visitor>
   struct call_helper {
     using rtyper = return_typer<Internal, Storage, Visitor>;
 
-    static constexpr bool noexcept_value = mpl::conjunction<
+    static constexpr bool noexcept_value = conjunction<
       mpl::ulist_map_t<rtyper::template noexcept_prop,
                               mpl::count_t<num_types>>>::value;
 

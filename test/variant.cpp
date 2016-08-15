@@ -14,20 +14,6 @@
 
 namespace strict_variant {
 
-//////////////
-// MPL TEST //
-//////////////
-
-static_assert(mpl::conjunction<mpl::TypeList<>>::value, "");
-static_assert(mpl::conjunction<mpl::TypeList<std::integral_constant<bool, true>>>::value, "");
-static_assert(!mpl::conjunction<mpl::TypeList<std::integral_constant<bool, false>>>::value, "");
-static_assert(mpl::conjunction<mpl::TypeList<std::integral_constant<bool, true>,
-                                             std::integral_constant<bool, true>>>::value,
-              "");
-static_assert(!mpl::conjunction<mpl::TypeList<std::integral_constant<bool, false>,
-                                              std::integral_constant<bool, true>>>::value,
-              "");
-
 ////////////////////////////////
 // SAFELY_CONSTRUCTIBLE TESTS //
 ////////////////////////////////
