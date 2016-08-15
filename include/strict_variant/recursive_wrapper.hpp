@@ -45,8 +45,9 @@ class recursive_wrapper {
 public:
   ~recursive_wrapper() noexcept { this->destroy(); }
 
-  template <typename ... Args, typename Dummy = mpl::enable_if_t<std::is_constructible<T, Args...>::value>>
-  recursive_wrapper(Args && ... args)
+  template <typename... Args,
+            typename Dummy = mpl::enable_if_t<std::is_constructible<T, Args...>::value>>
+  recursive_wrapper(Args &&... args)
     : m_t(new T(std::forward<Args>(args)...)) {}
 
   recursive_wrapper(const recursive_wrapper & rhs)

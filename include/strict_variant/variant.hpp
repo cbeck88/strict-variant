@@ -705,11 +705,12 @@ struct eq_checker {
   struct second_visitor {
     const T & r;
 
-    bool operator()(const T & l) const {
-      return l == r;
-    }
+    bool operator()(const T & l) const { return l == r; }
     template <typename U>
-    bool operator()(const U &) const { return false; }
+    bool operator()(const U &) const {
+      STRICT_VARIANT_ASSERT(false, "Should be unreachable!");
+      return false;
+    }
   };
 
   template <typename Rhs>
@@ -720,7 +721,6 @@ struct eq_checker {
 private:
   const var_t & lhs_v;
 };
-
 
 template <typename First, typename... Types>
 inline bool

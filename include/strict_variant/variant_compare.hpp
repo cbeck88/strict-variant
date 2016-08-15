@@ -32,7 +32,6 @@ namespace strict_variant {
 template <typename T, template <typename> class ComparatorTemplate = std::less,
           typename WhichComparator_t = std::less<int>>
 struct variant_comparator;
-
 }
 //]
 
