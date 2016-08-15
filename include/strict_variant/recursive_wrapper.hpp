@@ -59,7 +59,7 @@ public:
     rhs.m_t = nullptr;
   }
 
-  // Not assignable, we never actually need this, and it adds substantial complexity
+  // Not assignable, we never actually need this, and it adds complexity
   // associated to lifetime of `m_t` object.
   recursive_wrapper & operator=(const recursive_wrapper &) = delete;
   recursive_wrapper & operator=(recursive_wrapper &&) = delete;
