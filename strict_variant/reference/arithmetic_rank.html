@@ -300,11 +300,8 @@
           such as implementation-specific extended integers.
         </p>
 <p>
-          By default, any type for which <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">is_integral</span></code>
-          reports <code class="computeroutput"><span class="keyword">true</span></code> and which is
-          not listed above will be categorized as <code class="computeroutput"><span class="identifier">integer</span></code>
-          But if you have e.g. an 128 bit integer type which you want to support,
-          most likely you want to define its rank to be <code class="computeroutput"><span class="number">4</span></code>
+          If you have e.g. an 128 bit integer type which you want to support, most
+          likely you want to define its rank to be <code class="computeroutput"><span class="number">4</span></code>
           by specializing this trait.
         </p>
 </td></tr>

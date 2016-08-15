@@ -19,41 +19,58 @@
       template <code class="computeroutput"><span class="identifier">recursive_wrapper</span></code></a>
 </h3></div></div></div>
 <p>
-        Recursive wrapper is very useful, but you shouldn't normally need to know
-        about it than its declaration, and you shouldn't normally create a <code class="computeroutput"><span class="identifier">recursive_wrapper</span></code> yourself, instead that
-        happens internally within a <code class="computeroutput"><span class="identifier">variant</span></code>.
+        A <code class="computeroutput"><span class="identifier">recursive_wrapper</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span></code> represents
+        a <span class="emphasis"><em>heap-allocated instance of <code class="computeroutput"><span class="identifier">T</span></code></em></span>.
       </p>
 <p>
-        We'll give the following spec for the class body:
+        Recursive wrapper is very useful, but you shouldn't normally create a <code class="computeroutput"><span class="identifier">recursive_wrapper</span></code> yourself, instead that
+        happens internally within a <code class="computeroutput"><span class="identifier">variant</span></code>.
       </p>
 <pre class="programlisting"><span class="keyword">namespace</span> <span class="identifier">strict_variant</span> <span class="special">{</span>
 
-  <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
-  <span class="keyword">class</span> <span class="identifier">recursive_wrapper</span> <span class="special">{</span>
-    <span class="identifier">T</span> <span class="special">*</span> <span class="identifier">m_t</span><span class="special">;</span>
+<span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
+<span class="keyword">class</span> <span class="identifier">recursive_wrapper</span> <span class="special">{</span>
+  <span class="identifier">T</span> <span class="special">*</span> <span class="identifier">m_t</span><span class="special">;</span>
 
-  <span class="keyword">public</span><span class="special">:</span>
-    <span class="comment">// Default-constructs `T` on the heap.</span>
-    <span class="comment">// Not available if `T` is not default constructible.</span>
-    <span class="identifier">recursive_wrapper</span><span class="special">();</span>
+  <span class="keyword">void</span> <span class="identifier">destroy</span><span class="special">()</span> <span class="special">{</span>
+    <span class="keyword">if</span> <span class="special">(</span><span class="identifier">m_t</span><span class="special">)</span> <span class="special">{</span> <span class="keyword">delete</span> <span class="identifier">m_t</span><span class="special">;</span> <span class="special">}</span>
+  <span class="special">}</span>
 
-    <span class="comment">// Post-condition: `m_t = nullptr`.</span>
-    <span class="identifier">recursive_wrapper</span><span class="special">(</span><span class="identifier">recursive_wrapper</span> <span class="special">&amp;&amp;</span> <span class="identifier">rhs</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
+<span class="keyword">public</span><span class="special">:</span>
+  <span class="special">~</span><span class="identifier">recursive_wrapper</span><span class="special">()</span> <span class="keyword">noexcept</span> <span class="special">{</span> <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">destroy</span><span class="special">();</span> <span class="special">}</span>
 
-    <span class="comment">// Copies `*m_t` and makes a new dynamic allocation</span>
-    <span class="identifier">recursive_wrapper</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">recursive_wrapper</span> <span class="special">&amp;</span> <span class="identifier">rhs</span><span class="special">);</span>
+  <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="special">...</span> <span class="identifier">Args</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Dummy</span> <span class="special">=</span> <span class="identifier">mpl</span><span class="special">::</span><span class="identifier">enable_if_t</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">is_constructible</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">,</span> <span class="identifier">Args</span><span class="special">...&gt;::</span><span class="identifier">value</span><span class="special">&gt;&gt;</span>
+  <span class="identifier">recursive_wrapper</span><span class="special">(</span><span class="identifier">Args</span> <span class="special">&amp;&amp;</span> <span class="special">...</span> <span class="identifier">args</span><span class="special">)</span>
+    <span class="special">:</span> <span class="identifier">m_t</span><span class="special">(</span><span class="keyword">new</span> <span class="identifier">T</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span><span class="identifier">Args</span><span class="special">&gt;(</span><span class="identifier">args</span><span class="special">)...))</span> <span class="special">{}</span>
 
-    <span class="identifier">recursive_wrapper</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span><span class="identifier">recursive_wrapper</span> <span class="special">&amp;&amp;</span> <span class="identifier">rhs</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
-    <span class="identifier">recursive_wrapper</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span><span class="keyword">const</span> <span class="identifier">recursive_wrapper</span> <span class="special">&amp;</span> <span class="identifier">rhs</span><span class="special">);</span>
+  <span class="identifier">recursive_wrapper</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">recursive_wrapper</span> <span class="special">&amp;</span> <span class="identifier">rhs</span><span class="special">)</span>
+    <span class="special">:</span> <span class="identifier">m_t</span><span class="special">(</span><span class="keyword">new</span> <span class="identifier">T</span><span class="special">(</span><span class="identifier">rhs</span><span class="special">.</span><span class="identifier">get</span><span class="special">()))</span> <span class="special">{}</span>
 
-    <span class="special">~</span><span class="identifier">recursive_wrapper</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
+  <span class="comment">// Pointer move</span>
+  <span class="identifier">recursive_wrapper</span><span class="special">(</span><span class="identifier">recursive_wrapper</span> <span class="special">&amp;&amp;</span> <span class="identifier">rhs</span><span class="special">)</span> <span class="keyword">noexcept</span> <span class="comment">//</span>
+    <span class="special">:</span> <span class="identifier">m_t</span><span class="special">(</span><span class="identifier">rhs</span><span class="special">.</span><span class="identifier">m_t</span><span class="special">)</span>                                     <span class="comment">//</span>
+  <span class="special">{</span>
+    <span class="identifier">rhs</span><span class="special">.</span><span class="identifier">m_t</span> <span class="special">=</span> <span class="keyword">nullptr</span><span class="special">;</span>
+  <span class="special">}</span>
 
-    <span class="identifier">T</span> <span class="special">&amp;</span> <span class="identifier">get</span><span class="special">()</span> <span class="special">&amp;</span> <span class="special">{</span> <span class="keyword">return</span> <span class="special">*</span><span class="identifier">m_t</span><span class="special">;</span> <span class="special">}</span>
-    <span class="keyword">const</span> <span class="identifier">T</span> <span class="special">&amp;</span> <span class="identifier">get</span><span class="special">()</span> <span class="keyword">const</span> <span class="special">&amp;</span> <span class="special">{</span> <span class="keyword">return</span> <span class="special">*</span><span class="identifier">m_t</span><span class="special">;</span> <span class="special">}</span>
-    <span class="identifier">T</span> <span class="special">&amp;&amp;</span> <span class="identifier">get</span><span class="special">()</span> <span class="special">&amp;&amp;</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">move</span><span class="special">(*</span><span class="identifier">m_t</span><span class="special">);</span> <span class="special">}</span>
-  <span class="special">};</span>
+  <span class="comment">// Not assignable, we never actually need this, and it adds substantial complexity</span>
+  <span class="comment">// associated to lifetime of `m_t` object.</span>
+  <span class="identifier">recursive_wrapper</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span><span class="keyword">const</span> <span class="identifier">recursive_wrapper</span> <span class="special">&amp;)</span> <span class="special">=</span> <span class="keyword">delete</span><span class="special">;</span>
+  <span class="identifier">recursive_wrapper</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span><span class="identifier">recursive_wrapper</span> <span class="special">&amp;&amp;)</span> <span class="special">=</span> <span class="keyword">delete</span><span class="special">;</span>
 
-<span class="special">}</span> <span class="comment">// end namespace strict_variant</span>
+  <span class="identifier">T</span> <span class="special">&amp;</span> <span class="identifier">get</span><span class="special">()</span> <span class="special">&amp;</span> <span class="special">{</span>
+    <span class="identifier">STRICT_VARIANT_ASSERT</span><span class="special">(</span><span class="identifier">m_t</span><span class="special">,</span> <span class="string">"Bad access!"</span><span class="special">);</span>
+    <span class="keyword">return</span> <span class="special">*</span><span class="identifier">m_t</span><span class="special">;</span>
+  <span class="special">}</span>
+  <span class="keyword">const</span> <span class="identifier">T</span> <span class="special">&amp;</span> <span class="identifier">get</span><span class="special">()</span> <span class="keyword">const</span> <span class="special">&amp;</span> <span class="special">{</span>
+    <span class="identifier">STRICT_VARIANT_ASSERT</span><span class="special">(</span><span class="identifier">m_t</span><span class="special">,</span> <span class="string">"Bad access!"</span><span class="special">);</span>
+    <span class="keyword">return</span> <span class="special">*</span><span class="identifier">m_t</span><span class="special">;</span>
+  <span class="special">}</span>
+  <span class="identifier">T</span> <span class="special">&amp;&amp;</span> <span class="identifier">get</span><span class="special">()</span> <span class="special">&amp;&amp;</span> <span class="special">{</span>
+    <span class="identifier">STRICT_VARIANT_ASSERT</span><span class="special">(</span><span class="identifier">m_t</span><span class="special">,</span> <span class="string">"Bad access!"</span><span class="special">);</span>
+    <span class="keyword">return</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">move</span><span class="special">(*</span><span class="identifier">m_t</span><span class="special">);</span>
+  <span class="special">}</span>
+<span class="special">};</span>
 </pre>
 <div class="caution"><table border="0" summary="Caution">
 <tr>
@@ -67,9 +84,11 @@
           <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">unique_ptr</span></code>.
         </p>
 <p>
+          This is different from <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">recursive_wrapper</span></code>.
+        </p>
+<p>
           See <a class="link" href="../remarks/implementation_notes.html" title="Implementation Notes">Implementation
-          Notes</a> for a discussion of how <code class="computeroutput"><span class="identifier">variant</span></code>
-          handles this.
+          Notes</a> for a discussion of why it is this way and how <code class="computeroutput"><span class="identifier">variant</span></code> handles this.
         </p>
 </td></tr>
 </table></div>
