@@ -28,7 +28,7 @@ namespace strict_variant {
 template <typename T>
 struct decay_to_arithmetic : std::is_arithmetic<mpl::decay_t<T>> {};
 
-// Helper metafunction which checks if type is pointer after decay,
+// Helper metafunction which checks if type is pointer after decay
 template <typename T>
 struct decay_to_ptr : std::is_pointer<mpl::decay_t<T>> {};
 

@@ -106,4 +106,13 @@ However,
 I haven't been able to convince myself that adding this is actually a good idea,
 but I might be open to it in the future.
 
+[h4 Support references using `std::reference_wrapper`?]
+
+The `std::variant` does this, but it doesn't seem all that useful, and would introduce
+more complex rules for safety.
+
+[h4 Support arrays implicitly using `std::array`?]
+
+It seems simpler to just explicitly forbid arrays, but I didn't do this yet either.
+
 [endsect]

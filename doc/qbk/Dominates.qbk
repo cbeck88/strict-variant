@@ -16,7 +16,7 @@ the case that a "stronger match" is present, which overload resolution wouldn't 
 
 [h3 Synopsis]
 
-The default implementation affects arithmetic types or types which ['decay] to arithmetic, which means they have have CV and/or reference qualifiers.
+The default implementation will only returns `true` in scenarios in which `A, B, C` are arithmetic types or types which ['decay] to arithmetic, which means they are arithmetic types with CV qualifiers and/or references.
 
 [strict_variant_dominates_trait]
 
