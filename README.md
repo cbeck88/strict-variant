@@ -73,11 +73,6 @@ scripting language will permit a variety of primitive values, so when binding to
 - When the variant is constructed from a value, each type is checked to see if a *safe* conversion to that type is possible.
   If not, then it is eliminated from overload resolution.
 
-- To prevent ambiguity of assignments with e.g. integral types, any integral types will be added in stages increasing order
-  of rank -- when a safe conversion becomes available, overload resolution is performed then without considering any larger
-  matches. For example, if you assign an `int` to a variant containing `long` and `long long`, it will select `long` rather
-  than reporting an ambiguous overload. This is true more generally for character types and floating point types.
-
 - What conversions are "safe"?  
   I wrote a type trait that implements a strict notion of safety which was appropriate for the project in which
   I developed this. (See [1](include/strict_variant/conversion_rank.hpp), [2](include/strict_variant/safely_constructible.hpp)).
@@ -86,7 +81,7 @@ scripting language will permit a variety of primitive values, so when binding to
   - If an integral or floating point conversion *could* be narrowing on some conforming implementation of C++, then it is not safe.  
   (So, `long` cannot be converted to `int`
   even if you are on a 32-bit machine and they have the same size for you, because it could be narrowing on a 64-bit machine.)
-  - Signed can be promoted to unsigned, but the reverse is not allowed (since it is implementation-defined).
+  - Signed can be promoted to unsigned, but the reverse is not allowed (since it is typically implementation-defined).
   - Conversions like `char *` to `const char *` are permitted, and standard conversions like array-to-pointer are permitted, but otherwise no pointer conversions are permitted.
 
 - You can force the variant to a particular type using the `emplace` template function. Rarely necessary in my experience but sometimes useful, and saves a `move`.
