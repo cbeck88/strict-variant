@@ -499,13 +499,13 @@ UNIT_TEST(equality) {
 
   Var_t a{5};
 
-  TEST_EQ(a, 5);
+  TEST_EQ(a, Var_t{5});
   a.emplace<float>(5);
-  TEST_EQ(a, 5.0f);
-  TEST_NE(a, 5);
-  TEST_NE(a, "asdf");
+  TEST_EQ(a, Var_t{5.0f});
+  TEST_NE(a, Var_t{5});
+  TEST_NE(a, Var_t{"asdf"});
   a = "asdf";
-  TEST_EQ(a, "asdf");
+  TEST_EQ(a, Var_t{"asdf"});
 
   typedef variant<bool, int, float, std::string> Var_t2;
   Var_t2 b{true};
@@ -984,6 +984,29 @@ UNIT_TEST(copy_assign_recursive_wrapper) {
 
   v.emplace<D>();
   u = static_cast<const var_t &>(v);
+}
+
+UNIT_TEST(variant_operator_eq) {
+  using var_t = variant<float, std::string>;
+  var_t u{5.0f};
+  TEST_EQ(u, var_t{5.0f});
+  TEST_EQ(var_t{5.0f}, u);
+  TEST_NE(u, var_t{6.0f});
+  TEST_NE(var_t{6.0f}, u);
+  TEST_NE(u, var_t{"asdf"});
+  TEST_NE(var_t{"asdf"}, u);
+  TEST_NE(u, var_t{"jkl"});
+  TEST_NE(var_t{"kjl"}, u);
+
+  u = "asdf";
+  TEST_NE(u, var_t{5.0f});
+  TEST_NE(var_t{5.0f}, u);
+  TEST_NE(u, var_t{6.0f});
+  TEST_NE(var_t{6.0f}, u);
+  TEST_EQ(u, var_t{"asdf"});
+  TEST_EQ(var_t{"asdf"}, u);
+  TEST_NE(u, var_t{"jkl"});
+  TEST_NE(var_t{"kjl"}, u);
 }
 
 } // end namespace strict_variant

@@ -155,8 +155,6 @@ private:
   struct move_assigner;
   struct destroyer;
 
-  struct eq_checker;
-
   // initializer. This is the overloaded function object used in T && ctor.
   // Here T should be the forwarding reference
 
@@ -286,10 +284,6 @@ public:
    */
 
   int which() const noexcept { return m_which; }
-
-  // operator ==
-  bool operator==(const variant & rhs) const;
-  bool operator!=(const variant & rhs) const { return !(*this == rhs); }
 
   // get
   template <typename T>
@@ -570,35 +564,6 @@ private:
   int m_rhs_which;
 };
 
-// equality check
-template <typename First, typename... Types>
-struct variant<First, Types...>::eq_checker {
-  typedef bool result_type;
-
-  eq_checker(const variant & self, int rhs_which)
-    : m_self(self)
-    , m_rhs_which(rhs_which) {}
-
-  template <typename Rhs>
-  bool operator()(const Rhs & rhs) const {
-
-    constexpr size_t index = find_which<Rhs>::value;
-
-    if (m_self.which() == m_rhs_which) {
-      // the types are the same, so use operator eq
-      STRICT_VARIANT_ASSERT(m_rhs_which == index, "Bad access!");
-      return m_self.m_storage.template get_value<index>(detail::false_{})
-             == detail::pierce_recursive_wrapper(rhs);
-    } else {
-      return false;
-    }
-  }
-
-private:
-  const variant & m_self;
-  int m_rhs_which;
-};
-
 // destroyer
 template <typename First, typename... Types>
 struct variant<First, Types...>::destroyer {
@@ -720,12 +685,55 @@ variant<First, Types...>::variant(emplace_tag<T>, Args &&... args) noexcept(
   this->initialize<idx>(std::forward<Args>(args)...);
 }
 
-// Operator ==
+// Operator ==, !=
+
+// equality check
+// This is essentially a multivisitor, but we do the boiler-plate manually to
+// avoid including extra stuff.
 template <typename First, typename... Types>
-bool
-variant<First, Types...>::operator==(const variant & rhs) const {
-  eq_checker eq(*this, rhs.which());
+struct eq_checker {
+  typedef bool result_type;
+
+  using var_t = variant<First, Types...>;
+
+  eq_checker(const var_t & lhs_variant)
+    : lhs_v(lhs_variant) {}
+
+  // After we've visited the first value, store it in a function object.
+  // second_visitor<T> is applied to the variant we are passed in ctor.
+  template <typename T>
+  struct second_visitor {
+    const T & r;
+
+    bool operator()(const T & l) const {
+      return l == r;
+    }
+    template <typename U>
+    bool operator()(const U &) const { return false; }
+  };
+
+  template <typename Rhs>
+  bool operator()(const Rhs & rhs) const {
+    return apply_visitor(second_visitor<Rhs>{rhs}, lhs_v);
+  }
+
+private:
+  const var_t & lhs_v;
+};
+
+
+template <typename First, typename... Types>
+inline bool
+operator==(const variant<First, Types...> & lhs, const variant<First, Types...> & rhs) {
+  if (lhs.which() != rhs.which()) { return false; }
+  eq_checker<First, Types...> eq{lhs};
   return apply_visitor(eq, rhs);
+}
+
+template <typename First, typename... Types>
+inline bool
+operator!=(const variant<First, Types...> & lhs, const variant<First, Types...> & rhs) {
+  return !(lhs == rhs);
 }
 
 } // end namespace strict_variant
