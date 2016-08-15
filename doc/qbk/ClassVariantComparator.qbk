@@ -1,0 +1,30 @@
+[section:comparator Class template `variant_comparator`]
+
+A comparator object for a `variant` type which is appropriate to use with
+`std::set` or `std::map`.
+
+[h3 Valid Expressions]
+
+[table
+  [[expression] [value]]
+  [[`Types...`] [ any types]]
+  [[`variant_comparator<variant<Types...>>`][ A less-than comparator object for `variant<Types...>`. ]]
+  [[`variant_comparator<variant<Types...>>{}(const variant<Types...>& a, const variant<Types...>& b)`][ True if `a.which() < b.which()`, or `a.which() == b.which()` and `val_a < val_b` where `val_a` represents the value contained by `a`, and similarly for `b` . ]]]
+
+[h3 Definition]
+
+In header `<strict_variant/variant_compare.hpp>`.
+
+[strict_variant_variant_comparator]
+
+[h3 Notes]
+
+* The first template parameter must be a `variant` type.
+* The second template parameter should be a template-template parameter such as `std::less`, which is the default. It must be specializable for each value type of the `variant`, and should produce a valid comparator in each case.
+* The third template parameter should be a comparator for the `int` type, such as `std::less<int>`, which is the default. This is used to compare the `which` values.
+
+[h3 Example]
+
+[strict_variant_std_set_example]
+
+[endsect]

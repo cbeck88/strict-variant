@@ -11,32 +11,32 @@
 
 /***
  * This variant comparator allows comparing variants which are over
- * the same set of types, assuming each type involved is ordered
+ * the same set of types, assuming each type involved is less-than comparable
  * already.
  * The idea is that first we take "which" of both variants, and if
- * one is less than the other, then that is less overall. Otherwise,
- * get them both as the same type and use `<` comparator.
+ * one is less than the other, then that variant is less overall. Otherwise,
+ * get them both as the same type and compare those.
  *
- * This effectively creates a total ordering in which the orderings of
- * each type individually are concatenated.
+ * This creates a total ordering on the variant values in which the orderings of
+ * each value type sit side by side.
  *
- * An alternative construction might allow these ranges to intermixed.
- *
- * This template splits the ordering problem into smaller parts --
- * to compare two variants, we only need to know how to compare elements
- * of each individual type, and how to compare ints. Both parts of this
- * problem use `std::less` by default but this may be modified using
- * template template parameters.
- *
- * An alternate name for this comparator might be "partition comparator",
- * since it exploits the natural partition of possible variant values.
+ * The template requires a template template parameter, ComparatorTemplate,
+ * which must have an implementation for each value type.
+ * And it requires an `int` comparator to be used for the `which` values.
+ * By default these are `std::less` and `std::less<int>`.
  */
 
+//[ strict_variant_variant_comparator
 namespace strict_variant {
 
 template <typename T, template <typename> class ComparatorTemplate = std::less,
           typename WhichComparator_t = std::less<int>>
 struct variant_comparator;
+
+}
+//]
+
+namespace strict_variant {
 
 template <typename... types, template <typename> class ComparatorTemplate,
           typename WhichComparator_t>
@@ -56,7 +56,7 @@ struct variant_comparator<variant<types...>, ComparatorTemplate, WhichComparator
     template <typename T>
     bool operator()(const T & t) const {
       if (const T * o = strict_variant::get<T>(&other)) {
-        ComparatorTemplate<T> c; // make comparator
+        ComparatorTemplate<T> c;
         return c(t, *o);
       } else {
         static_assert(std::is_same<int, decltype(first.which())>::value,

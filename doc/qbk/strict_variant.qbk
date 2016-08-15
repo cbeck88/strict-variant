@@ -13,6 +13,7 @@
     ]
 ]
 
+[import ../../test/compare.cpp]
 [import ../../test/variant.cpp]
 [import ../../test/tutorial_basic.cpp]
 [import ../../test/tutorial_advanced.cpp]
@@ -22,6 +23,7 @@
 [import ../../include/strict_variant/safely_constructible.hpp]
 [import ../../include/strict_variant/safe_arithmetic_conversion.hpp]
 [import ../../include/strict_variant/safe_pointer_conversion.hpp]
+[import ../../include/strict_variant/variant_compare.hpp]
 
 [section:intro Introduction]
 [include Motivation.qbk]
@@ -35,6 +37,7 @@
 
 [section:reference Reference]
 [include ClassVariant.qbk]
+[include ClassVariantComparator.qbk]
 [include ClassRecursiveWrapper.qbk]
 [include ArithmeticCategory.qbk]
 [include ArithmeticRank.qbk]

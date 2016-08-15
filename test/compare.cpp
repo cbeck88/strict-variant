@@ -15,8 +15,12 @@
 
 // Test that variant_comparator works
 
-using var_t = strict_variant::variant<std::string, int>;
-using set_t = std::set<var_t, strict_variant::variant_comparator<var_t>>;
+using namespace strict_variant;
+
+//[ strict_variant_std_set_example
+using var_t = variant<std::string, int>;
+using set_t = std::set<var_t, variant_comparator<var_t>>;
+//]
 
 UNIT_TEST(std_set) {
   set_t s;
