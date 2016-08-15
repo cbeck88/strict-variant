@@ -16,7 +16,7 @@ namespace strict_variant {
 /***
  * Metafunction `safely_constructible`:
  *   A metafunction yielding a bool which detects is A is constructible from B without using
- *   conversions that we consider "unsafe". 
+ *   conversions that we consider "unsafe".
  *
  *   The main purpose of this trait is to support `strict_variant::variant` in deciding what
  *   conversions to allow, and how to deduce what internal type to assign to any given type.

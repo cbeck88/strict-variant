@@ -29,7 +29,6 @@ using decay_t = typename std::decay<T>::type;
 template <bool b, typename U = void>
 using enable_if_t = typename std::enable_if<b, U>::type;
 
-
 // Modified version of std::common_type
 
 // Support: Need a std::decay which allows l-value references to pass through

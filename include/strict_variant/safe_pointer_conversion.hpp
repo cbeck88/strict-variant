@@ -23,10 +23,9 @@ template <typename A, typename B>
 struct safe_pointer_conversion;
 
 template <typename A, typename B>
-struct safe_pointer_conversion<A*, B*> {
-  static constexpr bool value =
-    (std::is_same<A, B>::value || std::is_same<A, const B>::value)
-    && std::is_constructible<A*, B*>::value;
+struct safe_pointer_conversion<A *, B *> {
+  static constexpr bool value = (std::is_same<A, B>::value || std::is_same<A, const B>::value)
+                                && std::is_constructible<A *, B *>::value;
 };
 //]
 

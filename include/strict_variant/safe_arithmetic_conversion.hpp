@@ -41,12 +41,14 @@ struct safe_arithmetic_conversion {
 
 template <typename A>
 struct safe_arithmetic_conversion<A, char> {
-  static constexpr bool value = safe_arithmetic_conversion<A, signed char>::value && safe_arithmetic_conversion<A, unsigned char>::value;
+  static constexpr bool value = safe_arithmetic_conversion<A, signed char>::value
+                                && safe_arithmetic_conversion<A, unsigned char>::value;
 };
 
 template <typename B>
 struct safe_arithmetic_conversion<char, B> {
-  static constexpr bool value = safe_arithmetic_conversion<signed char, B>::value && safe_arithmetic_conversion<unsigned char, B>::value;
+  static constexpr bool value = safe_arithmetic_conversion<signed char, B>::value
+                                && safe_arithmetic_conversion<unsigned char, B>::value;
 };
 
 template <>
