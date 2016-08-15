@@ -6,7 +6,7 @@
 #pragma once
 
 #include <strict_variant/conversion_rank.hpp>
-#include <strict_variant/mpl/find_with.hpp>
+#include <strict_variant/mpl/find_any_in_list.hpp>
 #include <strict_variant/mpl/typelist.hpp>
 #include <strict_variant/mpl/ulist.hpp>
 #include <strict_variant/recursive_wrapper.hpp>
@@ -30,17 +30,6 @@ struct dominates<A, B, C,
                                   && !safely_constructible<A, B>::value
                                   && safely_constructible<B, A>::value>> : std::true_type {};
 //]
-
-// A version of find_any for a typelist rather than a parameter pack
-namespace mpl {
-
-template <template <class> class P, typename TL>
-struct Find_Any_In_List;
-
-template <template <class> class P, typename... Ts>
-struct Find_Any_In_List<P, mpl::TypeList<Ts...>> : Find_Any<P, Ts...> {};
-
-} // end namespace mpl
 
 // filter_overloads implements filtering rules for in variant(T&&) ctor
 template <typename T, typename TL>
