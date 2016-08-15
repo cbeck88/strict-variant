@@ -174,8 +174,7 @@ static_assert(
 /////////////////////////
 
 // Check the proper_subvariant trait, which is used to enable "generalizing"
-// ctor
-// without interfering with special member functions.
+// ctor without interfering with special member functions.
 static_assert(
   detail::proper_subvariant<variant<int, double>, variant<int, double, std::string>>::value,
   "failed a unit test");
@@ -1007,6 +1006,20 @@ UNIT_TEST(variant_operator_eq) {
   TEST_EQ(var_t{"asdf"}, u);
   TEST_NE(u, var_t{"jkl"});
   TEST_NE(var_t{"kjl"}, u);
+}
+
+UNIT_TEST(variant_moving_with_recursive_wrapper) {
+  using var_t = variant<recursive_wrapper<int>, recursive_wrapper<std::string>>;
+  var_t x{5};
+  var_t y = "foo";
+  x = std::move(y);
+  TEST_EQ(x.which(), 1);
+  TEST_EQ(y.which(), 1);
+  TEST_TRUE(get<std::string>(&x));
+  TEST_TRUE(get<std::string>(&y));
+  TEST_NE(get<std::string>(&x), get<std::string>(&y));
+  TEST_NE(*get<std::string>(&x), *get<std::string>(&y));
+  TEST_EQ(*get<std::string>(&x), "foo");
 }
 
 } // end namespace strict_variant
