@@ -72,7 +72,7 @@ struct return_typer {
                                            std::forward<Visitor>(std::declval<Visitor>()))
 
   template <unsigned index>
-  struct helper {
+  struct at_index {
     using type = decltype(RESULT_EXPR);
   };
 
@@ -184,13 +184,14 @@ struct visitor_dispatch {
   template <typename Storage, typename Visitor>
   struct call_helper {
     using rtyper = return_typer<Internal, Storage, Visitor>;
+    using indices = mpl::count_t<num_types>;
 
     static constexpr bool noexcept_value =
-      conjunction<mpl::ulist_map_t<rtyper::template noexcept_prop, mpl::count_t<num_types>>>::value;
+      conjunction<mpl::ulist_map_t<rtyper::template noexcept_prop, indices>>::value;
 
-    using return_type = typename mpl::typelist_fwd<mpl::common_return_type_t,
-                                                   mpl::ulist_map_t<rtyper::template helper,
-                                                                    mpl::count_t<num_types>>>::type;
+    using return_type =
+      typename mpl::typelist_fwd<mpl::common_return_type_t,
+                                 mpl::ulist_map_t<rtyper::template at_index, indices>>::type;
   };
 
   // Invoke the actual dispatcher
