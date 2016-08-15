@@ -192,13 +192,9 @@ private:
   struct initializer;
 
   template <typename T, unsigned... us>
-  struct initializer<T, mpl::ulist<us...>> : initializer_base<T, us>... {};
-
-  /*
-  template <typename T>
-  struct initializer<T, mpl::ulist<>> {
-    static_assert(false, "All possible overloads were eliminated!");
-  };*/
+  struct initializer<T, mpl::ulist<us...>> : initializer_base<T, us>... {
+    static_assert(sizeof...(us) > 0, "All value types were inelligible!");
+  };
 
 public:
   template <typename ENABLE = void>

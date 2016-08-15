@@ -210,16 +210,17 @@ provide rollback-semantics if an exception is thrown while changing the type of 
    When `T` does not meet these criteria, overload resolution occurs with all value types.
 
    This feature acts to prevent:
-   * Conversions which could be ['narrowing] on some conforming implementation of C++.
-   * Implicit conversions to / from `bool`, pointers, and others.
-   * Certain pointer conversions.
-   * Certain kinds of overload ambiguity when there are many integral types in the variant.
+   [itemized_list
+     [Conversions which could be ['narrowing] on some conforming implementation of C++.]
+     [Implicit conversions to / from `bool`, pointers, and others.]
+     [Certain pointer conversions.]
+     [Certain kinds of overload ambiguity when there are many integral types in the variant.]]
 
    Here are some concrete annotated examples:
 
    [strict_variant_forwarding_reference_ctor_examples]
 
-   See relevant type traits for more detail.
+   See relevant type traits for more detail: [link strict_variant.reference.safely_constructible `safely_constructible`] and [link strict_variant.reference.dominates `dominates`]
   ]]
 
 [[`variant(emplace_tag<T>, Args && ... args)`]
