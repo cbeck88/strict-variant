@@ -38,16 +38,6 @@ template <typename T>
 class recursive_wrapper {
   T * m_t;
 
-  // TODO: Handle the case that T is not assignable?
-  template <typename U>
-  void assign(U && u) {
-    if (m_t) {
-      *m_t = std::forward<U>(u);
-    } else {
-      m_t = new T(std::forward<U>(u));
-    }
-  }
-
   void destroy() {
     if (m_t) { delete m_t; }
   }
@@ -55,46 +45,24 @@ class recursive_wrapper {
 public:
   ~recursive_wrapper() noexcept { this->destroy(); }
 
-  template <typename Dummy = void>
-  recursive_wrapper()
-    : m_t(new T()) {}
-
-  template <typename U, typename Dummy = mpl::enable_if_t<std::is_constructible<T, U>::value>>
-  recursive_wrapper(U && u)
-    : m_t(new T(std::forward<U>(u))) {}
+  template <typename ... Args, typename Dummy = mpl::enable_if_t<std::is_constructible<T, Args...>::value>>
+  recursive_wrapper(Args && ... args)
+    : m_t(new T(std::forward<Args>(args)...)) {}
 
   recursive_wrapper(const recursive_wrapper & rhs)
     : m_t(new T(rhs.get())) {}
 
+  // Pointer move
   recursive_wrapper(recursive_wrapper && rhs) noexcept //
     : m_t(rhs.m_t)                                     //
   {
     rhs.m_t = nullptr;
   }
 
-  recursive_wrapper & operator=(const recursive_wrapper & rhs) {
-    if (this != &rhs) { this->assign(rhs.get()); }
-    return *this;
-  }
-
-  recursive_wrapper & operator=(recursive_wrapper && rhs) noexcept {
-    if (this != &rhs) {
-      this->destroy();
-      m_t = rhs.m_t;
-      rhs.m_t = nullptr;
-    }
-    return *this;
-  }
-
-  recursive_wrapper & operator=(const T & t) {
-    this->assign(t);
-    return *this;
-  }
-
-  recursive_wrapper & operator=(T && t) {
-    this->assign(std::move(t));
-    return *this;
-  }
+  // Not assignable, we never actually need this, and it adds substantial complexity
+  // associated to lifetime of `m_t` object.
+  recursive_wrapper & operator=(const recursive_wrapper &) = delete;
+  recursive_wrapper & operator=(recursive_wrapper &&) = delete;
 
   T & get() & {
     STRICT_VARIANT_ASSERT(m_t, "Bad access!");

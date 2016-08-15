@@ -958,6 +958,34 @@ UNIT_TEST(forwarding_reference_ctor_examples) {
   // clang-format on
 }
 
+// Test combining emplace ctor with a recursive_wrapper
+UNIT_TEST(emplace_recursive_wrapper) {
+  struct A { int x; };
+  struct B { int y; };
+  struct C { int z; };
+  struct D { explicit D(A, B, C) noexcept {}
+             D(const D &) = delete;
+           };
+
+  variant<float, recursive_wrapper<D>> v;
+
+  v.emplace<D>(A{}, B{}, C{});
+}
+
+// Test combining emplace ctor with a recursive_wrapper
+UNIT_TEST(copy_assign_recursive_wrapper) {
+  struct D { D() noexcept {}
+             D(const D &) noexcept {};
+             // D & operator =(const D &) = delete;
+           };
+
+  using var_t = variant<float, recursive_wrapper<D>>;
+  var_t v, u;
+
+  v.emplace<D>();
+  u = static_cast<const var_t &>(v);
+}
+
 } // end namespace strict_variant
 
 int
