@@ -19,8 +19,8 @@ namespace mpl {
 
 // Support: Need a std::decay which allows l-value references to pass through
 template <class T>
-using mini_decay_t =
-  typename std::conditional<std::is_lvalue_reference<T>::value, T, typename std::decay<T>::type>::type;
+using mini_decay_t = typename std::conditional<std::is_lvalue_reference<T>::value, T,
+                                               typename std::decay<T>::type>::type;
 
 // Our version of common_type uses mini_decay instead of decay
 template <typename T, typename... Ts>
@@ -53,7 +53,8 @@ using std::swap;
 
 template <typename T>
 struct is_nothrow_swappable {
-  static constexpr bool value = noexcept(swap(*static_cast<T*>(nullptr), *static_cast<T*>(nullptr)));
+  static constexpr bool value =
+    noexcept(swap(*static_cast<T *>(nullptr), *static_cast<T *>(nullptr)));
 };
 
 } // end namespace adl_swap_ns

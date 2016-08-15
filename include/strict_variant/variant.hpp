@@ -731,9 +731,7 @@ struct variant<First, Types...>::swapper {
     : lhs_(lhs_var)
     , rhs_(rhs_var) {}
 
-  void do_swap() const noexcept {
-    lhs_.apply_visitor_internal(*this);
-  }
+  void do_swap() const noexcept { lhs_.apply_visitor_internal(*this); }
 
   // First visit is *this, to lhs_var
   template <typename T>
@@ -751,12 +749,11 @@ struct variant<First, Types...>::swapper {
     explicit second_visitor(var_t & first_var, var_t & second_var, T & first_visit)
       : first_var_(first_var)
       , second_var_(second_var)
-      , first_visit_(first_visit)
-    {}
+      , first_visit_(first_visit) {}
 
     // If both give us a T, and T is noexcept swappable, then do that
-    mpl::enable_if_t<mpl::is_nothrow_swappable<T>::value>
-    operator()(T & second_visit) const noexcept {
+    mpl::enable_if_t<mpl::is_nothrow_swappable<T>::value> operator()(T & second_visit) const
+      noexcept {
       using std::swap;
       swap(first_visit_, second_visit);
     }
@@ -784,7 +781,8 @@ private:
 };
 
 template <typename First, typename... Types>
-void variant<First, Types...>::swap(variant & other) noexcept {
+void
+variant<First, Types...>::swap(variant & other) noexcept {
   swapper s{*this, other};
   s.do_swap();
 }
