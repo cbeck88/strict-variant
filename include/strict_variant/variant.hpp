@@ -152,8 +152,7 @@ private:
   struct copy_constructor;
   struct move_constructor;
 
-  struct copy_assigner;
-  struct move_assigner;
+  struct assigner;
   struct destroyer;
 
   struct swapper;
@@ -213,13 +212,8 @@ public:
   /// types, using overload resolution. See documentation.
   template <typename T,
             typename =
-              mpl::enable_if_t<!is_variant<mpl::remove_const_t<mpl::remove_reference_t<T>>>::value>,
-            typename = void /*decltype(
-              (*static_cast<initializer<T> *>(nullptr))(*static_cast<variant *>(nullptr),
-                                                        std::forward<T>(std::declval<T>())),
-              void())*/>
-  variant(T && t) /*noexcept(noexcept((*static_cast<initializer<T> *>(nullptr)) (
-    *static_cast<variant *>(nullptr), std::forward<T>(std::declval<T>())))) */;
+              mpl::enable_if_t<!is_variant<mpl::remove_const_t<mpl::remove_reference_t<T>>>::value>>
+  variant(T && t);
 
   /// "Generalizing Ctor"
   /// Allow constructing from a variant over a subset of our types
@@ -427,7 +421,7 @@ template <typename... Ts>
 using easy_variant = variant<wrap_if_throwing_move_t<Ts>...>;
 
 /***
- * Implementation details of internal visitors
+ * Implementation details of private visitors
  */
 template <typename First, typename... Types>
 struct variant<First, Types...>::copy_constructor {
@@ -463,105 +457,52 @@ private:
   variant & m_self;
 };
 
-#define STRICT_VARIANT_ASSERT_NOTHROW_MOVE_CTORS                                                   \
-  static_assert(                                                                                   \
-    detail::variant_noexcept_helper<First, Types...>::assignable,                                  \
-    "All types in this variant must be nothrow move constructible or placed in a       \
-                recursive_wrapper, or the variant cannot be assigned!");                           \
-  static_assert(true, "")
-
-// copy assigner
+// assigner
 template <typename First, typename... Types>
-struct variant<First, Types...>::copy_assigner {
-  typedef void result_type;
+struct variant<First, Types...>::assigner {
 
-  STRICT_VARIANT_ASSERT_NOTHROW_MOVE_CTORS;
+  static_assert(detail::variant_noexcept_helper<First, Types...>::assignable,
+                "All types in this variant must be nothrow move constructible or placed in a "
+                "recursive_wrapper, or the variant cannot be assigned!");
 
-  explicit copy_assigner(variant & self, int rhs_which)
+  explicit assigner(variant & self, int rhs_which)
     : m_self(self)
     , m_rhs_which(rhs_which) {}
 
   template <typename Rhs>
-  void operator()(const Rhs & rhs) const {
+  void operator()(Rhs && rhs) const {
 
     static_assert(noexcept(m_self.destroy()), "Noexcept assumption failed!");
 
-    constexpr size_t index = find_which<Rhs>::value;
+    constexpr size_t index = find_which<mpl::remove_reference_t<Rhs>>::value;
+    constexpr bool assume_nothrow_init =
+      std::is_lvalue_reference<Rhs>::value
+        ? detail::variant_noexcept_helper<First, Types...>::assume_copy_nothrow
+        : detail::variant_noexcept_helper<First, Types...>::assume_move_nothrow;
 
     // This is a recursive_wrapper if that is what storage is using internally
     using temp_t = typename storage_t::template value_t<index>;
 
+    // Three cases:
+    // 1) Already had an RHS type in the variant. Use assignment directly. Must pierce
+    // recursive_wrapper.
+    // 2) Must change type, but initializing the new value is noexcept. Can destroy and do it
+    // directly.
+    // 3) Must change type, and initializing the new value may throw. Do it on the stack, and then
+    // move into storage.
+
     if (m_self.which() == m_rhs_which) {
-      // the types are the same, so just assign into the lhs
       STRICT_VARIANT_ASSERT(m_rhs_which == index, "Bad access!");
-      // Implementation note: detail::false_ here means to pierce the recursive_wrapper
-      m_self.m_storage.template get_value<index>(detail::false_{}) = rhs;
-    } else if (detail::variant_noexcept_helper<First, Types...>::assume_copy_nothrow
-               || noexcept(m_self.initialize<index>(rhs))) {
-      // If copy ctor is no-throw (think integral types), this is the fastest way
+      m_self.m_storage.template get_value<index>(detail::false_{}) = std::forward<Rhs>(rhs);
+    } else if (assume_nothrow_init || noexcept(m_self.initialize<index>(std::forward<Rhs>(rhs)))) {
       m_self.destroy();
-      m_self.initialize<index>(rhs); // nothrow
+      m_self.initialize<index>(std::forward<Rhs>(rhs));
     } else {
-      // Copy ctor could throw, so do trial copy on the stack for safety and
-      // move it
       static_assert(detail::variant_noexcept_helper<First, Types...>::assume_move_nothrow
                       || noexcept(m_self.initialize<index>(std::declval<temp_t>())),
                     "Noexcept assumption failed!");
 
-      temp_t tmp(rhs);
-      m_self.destroy();                         // nothrow
-      m_self.initialize<index>(std::move(tmp)); // nothrow
-    }
-  }
-
-private:
-  variant & m_self;
-  int m_rhs_which;
-};
-
-// move assigner
-// Note: This visitor is intended to pierce the recursive_wrapper
-// Otherwise target variant is left in an empty state.
-template <typename First, typename... Types>
-struct variant<First, Types...>::move_assigner {
-  typedef void result_type;
-
-  STRICT_VARIANT_ASSERT_NOTHROW_MOVE_CTORS;
-
-  explicit move_assigner(variant & self, int rhs_which)
-    : m_self(self)
-    , m_rhs_which(rhs_which) {}
-
-  template <typename Rhs>
-  void operator()(Rhs & rhs) const {
-
-    constexpr size_t index = find_which<Rhs>::value;
-
-    // This is a recursive_wrapper if that is what storage is using internally
-    using temp_t = typename storage_t::template value_t<index>;
-
-    static_assert(noexcept(static_cast<variant *>(nullptr)->destroy()),
-                  "Noexcept assumption failed!");
-
-    if (m_self.which() == m_rhs_which) {
-      // the types are the same, so just assign into the lhs
-      STRICT_VARIANT_ASSERT(m_rhs_which == index, "Bad access!");
-      // Implementation note: detail::false_ here means to pierce the recursive_wrapper
-      m_self.m_storage.template get_value<index>(detail::false_{}) = std::move(rhs);
-    } else if (detail::variant_noexcept_helper<First, Types...>::assume_move_nothrow
-               || noexcept(m_self.initialize<index>(std::declval<Rhs>()))) {
-      // If rhs has a no-throw move then we can move it directly into storage
-      m_self.destroy();                         // nothrow
-      m_self.initialize<index>(std::move(rhs)); // nothrow
-    } else {
-      // If not, it is held in a recursive_wrapper. We need to make a new recursive_wrapper, to
-      // avoid emptying
-      // the old variant. But this could throw, so do it on the stack first.
-      static_assert(detail::variant_noexcept_helper<First, Types...>::assume_move_nothrow
-                      || noexcept(m_self.initialize<index>(std::declval<temp_t>())),
-                    "Noexcept assumption failed!");
-
-      temp_t tmp(std::move(rhs));
+      temp_t tmp(std::forward<Rhs>(rhs));
       m_self.destroy();                         // nothrow
       m_self.initialize<index>(std::move(tmp)); // nothrow
     }
@@ -577,7 +518,7 @@ template <typename First, typename... Types>
 struct variant<First, Types...>::destroyer {
   typedef void result_type;
 
-  // "Choose the form of the destructor!" -- Ghostbusters, 1984
+  // "Choose the form of the destructor!"
   template <typename T>
   void operator()(T & t) const noexcept {
     t.~T();
@@ -626,7 +567,7 @@ template <typename First, typename... Types>
 variant<First, Types...> &
 variant<First, Types...>::operator=(const variant & rhs) noexcept(
   detail::variant_noexcept_helper<First, Types...>::nothrow_copy_assign) {
-  copy_assigner a(*this, rhs.which());
+  assigner a(*this, rhs.which());
   apply_visitor(a, rhs);
   STRICT_VARIANT_ASSERT(rhs.which() == this->which(), "Postcondition failed!");
   STRICT_VARIANT_ASSERT_WHICH_INVARIANT;
@@ -638,8 +579,8 @@ template <typename First, typename... Types>
 variant<First, Types...> &
 variant<First, Types...>::operator=(variant && rhs) noexcept(
   detail::variant_noexcept_helper<First, Types...>::nothrow_move_assign) {
-  move_assigner ma(*this, rhs.which());
-  apply_visitor(ma, rhs);
+  assigner ma(*this, rhs.which());
+  apply_visitor(ma, std::move(rhs));
   STRICT_VARIANT_ASSERT(rhs.which() == this->which(), "Postcondition failed!");
   STRICT_VARIANT_ASSERT_WHICH_INVARIANT;
   return *this;
@@ -647,9 +588,8 @@ variant<First, Types...>::operator=(variant && rhs) noexcept(
 
 /// Forwarding-reference ctor
 template <typename First, typename... Types>
-template <typename T, typename, typename>
-variant<First, Types...>::variant(T && t) /*noexcept(noexcept((*static_cast<initializer<T> *>(
-  nullptr))(*static_cast<variant *>(nullptr), std::forward<T>(std::declval<T>()))))*/ {
+template <typename T, typename>
+variant<First, Types...>::variant(T && t) {
   static_assert(!std::is_same<variant &, mpl::remove_const_t<T>>::value,
                 "why is variant(T&&) instantiated with a variant? why was a special "
                 "member function not selected?");
@@ -844,4 +784,3 @@ operator!=(const variant<First, Types...> & lhs, const variant<First, Types...> 
 
 #undef STRICT_VARIANT_ASSERT
 #undef STRICT_VARIANT_ASSERT_WHICH_INVARIANT
-#undef STRICT_VARIANT_ASSERT_NOTHROW_MOVE_CTORS
