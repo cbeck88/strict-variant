@@ -1,0 +1,24 @@
+[section:safe_pointer_conversion Type relationship `safe_pointer_conversion`]
+
+The `safe_pointer_conversion` type trait has the same syntax as `std::is_constructible`.
+It determines the behavior of `safely_constructible` for *pointer types*.
+
+[h3 Valid Expressions]
+
+[table
+  [[expression] [value]]
+  [[`T, U`] [ any types]]
+  [[`safe_pointer_conversion<T*, U*>::value`][ `true` if a `variant` for which `T*` is one of the value types should be constructible from `U*`. ]]]
+
+[h3 Notes]
+
+* To be "safe", converting `U*` to `T*` requires that `T = U` or `const T = U`.
+* Note that decay of `T` and `U` is implicit in the definition of `safely_constructible`. So this trait also governs conversions like `const char * foo = "foo";`.
+
+[h3 Definition]
+
+[strict_variant_safe_pointer_conversion]
+
+[note You are welcome to specialize this trait to modify the behavior of `strict_variant`, but it might not always be the simplest way.]
+
+[endsect]

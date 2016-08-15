@@ -193,21 +193,24 @@ provide rollback-semantics if an exception is thrown while changing the type of 
 
    Overload resolution occurs with the remaining types.
 
-   Unless you customize those type traits, the behavior is only modified in the case of
+   Unless you customize those type traits, the behavior is only modified
    [itemized_list
-    [value types which ['decay to an `arithmetic` type or a pointer].]
-    [`T` itself ['decays to an `arithmetic` type or a pointer].]]
+    [When `T` itself is (or decays to) an `arithmetic` type or a pointer type.]]
+    [In regards to value types which are (or decay to) an `arithmetic` type or a pointer type.]
+
+   When `T` does not meet these criteria, overload resolution occurs with all value types.
 
    This feature acts to prevent:
-   * Narrowing conversions, on any platform.
+   * Conversions which could be ['narrowing] on some conforming implementation of C++.
    * Implicit conversions to / from `bool`, pointers, and others.
+   * Certain pointer conversions.
    * Certain kinds of overload ambiguity when there are many integral types in the variant.
 
    Here are some concrete annotated examples:
 
    [strict_variant_forwarding_reference_ctor_examples]
 
-   See those type traits for more detail.
+   See relevant type traits for more detail.
   ]]
 
 [[`variant(emplace_tag<T>, Args && ... args)`]

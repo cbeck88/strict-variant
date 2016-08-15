@@ -20,6 +20,8 @@
 [import ../../include/strict_variant/filter_overloads.hpp]
 [import ../../include/strict_variant/recursive_wrapper.hpp]
 [import ../../include/strict_variant/safely_constructible.hpp]
+[import ../../include/strict_variant/safe_arithmetic_conversion.hpp]
+[import ../../include/strict_variant/safe_pointer_conversion.hpp]
 
 [section:intro Introduction]
 [include Motivation.qbk]
@@ -36,6 +38,8 @@
 [include ClassRecursiveWrapper.qbk]
 [include ArithmeticCategory.qbk]
 [include ArithmeticRank.qbk]
+[include SafeArithmeticConversion.qbk]
+[include SafePointerConversion.qbk]
 [include SafelyConstructible.qbk]
 [include Dominates.qbk]
 [include Includes.qbk]

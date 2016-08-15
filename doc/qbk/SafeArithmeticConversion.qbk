@@ -1,0 +1,36 @@
+[section:safe_arithmetic_conversion Type relationship `safe_arithmetic_conversion`]
+
+The `safe_arithmetic_conversion` type trait has the same syntax as `std::is_constructible`.
+It determines the behavior of `safely_constructible` for *arithmetic types*.
+
+It is defined in terms of sign, [link strict_variant.reference.arithmetic_category arithmetic category] and [link strict_variant.reference.arithmetic_rank arithmetic rank] of its arguments.
+
+[h3 Valid Expressions]
+
+[table
+  [[expression] [value]]
+  [[`T, U`] [ any arithmetic types]]
+  [[`safe_arithmetic_conversion<T, U>::value`][ `true` if a `variant` for which `T` is one of the value types should be constructible from `U`. ]]]
+
+[h3 Notes]
+
+* Conversions between any two [link strict_variant.reference.arithmetic_category arithmetic categories] are considered unsafe.
+* If a conversion ['could] be narrowing on some conforming implementation of C++, then it is not safe.  
+  (So, `long long` cannot be converted to `long` and `long` cannot be converted to `int`,
+  even if you are on a 32-bit machine and they have the same size for you, because it could be narrowing on a 64-bit machine.)
+  This is determined by checking if the [link strict_variant.reference.arithmetic_rank arithmetic rank] decreases as a result of the conversion.
+* Signed can be converted to unsigned, but the reverse is not allowed (since it is typically implementation-defined, and may trigger warnings).
+
+[h3 Definition]
+
+The complete definition is given:
+
+[strict_variant_safe_arithmetic_conversion]
+
+The type `char` requires special treatment, because it is implementation-defined if it is `signed` or `unsigned`. Since we'd like to eliminate implementation-specific behavior,
+an arithmetic conversion involving `char` is permitted only when it would be permitted for both `signed char` and `unsigned char`.
+
+[note You are welcome to specialize this trait to modify the behavior of `strict_variant`, but it might not always be the simplest way. Consider specializing
+      `arithmetic_rank` and/or `classify_arithmetic`, or `safely_constructible`, instead.]
+
+[endsect]

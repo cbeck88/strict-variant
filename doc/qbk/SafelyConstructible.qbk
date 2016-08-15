@@ -12,16 +12,11 @@ which has special behavior for fundamental types and pointer types and forbids c
 
 [h3 Notes]
 
-* Conversions between any two [link strict_variant.reference.arithmetic_category arithmetic categories], or between one of those categories and a pointer type,
-  are considered unsafe.
-* If a conversion ['could] be narrowing on some conforming implementation of C++, then it is not safe.  
-  (So, `long long` cannot be converted to `long` and `long` cannot be converted to `int`,
-  even if you are on a 32-bit machine and they have the same size for you, because it could be narrowing on a 64-bit machine.)
-  This is determined by checking if the [link strict_variant.reference.arithmetic_rank arithmetic rank] decreases as a result of the conversion.
-* Signed can be converted to unsigned, but the reverse is not allowed (since it is typically implementation-defined, and may trigger warnings).
-* Conversions like `char *` to `const char *` are permitted, and standard conversions like array-to-pointer are permitted, but otherwise no pointer conversions are permitted.
-
-When `T` or `U` is not in one of the above categories, `safely_constructible` falls back to `std::is_constructible`.
+* Check, for both `T`, `U` if they are an arithmetic type or a pointer type, after `decay`.
+* If both are arithmetic, then defer to [link strict_variant.reference.safe_arithmetic_conversion `safe_arithmetic_conversion`].
+* If both are pointer, then defer to [link strict_variant.reference.safe_pointer_conversion `safe_pointer_conversion`].
+* If one is arithmetic and the other is pointer, it is unsafe.
+* Otherwise, it is okay.
 
 [h3 Examples]
 
@@ -34,12 +29,5 @@ When `T` or `U` is not in one of the above categories, `safely_constructible` fa
 The complete definition of the `safely_constructible` template is given:
 
 [strict_variant_safely_constructible]
-
-The helper `safe_arithmetic_conversion` is defined in terms of sign, [link strict_variant.reference.arithmetic_category arithmetic category] and [link strict_variant.reference.arithmetic_rank arithmetic rank] of its arguments.
-
-[strict_variant_safe_arithmetic_conversion]
-
-The type `char` requires special treatment, because it is implementation-defined if it is `signed` or `unsigned`. Since we'd like to eliminate implementation-specific behavior,
-an arithmetic conversion involving `char` is permitted only when it would be permitted for both `signed char` and `unsigned char`.
 
 [endsect]

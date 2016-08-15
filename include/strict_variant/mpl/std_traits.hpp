@@ -10,7 +10,6 @@
  */
 
 #include <type_traits>
-#include <utility>
 
 namespace strict_variant {
 namespace mpl {
@@ -30,20 +29,6 @@ using decay_t = typename std::decay<T>::type;
 template <bool b, typename U = void>
 using enable_if_t = typename std::enable_if<b, U>::type;
 
-/***
- * Attempt to help out msvc...
- *
-
-template<bool B, class T = void>
-struct enable_if {};
-
-template<class T>
-struct enable_if<true, T> { typedef T type; };
-
-template <bool b, typename U = void>
-using enable_if_t = typename enable_if<b, U>::type;
-
- */
 
 // Modified version of std::common_type
 

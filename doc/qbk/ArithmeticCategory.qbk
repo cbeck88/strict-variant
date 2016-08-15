@@ -16,7 +16,7 @@ The type trait `arithmetic_category` computes the category of a given arithmetic
 [table
   [[expression] [value]]
   [[`T`] [ any arithmetic type]]
-  [[`strict_variant::mpl::arithmetic_category<T>::value`][ The `arithmetic_category` of `T`. ]]]
+  [[`strict_variant::mpl::classify_arithmetic<T>::value`][ The `arithmetic_category` of `T`. ]]]
 
 
 [h3 Definition]
