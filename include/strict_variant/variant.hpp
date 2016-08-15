@@ -484,8 +484,7 @@ struct variant<First, Types...>::copy_assigner {
   template <typename Rhs>
   void operator()(const Rhs & rhs) const {
 
-    static_assert(noexcept(static_cast<variant *>(nullptr)->destroy()),
-                  "Noexcept assumption failed!");
+    static_assert(noexcept(m_self.destroy()), "Noexcept assumption failed!");
 
     constexpr size_t index = find_which<Rhs>::value;
 
@@ -498,18 +497,16 @@ struct variant<First, Types...>::copy_assigner {
       // Implementation note: detail::false_ here means to pierce the recursive_wrapper
       m_self.m_storage.template get_value<index>(detail::false_{}) = rhs;
     } else if (detail::variant_noexcept_helper<First, Types...>::assume_copy_nothrow
-               || noexcept(static_cast<variant *>(nullptr)->initialize<index>(
-                    *static_cast<const Rhs *>(nullptr)))) {
+               || noexcept(m_self.initialize<index>(rhs))) {
       // If copy ctor is no-throw (think integral types), this is the fastest way
       m_self.destroy();
       m_self.initialize<index>(rhs); // nothrow
     } else {
       // Copy ctor could throw, so do trial copy on the stack for safety and
       // move it
-      static_assert(
-        detail::variant_noexcept_helper<First, Types...>::assume_move_nothrow
-          || noexcept(static_cast<variant *>(nullptr)->initialize<index>(std::declval<temp_t>())),
-        "Noexcept assumption failed!");
+      static_assert(detail::variant_noexcept_helper<First, Types...>::assume_move_nothrow
+                      || noexcept(m_self.initialize<index>(std::declval<temp_t>())),
+                    "Noexcept assumption failed!");
 
       temp_t tmp(rhs);
       m_self.destroy();                         // nothrow
@@ -552,8 +549,7 @@ struct variant<First, Types...>::move_assigner {
       // Implementation note: detail::false_ here means to pierce the recursive_wrapper
       m_self.m_storage.template get_value<index>(detail::false_{}) = std::move(rhs);
     } else if (detail::variant_noexcept_helper<First, Types...>::assume_move_nothrow
-               || noexcept(
-                    static_cast<variant *>(nullptr)->initialize<index>(std::declval<Rhs>()))) {
+               || noexcept(m_self.initialize<index>(std::declval<Rhs>()))) {
       // If rhs has a no-throw move then we can move it directly into storage
       m_self.destroy();                         // nothrow
       m_self.initialize<index>(std::move(rhs)); // nothrow
@@ -561,10 +557,9 @@ struct variant<First, Types...>::move_assigner {
       // If not, it is held in a recursive_wrapper. We need to make a new recursive_wrapper, to
       // avoid emptying
       // the old variant. But this could throw, so do it on the stack first.
-      static_assert(
-        detail::variant_noexcept_helper<First, Types...>::assume_move_nothrow
-          || noexcept(static_cast<variant *>(nullptr)->initialize<index>(std::declval<temp_t>())),
-        "Noexcept assumption failed!");
+      static_assert(detail::variant_noexcept_helper<First, Types...>::assume_move_nothrow
+                      || noexcept(m_self.initialize<index>(std::declval<temp_t>())),
+                    "Noexcept assumption failed!");
 
       temp_t tmp(std::move(rhs));
       m_self.destroy();                         // nothrow
