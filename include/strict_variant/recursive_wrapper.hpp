@@ -31,17 +31,21 @@
 
 #endif // STRICT_VARIANT_DEBUG
 
+//[ strict_variant_recursive_wrapper
 namespace strict_variant {
 
 template <typename T>
 class recursive_wrapper {
   T * m_t;
 
-  // TODO: Improve this, so we don't make an extra dynamic allocation?
+  // TODO: Handle the case that T is not assignable?
   template <typename U>
   void assign(U && u) {
-    this->destroy();
-    m_t = new T(std::forward<U>(u));
+    if (m_t) {
+      *m_t = std::forward<U>(u);
+    } else {
+      m_t = new T(std::forward<U>(u));
+    }
   }
 
   void destroy() {
@@ -105,6 +109,7 @@ public:
     return std::move(*m_t);
   }
 };
+//]
 
 //[ strict_variant_pierce_recursive_wrapper
 namespace detail {

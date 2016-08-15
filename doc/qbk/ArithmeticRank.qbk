@@ -41,7 +41,6 @@ The purpose of these numbers is, [' if C++ permits `A` to be narrower than `B`],
 
 [note You are free to specialize this trait to support other arithmetic types, such as implementation-specific extended integers.
 
-      By default, any type for which `std::is_integral` reports `true` and which is not listed above will be categorized as `integer`
-      But if you have e.g. an 128 bit integer type which you want to support, most likely you want to define its rank to be `4` by specializing this trait.]
+      If you have e.g. an 128 bit integer type which you want to support, most likely you want to define its rank to be `4` by specializing this trait.]
 
 [endsect]

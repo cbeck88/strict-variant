@@ -1,43 +1,16 @@
 [section Class template `recursive_wrapper`]
 
-Recursive wrapper is very useful, but you shouldn't normally need to know about it than its declaration, and you shouldn't
+A `recursive_wrapper<T>` represents a ['heap-allocated instance of `T`].
+
+Recursive wrapper is very useful, but you shouldn't
 normally create a `recursive_wrapper` yourself, instead that happens internally within a `variant`.
 
-We'll give the following spec for the class body:
-
-```
-namespace strict_variant {
-
-  template <typename T>
-  class recursive_wrapper {
-    T * m_t;
-
-  public:
-    // Default-constructs `T` on the heap.
-    // Not available if `T` is not default constructible.
-    recursive_wrapper();
-
-    // Post-condition: `m_t = nullptr`.
-    recursive_wrapper(recursive_wrapper && rhs) noexcept;
-
-    // Copies `*m_t` and makes a new dynamic allocation
-    recursive_wrapper(const recursive_wrapper & rhs);
-
-    recursive_wrapper & operator=(recursive_wrapper && rhs) noexcept;
-    recursive_wrapper & operator=(const recursive_wrapper & rhs);
-
-    ~recursive_wrapper() noexcept;
-
-    T & get() & { return *m_t; }
-    const T & get() const & { return *m_t; }
-    T && get() && { return std::move(*m_t); }
-  };
-
-} // end namespace strict_variant
-```
+[strict_variant_recursive_wrapper]
 
 [caution After a `recursive_wrapper` is moved from, UB occurs on attempt to dereference it, just like with `std::unique_ptr`.
 
-         See [link strict_variant.remarks.implementation_notes Implementation Notes] for a discussion of how `variant` handles this.]
+         This is different from `boost::recursive_wrapper`.
+
+         See [link strict_variant.remarks.implementation_notes Implementation Notes] for a discussion of why it is this way and how `variant` handles this.]
 
 [endsect]
