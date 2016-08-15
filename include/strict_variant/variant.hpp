@@ -197,23 +197,17 @@ private:
   };
 
 public:
+  ~variant() noexcept { this->destroy(); }
+
+  // Constructors
   template <typename ENABLE = void>
   variant() noexcept(detail::is_nothrow_default_constructible<First>::value);
 
-  ~variant() noexcept { this->destroy(); }
-
-  // Special member functions
   variant(const variant & rhs) noexcept(
     detail::variant_noexcept_helper<First, Types...>::nothrow_copy_ctors);
 
   variant(variant && rhs) noexcept(
     detail::variant_noexcept_helper<First, Types...>::nothrow_move_ctors);
-
-  variant & operator=(const variant & rhs) noexcept(
-    detail::variant_noexcept_helper<First, Types...>::nothrow_copy_assign);
-
-  variant & operator=(variant && rhs) noexcept(
-    detail::variant_noexcept_helper<First, Types...>::nothrow_move_assign);
 
   /// Forwarding-reference ctor, construct a variant from one of its value
   /// types, using overload resolution. See documentation.
@@ -254,34 +248,21 @@ public:
    * Modifiers
    */
 
+  // Assignment
+  variant & operator=(const variant & rhs) noexcept(
+    detail::variant_noexcept_helper<First, Types...>::nothrow_copy_assign);
+
+  variant & operator=(variant && rhs) noexcept(
+    detail::variant_noexcept_helper<First, Types...>::nothrow_move_assign);
+
   // Emplace operation
-  // In this operation the user explicitly specifies the desired type as
-  // template parameter, which must be one of the variant types, modulo const
-  // and recursive wrapper.
-  // There are two overloads:
-  //   when the invoked constructor is noexcept, we destroy the current value
-  //     and reinitialize in-place.
-  //   when the invoked constructor is not noexcept, we use a move for safety.
   template <typename T, typename... Args>
   mpl::enable_if_t<!std::is_nothrow_constructible<T, Args...>::value> // returns void
-    emplace(Args &&... args) noexcept(false) {
-    static_assert(std::is_nothrow_move_constructible<T>::value,
-                  "To use emplace, either the invoked ctor or the move ctor must be noexcept.");
-    // TODO: If T is in a recursive_wrapper, we should construct recursive_wrapper<T> instead.
-    T temp(std::forward<Args>(args)...);
-    this->emplace<T>(std::move(temp));
-  }
+    emplace(Args &&... args) noexcept(false);
 
   template <typename T, typename... Args>
   mpl::enable_if_t<std::is_nothrow_constructible<T, Args...>::value> // returns void
-    emplace(Args &&... args) noexcept {
-    constexpr size_t idx = find_which<T>::value;
-    static_assert(idx < sizeof...(Types) + 1,
-                  "Requested type is not a member of this variant type");
-
-    this->destroy();
-    this->initialize<idx>(std::forward<Args>(args)...);
-  }
+    emplace(Args &&... args) noexcept;
 
   // Swap operation
   // Optimized in case of `recursive_wrapper` to use a pointer move.
@@ -714,6 +695,36 @@ variant<First, Types...>::variant(emplace_tag<T>, Args &&... args) noexcept(
   constexpr size_t idx = find_which<T>::value;
   static_assert(idx < sizeof...(Types) + 1, "Requested type is not a member of this variant type");
 
+  this->initialize<idx>(std::forward<Args>(args)...);
+}
+
+// Emplace operation
+// In this operation the user explicitly specifies the desired type as
+// template parameter, which must be one of the variant types, modulo const
+// and recursive wrapper.
+// There are two overloads:
+//   when the invoked constructor is noexcept, we destroy the current value
+//     and reinitialize in-place.
+//   when the invoked constructor is not noexcept, we use a move for safety.
+template <typename First, typename... Types>
+template <typename T, typename... Args>
+mpl::enable_if_t<!std::is_nothrow_constructible<T, Args...>::value> // returns void
+  variant<First, Types...>::emplace(Args &&... args) noexcept(false) {
+  static_assert(std::is_nothrow_move_constructible<T>::value,
+                "To use emplace, either the invoked ctor or the move ctor must be noexcept.");
+  // TODO: If T is in a recursive_wrapper, we should construct recursive_wrapper<T> instead.
+  T temp(std::forward<Args>(args)...);
+  this->emplace<T>(std::move(temp));
+}
+
+template <typename First, typename... Types>
+template <typename T, typename... Args>
+mpl::enable_if_t<std::is_nothrow_constructible<T, Args...>::value> // returns void
+  variant<First, Types...>::emplace(Args &&... args) noexcept {
+  constexpr size_t idx = find_which<T>::value;
+  static_assert(idx < sizeof...(Types) + 1, "Requested type is not a member of this variant type");
+
+  this->destroy();
   this->initialize<idx>(std::forward<Args>(args)...);
 }
 
