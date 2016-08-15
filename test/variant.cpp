@@ -9,6 +9,7 @@
 
 #include "test_harness/test_harness.hpp"
 
+#include <algorithm>
 #include <string>
 #include <type_traits>
 
@@ -1067,6 +1068,70 @@ UNIT_TEST(variant_moving_with_recursive_wrapper) {
   TEST_NE(get<std::string>(&x), get<std::string>(&y));
   TEST_NE(*get<std::string>(&x), *get<std::string>(&y));
   TEST_EQ(*get<std::string>(&x), "foo");
+}
+
+UNIT_TEST(variant_swap) {
+  {
+    using var_t = variant<int, std::string>;
+
+    var_t x{5};
+    var_t y{"foo"};
+    TEST_EQ(x.which(), 0);
+    TEST_EQ(y.which(), 1);
+
+    swap(x, y);
+    TEST_EQ(x.which(), 1);
+    TEST_EQ(y.which(), 0);
+    TEST_EQ("foo", *get<std::string>(&x));
+    TEST_EQ(5, *get<int>(&y));
+  }
+
+  {
+    using var_t = variant<recursive_wrapper<int>, recursive_wrapper<std::string>>;
+
+    var_t x{5};
+    var_t y{"foo"};
+    TEST_EQ(x.which(), 0);
+    TEST_EQ(y.which(), 1);
+
+    swap(x, y);
+    TEST_EQ(x.which(), 1);
+    TEST_EQ(y.which(), 0);
+    TEST_EQ("foo", *get<std::string>(&x));
+    TEST_EQ(5, *get<int>(&y));
+  }
+
+  {
+    using var_t = variant<int, std::string>;
+    std::vector<var_t> vec;
+
+    for (int i = 0; i < 100; ++i) {
+      vec.push_back(i);
+      vec.push_back(std::to_string(i));
+    }
+
+    for (int i = 0; i < 100; ++i) {
+      TEST_EQ(i % 2, vec[i].which());
+    }
+
+    std::reverse(vec.begin(), vec.end());
+
+    for (int i = 0; i < 100; ++i) {
+      TEST_EQ(i % 2, 1 - vec[i].which());
+    }
+
+    std::reverse(vec.begin(), vec.end());
+
+    for (int i = 0; i < 100; ++i) {
+      TEST_EQ(i % 2, vec[i].which());
+    }
+
+    std::reverse(vec.begin(), vec.end());
+
+    for (int i = 0; i < 100; ++i) {
+      TEST_EQ(i % 2, 1 - vec[i].which());
+    }
+  }
 }
 
 } // end namespace strict_variant

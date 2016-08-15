@@ -49,6 +49,9 @@ namespace strict_variant {
     template <typename T, typename... Args>
     void emplace(Args &&... args);
 
+    // Standard swap
+    void swap(variant &) noexcept;
+
     // Reports the runtime type.
     int which() const;
 
@@ -72,6 +75,9 @@ namespace strict_variant {
 
   template <typename... Types>
   inline bool operator!=(const variant<Types...> &, const variant<Types...> &);
+
+  template <typename... Types>
+  void swap(variant<Types...> &, variant<Types...> &) noexcept;
 
   template <typename T, typename ... Types>
   T * get(variant<Types...> * v);
@@ -265,6 +271,11 @@ provide rollback-semantics if an exception is thrown while changing the type of 
      [[Requires][`T` must be a value type of the variant, modulo `const` and `recursive_wrapper`, and ['either] the invoked constructor, ['or] the move constructor of `T`, must be `noexcept`.]]
      [[Throws][Only if the invoked constructor throws.]]]]]
 
+[[`void swap(variant &) noexcept`]
+ [ Standard `swap` implementation.
+ [variablelist
+   [[Requires] [ Each value type is `nothrow_move_constructible`.]]]]]
+
 ]
 
 [variablelist Destructor
@@ -305,7 +316,7 @@ provide rollback-semantics if an exception is thrown while changing the type of 
 
 [variablelist
 
-[[`template <typename Types...>
+[[`template <typename... Types>
    inline bool operator ==(const variant<Types...> & first, const variant<Types...> & second) const`]
  [ Checks if `first.which() == second.which()`. Then checks if the contained values compare equal using `operator ==`.
 
@@ -313,9 +324,16 @@ provide rollback-semantics if an exception is thrown while changing the type of 
      [[Requires][Each value type is `EqualityComparable`.]]
      [[Throws][If equality-comparison can throw.]]]]]
 
-[[`template <typename Types...>
+[[`template <typename... Types>
    inline bool operator !=(const variant<Types...> & first, const variant<Types...> & second) const`]
  [ Returns the negation of `operator ==`. ]]
+
+[[`template <typename... Types>
+   void swap(variant<Types...> & first, variant<Types...> & other) noexcept`]
+ [ Swap the values contained in two containers.
+   [variablelist
+     [[Requires] [ Each value type is `nothrow_move_constructible`.]]]]]
+
 
 [[`template <typename T>
   T * get(variant *)`]

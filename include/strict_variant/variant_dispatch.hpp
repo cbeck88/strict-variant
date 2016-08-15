@@ -6,6 +6,7 @@
 #pragma once
 
 #include <strict_variant/mpl/find_with.hpp>
+#include <strict_variant/mpl/nonstd_traits.hpp>
 #include <strict_variant/mpl/std_traits.hpp>
 #include <strict_variant/mpl/typelist.hpp>
 #include <strict_variant/mpl/ulist.hpp>

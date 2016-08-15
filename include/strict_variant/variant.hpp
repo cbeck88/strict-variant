@@ -22,6 +22,7 @@
 
 #include <strict_variant/filter_overloads.hpp>
 #include <strict_variant/mpl/find_with.hpp>
+#include <strict_variant/mpl/nonstd_traits.hpp>
 #include <strict_variant/mpl/std_traits.hpp>
 #include <strict_variant/mpl/typelist.hpp>
 #include <strict_variant/mpl/ulist.hpp>
@@ -155,6 +156,8 @@ private:
   struct move_assigner;
   struct destroyer;
 
+  struct swapper;
+
   // initializer. This is the overloaded function object used in T && ctor.
   // Here T should be the forwarding reference
 
@@ -251,6 +254,10 @@ public:
   explicit variant(emplace_tag<T>,
                    Args &&... args) noexcept(std::is_nothrow_constructible<T, Args...>::value);
 
+  /***
+   * Modifiers
+   */
+
   // Emplace operation
   // In this operation the user explicitly specifies the desired type as
   // template parameter, which must be one of the variant types, modulo const
@@ -264,6 +271,7 @@ public:
     emplace(Args &&... args) noexcept(false) {
     static_assert(std::is_nothrow_move_constructible<T>::value,
                   "To use emplace, either the invoked ctor or the move ctor must be noexcept.");
+    // TODO: If T is in a recursive_wrapper, we should construct recursive_wrapper<T> instead.
     T temp(std::forward<Args>(args)...);
     this->emplace<T>(std::move(temp));
   }
@@ -278,6 +286,10 @@ public:
     this->destroy();
     this->initialize<idx>(std::forward<Args>(args)...);
   }
+
+  // Swap operation
+  // Optimized in case of `recursive_wrapper` to use a pointer move.
+  void swap(variant & other) noexcept;
 
   /***
    * Accessors
@@ -707,6 +719,74 @@ variant<First, Types...>::variant(emplace_tag<T>, Args &&... args) noexcept(
   static_assert(idx < sizeof...(Types) + 1, "Requested type is not a member of this variant type");
 
   this->initialize<idx>(std::forward<Args>(args)...);
+}
+
+// Swap
+
+template <typename First, typename... Types>
+struct variant<First, Types...>::swapper {
+  using var_t = variant<First, Types...>;
+
+  swapper(var_t & lhs_var, var_t & rhs_var)
+    : lhs_(lhs_var)
+    , rhs_(rhs_var) {}
+
+  void do_swap() const noexcept {
+    lhs_.apply_visitor_internal(*this);
+  }
+
+  // First visit is *this, to lhs_var
+  template <typename T>
+  void operator()(T & first_visit) const noexcept {
+    second_visitor<T> v{lhs_, rhs_, first_visit};
+    rhs_.apply_visitor_internal(v);
+  }
+
+  template <typename T>
+  struct second_visitor {
+    var_t & first_var_;
+    var_t & second_var_;
+    T & first_visit_;
+
+    explicit second_visitor(var_t & first_var, var_t & second_var, T & first_visit)
+      : first_var_(first_var)
+      , second_var_(second_var)
+      , first_visit_(first_visit)
+    {}
+
+    // If both give us a T, and T is noexcept swappable, then do that
+    mpl::enable_if_t<mpl::is_nothrow_swappable<T>::value>
+    operator()(T & second_visit) const noexcept {
+      using std::swap;
+      swap(first_visit_, second_visit);
+    }
+
+    // swap using a move
+    template <typename U>
+    void operator()(U & second_visit) const noexcept {
+      constexpr size_t t_idx = var_t::find_which<T>::value;
+      constexpr size_t u_idx = var_t::find_which<U>::value;
+
+      STRICT_VARIANT_ASSERT(t_idx == first_var_.which(), "Bad access during swap!");
+      STRICT_VARIANT_ASSERT(u_idx == second_var_.which(), "Bad access during swap!");
+
+      T temp{std::move(first_visit_)};
+      first_var_.destroy();
+      first_var_.initialize<u_idx>(std::move(second_visit));
+      second_var_.destroy();
+      second_var_.initialize<t_idx>(std::move(temp));
+    }
+  };
+
+private:
+  var_t & lhs_;
+  var_t & rhs_;
+};
+
+template <typename First, typename... Types>
+void variant<First, Types...>::swap(variant & other) noexcept {
+  swapper s{*this, other};
+  s.do_swap();
 }
 
 // Operator ==, !=
