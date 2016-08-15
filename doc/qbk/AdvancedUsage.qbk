@@ -76,13 +76,13 @@ However, like `boost::variant` it has some restrictions.
   [ Each type must be `nothrow-destructible` ]
   [ Each type must be copy or move-constructible ]]
 
-`strict_variant` also requires that its types are `nothrow_destructible`.
+`strict_variant` also requires that its types are `nothrow_destructible`. It doesn't require that they are copyable or moveable.
 
-However, `strict_variant` is different in that it can only be assignable if each type
+However, `strict_variant` is different in that it is only assignable when each type
 is assignable AND each type is `nothrow_move_constructible`. If this doesn't happen,
-compilation will fail with a `static_assert`.
+compiling an assignment operation will fail with a `static_assert`.
 
-Since that's not always possible for the types you may want to use it with, there are a few handy solutions.
+Since you can't always make your types `nothrow_move_constructible`, there are a few handy solutions.
 
 Suppose that our goal is code like this:
 

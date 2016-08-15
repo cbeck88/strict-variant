@@ -182,7 +182,7 @@ namespace fix2 {
 
 //[ strict_variant_tutorial_throwing_assignment_fix2
 //` Use `easy_variant` instead. It's the same, but it implicitly applies wrappers to value types
-// with a throwing move.
+//` with a throwing move.
 void
 goal() {
   easy_variant<int, X> v;

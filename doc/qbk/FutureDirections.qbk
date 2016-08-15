@@ -4,12 +4,16 @@
 
 `constexpr` support is somewhat harder to do well at C++11 standard compared to
 at C++14. And since `constexpr` computations cannot make dynamic allocations,
-it's not consistent with `recursive_wrapper` which is somehow an essential
-component of `strict_variant`. Any `constexpr` usage would be somewhat
+it's not consistent with `recursive_wrapper` which is an essential
+component of `easy_variant`. Any `constexpr` usage would be somewhat
 orthogonal to the bulk of the development work so far.
 
 It could be added in the future, but for now we simply use placement-new in our
-storage and there is no `constexpr` support.
+storage and there is no `constexpr` support. We could use a more sophisticated
+storage object, like the recursive union used in `eggs::variant`, without changing
+the existing code much. But again, at C++11 standard, it's much harder to do
+something useful within a visitor than it is at C++14, so it's not all that
+attractive.
 
 If you need this, you might want to take a good look at `eggs::variant`.
 
@@ -32,19 +36,6 @@ variant. The idea would be, once the contained type has been determined to be
 and yields `unique_ptr<T>`, taking ownership of the pointer that is in storage.
 
 This is also left to future work.
-
-[h4 Support extended integer types]
-
-Is there a good way that we can potentially extend the `safely_constructible`
-framework to include potential implementation-specific extended integer types?
-
-Right now, I think the user could accomplish this by specializing a number of
-traits in our header, but
-
-# Those traits aren't documented, and I'm not even sure if I consider them
-  forwarding-facing.
-# I haven't actually tested this.
-# It could probably be made much simpler for them.
 
 [h4 Improve `noexcept` annotations of `variant` when using `recursive_wrapper`?]
 
