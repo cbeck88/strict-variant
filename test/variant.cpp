@@ -969,7 +969,7 @@ UNIT_TEST(emplace_recursive_wrapper) {
 
   variant<float, recursive_wrapper<D>> v;
 
-  v.emplace<D>(A{}, B{}, C{});
+  v.emplace<D>(A(), B(), C());
 }
 
 // Test combining emplace ctor with a recursive_wrapper
