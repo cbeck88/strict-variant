@@ -325,7 +325,29 @@ public:
     }
   }
 
-// Friend apply_visitor
+  /***
+   * Visitation
+   */
+
+  // C++17 visit syntax
+  using dispatcher_t = detail::visitor_dispatch<detail::false_, 1 + sizeof...(Types)>;
+
+  template <typename V>
+  auto visit(V && v) & -> decltype(dispatcher_t{}(int(), *static_cast<storage_t*>(nullptr), std::forward<V>(v))) {
+    return dispatcher_t{}(this->which(), this->m_storage, std::forward<V>(v));
+  }
+
+  template <typename V>
+  auto visit(V && v) const & -> decltype(dispatcher_t{}(int(), *static_cast<const storage_t*>(nullptr), std::forward<V>(v))) {
+    return dispatcher_t{}(this->which(), this->m_storage, std::forward<V>(v));
+  }
+
+  template <typename V>
+  auto visit(V && v) && -> decltype(dispatcher_t{}(int(), std::declval<storage_t>(), std::forward<V>(v))) {
+    return dispatcher_t{}(this->which(), std::move(this->m_storage), std::forward<V>(v));
+  }
+
+// Friend apply_visitor (boost::apply_visitor syntax)
 
 #define APPLY_VISITOR_BODY                                                                         \
   visitable.get_visitor_dispatch()(visitable.which(),                                              \
@@ -343,8 +365,6 @@ private:
   storage_t & storage() & { return m_storage; }
   storage_t && storage() && { return std::move(m_storage); }
   const storage_t & storage() const & { return m_storage; }
-
-  using dispatcher_t = detail::visitor_dispatch<detail::false_, 1 + sizeof...(Types)>;
 
   dispatcher_t get_visitor_dispatch() const { return {}; }
 };

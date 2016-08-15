@@ -614,12 +614,12 @@ UNIT_TEST(promotion) {
   }
 }
 
-UNIT_TEST(visitation_value_type) {
 
+namespace value_type_test {
   struct foo {};
   struct bar {};
 
-  struct test_visitor {
+  struct visitor {
     mutable int flag_ = 0;
 
     void operator()(const foo &) const { flag_ = 1; }
@@ -633,7 +633,20 @@ UNIT_TEST(visitation_value_type) {
     void operator()(foo &&) const { flag_ = 3; }
 
     void operator()(bar &&) const { flag_ = 6; }
-  } vis;
+  };
+
+  struct visitor2 {
+    mutable int flag_ = 0;
+
+    void operator()(foo &) const { flag_ = 1; }
+    void operator()(bar &) const { flag_ = 2; }
+  };
+} // end namespace value_type_test
+
+UNIT_TEST(apply_visitor_value_type) {
+  using namespace value_type_test;
+
+  value_type_test::visitor vis;
 
   using var_t = variant<foo, bar>;
   var_t x;
@@ -663,12 +676,7 @@ UNIT_TEST(visitation_value_type) {
 
   x = foo{};
 
-  struct test_visitor2 {
-    mutable int flag_ = 0;
-
-    void operator()(foo &) const { flag_ = 1; }
-    void operator()(bar &) const { flag_ = 2; }
-  } vis2;
+  value_type_test::visitor2 vis2;
 
   TEST_EQ(vis2.flag_, 0);
   apply_visitor(vis2, x);
@@ -677,6 +685,52 @@ UNIT_TEST(visitation_value_type) {
   x = bar{};
   apply_visitor(vis2, x);
   TEST_EQ(vis2.flag_, 2);
+}
+
+UNIT_TEST(visit_value_type) {
+  using namespace value_type_test;
+
+  visitor vis;
+
+  using var_t = variant<foo, bar>;
+  var_t x;
+
+  x.visit(vis);
+  TEST_EQ(vis.flag_, 2);
+
+  //std::move(x).visit(vis);
+  var_t{}.visit(vis);
+  TEST_EQ(vis.flag_, 3);
+
+  static_cast<const var_t &>(x).visit(vis);
+  TEST_EQ(vis.flag_, 1);
+
+  x = bar{};
+
+  x.visit(vis);
+  TEST_EQ(vis.flag_, 5);
+
+  std::move(x).visit(vis);
+  TEST_EQ(vis.flag_, 6);
+
+  static_cast<const var_t &>(x).visit(vis);
+  TEST_EQ(vis.flag_, 4);
+
+  /// Test that it works if the visitor is restricted in what types it can accept
+  // TODO: Fix this!
+  /*
+  x = foo{};
+
+  value_type_test::visitor2 vis2;
+
+  TEST_EQ(vis2.flag_, 0);
+  x.visit(vis2);
+  TEST_EQ(vis2.flag_, 1);
+
+  x = bar{};
+  x.visit(vis2);
+  TEST_EQ(vis2.flag_, 2);
+  */
 }
 
 struct test_visitor {

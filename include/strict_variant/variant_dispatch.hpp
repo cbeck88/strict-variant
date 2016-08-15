@@ -171,14 +171,15 @@ struct visitor_dispatch {
   // Helper which figures out return type and noexcept status, for given storage and visitor
   template <typename Storage, typename Visitor>
   struct call_helper {
+    using rtyper = return_typer<Internal, Storage, Visitor>;
+
     static constexpr bool noexcept_value = mpl::conjunction<
-      typename mpl::ulist_map<return_typer<Internal, Storage, Visitor>::template noexcept_prop,
+      typename mpl::ulist_map<rtyper::template noexcept_prop,
                               mpl::count_t<num_types>>::type>::value;
 
     using return_type =
       typename mpl::typelist_fwd<mpl::common_return_type_t,
-                                 typename mpl::ulist_map<return_typer<Internal, Storage,
-                                                                      Visitor>::template helper,
+                                 typename mpl::ulist_map<rtyper::template helper,
                                                          mpl::count_t<num_types>>::type>::type;
   };
 
