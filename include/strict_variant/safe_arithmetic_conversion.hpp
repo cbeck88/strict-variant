@@ -32,7 +32,8 @@ struct safe_arithmetic_conversion {
   static constexpr bool same_class =
     (mpl::classify_arithmetic<A>::value == mpl::classify_arithmetic<B>::value);
   static constexpr bool unsign_to_sign = !std::is_unsigned<A>::value && std::is_unsigned<B>::value;
-  static constexpr bool narrowing = (mpl::arithmetic_rank<A>::value < mpl::arithmetic_rank<B>::value);
+  static constexpr bool narrowing =
+    (mpl::arithmetic_rank<A>::value < mpl::arithmetic_rank<B>::value);
 
   static constexpr bool value = same_class && !unsign_to_sign && !narrowing;
 };
