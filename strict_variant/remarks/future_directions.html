@@ -24,14 +24,17 @@
         <code class="computeroutput"><span class="keyword">constexpr</span></code> support is somewhat
         harder to do well at C++11 standard compared to at C++14. And since <code class="computeroutput"><span class="keyword">constexpr</span></code> computations cannot make dynamic
         allocations, it's not consistent with <code class="computeroutput"><span class="identifier">recursive_wrapper</span></code>
-        which is somehow an essential component of <code class="computeroutput"><span class="identifier">strict_variant</span></code>.
+        which is an essential component of <code class="computeroutput"><span class="identifier">easy_variant</span></code>.
         Any <code class="computeroutput"><span class="keyword">constexpr</span></code> usage would be
         somewhat orthogonal to the bulk of the development work so far.
       </p>
 <p>
         It could be added in the future, but for now we simply use placement-new
         in our storage and there is no <code class="computeroutput"><span class="keyword">constexpr</span></code>
-        support.
+        support. We could use a more sophisticated storage object, like the recursive
+        union used in <code class="computeroutput"><span class="identifier">eggs</span><span class="special">::</span><span class="identifier">variant</span></code>, without changing the existing
+        code much. But again, at C++11 standard, it's much harder to do something
+        useful within a visitor than it is at C++14, so it's not all that attractive.
       </p>
 <p>
         If you need this, you might want to take a good look at <code class="computeroutput"><span class="identifier">eggs</span><span class="special">::</span><span class="identifier">variant</span></code>.
@@ -69,31 +72,6 @@
       </p>
 <h5>
 <a name="strict_variant.remarks.future_directions.h3"></a>
-        <span><a name="strict_variant.remarks.future_directions.support_extended_integer_types"></a></span><a class="link" href="future_directions.html#strict_variant.remarks.future_directions.support_extended_integer_types">Support
-        extended integer types</a>
-      </h5>
-<p>
-        Is there a good way that we can potentially extend the <code class="computeroutput"><span class="identifier">safely_constructible</span></code>
-        framework to include potential implementation-specific extended integer types?
-      </p>
-<p>
-        Right now, I think the user could accomplish this by specializing a number
-        of traits in our header, but
-      </p>
-<div class="orderedlist"><ol class="orderedlist" type="1">
-<li class="listitem">
-            Those traits aren't documented, and I'm not even sure if I consider them
-            forwarding-facing.
-          </li>
-<li class="listitem">
-            I haven't actually tested this.
-          </li>
-<li class="listitem">
-            It could probably be made much simpler for them.
-          </li>
-</ol></div>
-<h5>
-<a name="strict_variant.remarks.future_directions.h4"></a>
         <span><a name="strict_variant.remarks.future_directions.improve_noexcept_annotations_of_"></a></span><a class="link" href="future_directions.html#strict_variant.remarks.future_directions.improve_noexcept_annotations_of_">Improve
         <code class="computeroutput"><span class="keyword">noexcept</span></code> annotations of <code class="computeroutput"><span class="identifier">variant</span></code> when using <code class="computeroutput"><span class="identifier">recursive_wrapper</span></code>?</a>
       </h5>
@@ -134,7 +112,7 @@
         so far as I know.
       </p>
 <h5>
-<a name="strict_variant.remarks.future_directions.h5"></a>
+<a name="strict_variant.remarks.future_directions.h4"></a>
         <span><a name="strict_variant.remarks.future_directions.add_an_operator_t_overload"></a></span><a class="link" href="future_directions.html#strict_variant.remarks.future_directions.add_an_operator_t_overload">Add
         an <code class="computeroutput"><span class="keyword">operator</span> <span class="special">=</span>
         <span class="special">(</span><span class="identifier">T</span> <span class="special">&amp;&amp;)</span></code> overload?</a>
@@ -190,6 +168,24 @@
 <p>
         I haven't been able to convince myself that adding this is actually a good
         idea, but I might be open to it in the future.
+      </p>
+<h5>
+<a name="strict_variant.remarks.future_directions.h5"></a>
+        <span><a name="strict_variant.remarks.future_directions.support_references_using_std_ref"></a></span><a class="link" href="future_directions.html#strict_variant.remarks.future_directions.support_references_using_std_ref">Support
+        references using <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">reference_wrapper</span></code>?</a>
+      </h5>
+<p>
+        The <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">variant</span></code> does this, but it doesn't seem
+        all that useful, and would introduce more complex rules for safety.
+      </p>
+<h5>
+<a name="strict_variant.remarks.future_directions.h6"></a>
+        <span><a name="strict_variant.remarks.future_directions.support_arrays_implicitly_using_"></a></span><a class="link" href="future_directions.html#strict_variant.remarks.future_directions.support_arrays_implicitly_using_">Support
+        arrays implicitly using <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">array</span></code>?</a>
+      </h5>
+<p>
+        It seems simpler to just explicitly forbid arrays, but I didn't do this yet
+        either.
       </p>
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>

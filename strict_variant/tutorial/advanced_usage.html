@@ -227,15 +227,17 @@
 <p>
         <code class="computeroutput"><span class="identifier">strict_variant</span></code> also requires
         that its types are <code class="computeroutput"><span class="identifier">nothrow_destructible</span></code>.
+        It doesn't require that they are copyable or moveable.
       </p>
 <p>
         However, <code class="computeroutput"><span class="identifier">strict_variant</span></code> is
-        different in that it can only be assignable if each type is assignable AND
+        different in that it is only assignable when each type is assignable AND
         each type is <code class="computeroutput"><span class="identifier">nothrow_move_constructible</span></code>.
-        If this doesn't happen, compilation will fail with a <code class="computeroutput"><span class="keyword">static_assert</span></code>.
+        If this doesn't happen, compiling an assignment operation will fail with
+        a <code class="computeroutput"><span class="keyword">static_assert</span></code>.
       </p>
 <p>
-        Since that's not always possible for the types you may want to use it with,
+        Since you can't always make your types <code class="computeroutput"><span class="identifier">nothrow_move_constructible</span></code>,
         there are a few handy solutions.
       </p>
 <p>
@@ -282,10 +284,10 @@
 <li class="listitem">
 <p class="simpara">
             Use <code class="computeroutput"><span class="identifier">easy_variant</span></code> instead.
-            It's the same, but it implicitly applies wrappers to value types
+            It's the same, but it implicitly applies wrappers to value types with
+            a throwing move.
           </p>
-<pre class="programlisting"><span class="comment">// with a throwing move.</span>
-<span class="keyword">void</span>
+<pre class="programlisting"><span class="keyword">void</span>
 <span class="identifier">goal</span><span class="special">()</span> <span class="special">{</span>
   <span class="identifier">easy_variant</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">,</span> <span class="identifier">X</span><span class="special">&gt;</span> <span class="identifier">v</span><span class="special">;</span>
   <span class="identifier">v</span> <span class="special">=</span> <span class="number">5</span><span class="special">;</span>

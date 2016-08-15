@@ -387,24 +387,25 @@
             </p>
 <p>
               Unless you customize those type traits, the behavior is only modified
-              in the case of
             </p>
-<div class="itemizedlist"><ul class="itemizedlist" type="disc">
-<li class="listitem">
-                  value types which <span class="emphasis"><em>decay to an <code class="computeroutput"><span class="identifier">arithmetic</span></code>
-                  type or a pointer</em></span>.
-                </li>
-<li class="listitem">
-                  <code class="computeroutput"><span class="identifier">T</span></code> itself <span class="emphasis"><em>decays
-                  to an <code class="computeroutput"><span class="identifier">arithmetic</span></code>
-                  type or a pointer</em></span>.
-                </li>
-</ul></div>
+<div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
+                  When <code class="computeroutput"><span class="identifier">T</span></code> itself is
+                  (or decays to) an <code class="computeroutput"><span class="identifier">arithmetic</span></code>
+                  type or a pointer type.
+                </li></ul></div>
 <p>
-              This feature acts to prevent: * Narrowing conversions, on any platform.
-              * Implicit conversions to / from <code class="computeroutput"><span class="keyword">bool</span></code>,
-              pointers, and others. * Certain kinds of overload ambiguity when there
-              are many integral types in the variant.
+              [In regards to value types which are (or decay to) an <code class="computeroutput"><span class="identifier">arithmetic</span></code> type or a pointer type.]
+            </p>
+<p>
+              When <code class="computeroutput"><span class="identifier">T</span></code> does not meet
+              these criteria, overload resolution occurs with all value types.
+            </p>
+<p>
+              This feature acts to prevent: * Conversions which could be <span class="emphasis"><em>narrowing</em></span>
+              on some conforming implementation of C++. * Implicit conversions to
+              / from <code class="computeroutput"><span class="keyword">bool</span></code>, pointers,
+              and others. * Certain pointer conversions. * Certain kinds of overload
+              ambiguity when there are many integral types in the variant.
             </p>
 <p>
               Here are some concrete annotated examples:
@@ -419,7 +420,7 @@
 <span class="identifier">variant</span><span class="special">&lt;</span><span class="keyword">long</span><span class="special">,</span> <span class="keyword">unsigned</span> <span class="keyword">long</span> <span class="keyword">long</span><span class="special">&gt;</span> <span class="identifier">v</span><span class="special">{</span><span class="number">10u</span><span class="special">};</span>     <span class="comment">// `unsigned -&gt; signed long` is considered unsafe.</span>
 </pre>
 <p>
-              See those type traits for more detail.
+              See relevant type traits for more detail.
             </p>
 </dd>
 <dt><span class="term"><code class="computeroutput"><span class="identifier">variant</span><span class="special">(</span><span class="identifier">emplace_tag</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;,</span> <span class="identifier">Args</span> <span class="special">&amp;&amp;</span>

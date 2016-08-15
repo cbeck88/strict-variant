@@ -10,6 +10,8 @@ strict_variant/reference/class_template_variant.html
 strict_variant/reference/class_template_recursive_wrapper.html
 strict_variant/reference/arithmetic_category.html
 strict_variant/reference/arithmetic_rank.html
+strict_variant/reference/safe_arithmetic_conversion.html
+strict_variant/reference/safe_pointer_conversion.html
 strict_variant/reference/safely_constructible.html
 strict_variant/reference/dominates.html
 strict_variant/reference/includes.html

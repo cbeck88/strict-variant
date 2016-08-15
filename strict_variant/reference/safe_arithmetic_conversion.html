@@ -1,0 +1,178 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<title>Type relationship safe_arithmetic_conversion</title>
+<link rel="stylesheet" href="../../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="../../index.html" title="Chapter&#160;1.&#160;Strict Variant 0.0">
+<link rel="up" href="../reference.html" title="Reference">
+<link rel="prev" href="arithmetic_rank.html" title="Type trait arithmetic_rank">
+<link rel="next" href="safe_pointer_conversion.html" title="Type relationship safe_pointer_conversion">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<div class="spirit-nav">
+<a accesskey="p" href="arithmetic_rank.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../reference.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="safe_pointer_conversion.html"><img src="../../images/next.png" alt="Next"></a>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="strict_variant.reference.safe_arithmetic_conversion"></a><a class="link" href="safe_arithmetic_conversion.html" title="Type relationship safe_arithmetic_conversion">Type
+      relationship <code class="computeroutput"><span class="identifier">safe_arithmetic_conversion</span></code></a>
+</h3></div></div></div>
+<p>
+        The <code class="computeroutput"><span class="identifier">safe_arithmetic_conversion</span></code>
+        type trait has the same syntax as <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">is_constructible</span></code>.
+        It determines the behavior of <code class="computeroutput"><span class="identifier">safely_constructible</span></code>
+        for <span class="bold"><strong>arithmetic types</strong></span>.
+      </p>
+<p>
+        It is defined in terms of sign, <a class="link" href="arithmetic_category.html" title="Type trait arithmetic_category">arithmetic
+        category</a> and <a class="link" href="arithmetic_rank.html" title="Type trait arithmetic_rank">arithmetic
+        rank</a> of its arguments.
+      </p>
+<h4>
+<a name="strict_variant.reference.safe_arithmetic_conversion.h0"></a>
+        <span><a name="strict_variant.reference.safe_arithmetic_conversion.valid_expressions"></a></span><a class="link" href="safe_arithmetic_conversion.html#strict_variant.reference.safe_arithmetic_conversion.valid_expressions">Valid
+        Expressions</a>
+      </h4>
+<div class="informaltable"><table class="table">
+<colgroup>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>
+                <p>
+                  expression
+                </p>
+              </th>
+<th>
+                <p>
+                  value
+                </p>
+              </th>
+</tr></thead>
+<tbody>
+<tr>
+<td>
+                <p>
+                  <code class="computeroutput"><span class="identifier">T</span><span class="special">,</span>
+                  <span class="identifier">U</span></code>
+                </p>
+              </td>
+<td>
+                <p>
+                  any arithmetic types
+                </p>
+              </td>
+</tr>
+<tr>
+<td>
+                <p>
+                  <code class="computeroutput"><span class="identifier">safe_arithmetic_conversion</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">,</span> <span class="identifier">U</span><span class="special">&gt;::</span><span class="identifier">value</span></code>
+                </p>
+              </td>
+<td>
+                <p>
+                  <code class="computeroutput"><span class="keyword">true</span></code> if a <code class="computeroutput"><span class="identifier">variant</span></code> for which <code class="computeroutput"><span class="identifier">T</span></code> is one of the value types should
+                  be constructible from <code class="computeroutput"><span class="identifier">U</span></code>.
+                </p>
+              </td>
+</tr>
+</tbody>
+</table></div>
+<h4>
+<a name="strict_variant.reference.safe_arithmetic_conversion.h1"></a>
+        <span><a name="strict_variant.reference.safe_arithmetic_conversion.notes"></a></span><a class="link" href="safe_arithmetic_conversion.html#strict_variant.reference.safe_arithmetic_conversion.notes">Notes</a>
+      </h4>
+<div class="itemizedlist"><ul class="itemizedlist" type="disc">
+<li class="listitem">
+            Conversions between any two <a class="link" href="arithmetic_category.html" title="Type trait arithmetic_category">arithmetic
+            categories</a> are considered unsafe.
+          </li>
+<li class="listitem">
+            If a conversion <span class="emphasis"><em>could</em></span> be narrowing on some conforming
+            implementation of C++, then it is not safe. (So, <code class="computeroutput"><span class="keyword">long</span>
+            <span class="keyword">long</span></code> cannot be converted to <code class="computeroutput"><span class="keyword">long</span></code> and <code class="computeroutput"><span class="keyword">long</span></code>
+            cannot be converted to <code class="computeroutput"><span class="keyword">int</span></code>,
+            even if you are on a 32-bit machine and they have the same size for you,
+            because it could be narrowing on a 64-bit machine.) This is determined
+            by checking if the <a class="link" href="arithmetic_rank.html" title="Type trait arithmetic_rank">arithmetic
+            rank</a> decreases as a result of the conversion.
+          </li>
+<li class="listitem">
+            Signed can be converted to unsigned, but the reverse is not allowed (since
+            it is typically implementation-defined, and may trigger warnings).
+          </li>
+</ul></div>
+<h4>
+<a name="strict_variant.reference.safe_arithmetic_conversion.h2"></a>
+        <span><a name="strict_variant.reference.safe_arithmetic_conversion.definition"></a></span><a class="link" href="safe_arithmetic_conversion.html#strict_variant.reference.safe_arithmetic_conversion.definition">Definition</a>
+      </h4>
+<p>
+        The complete definition is given:
+      </p>
+<pre class="programlisting"><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">A</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">B</span><span class="special">&gt;</span>
+<span class="keyword">struct</span> <span class="identifier">safe_arithmetic_conversion</span> <span class="special">{</span>
+  <span class="keyword">static</span> <span class="keyword">constexpr</span> <span class="keyword">bool</span> <span class="identifier">same_class</span> <span class="special">=</span>
+    <span class="special">(</span><span class="identifier">mpl</span><span class="special">::</span><span class="identifier">classify_arithmetic</span><span class="special">&lt;</span><span class="identifier">A</span><span class="special">&gt;::</span><span class="identifier">value</span> <span class="special">==</span> <span class="identifier">mpl</span><span class="special">::</span><span class="identifier">classify_arithmetic</span><span class="special">&lt;</span><span class="identifier">B</span><span class="special">&gt;::</span><span class="identifier">value</span><span class="special">);</span>
+  <span class="keyword">static</span> <span class="keyword">constexpr</span> <span class="keyword">bool</span> <span class="identifier">unsign_to_sign</span> <span class="special">=</span> <span class="special">!</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">is_unsigned</span><span class="special">&lt;</span><span class="identifier">A</span><span class="special">&gt;::</span><span class="identifier">value</span> <span class="special">&amp;&amp;</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">is_unsigned</span><span class="special">&lt;</span><span class="identifier">B</span><span class="special">&gt;::</span><span class="identifier">value</span><span class="special">;</span>
+
+  <span class="keyword">static</span> <span class="keyword">constexpr</span> <span class="keyword">int</span> <span class="identifier">ra</span> <span class="special">=</span> <span class="identifier">mpl</span><span class="special">::</span><span class="identifier">arithmetic_rank</span><span class="special">&lt;</span><span class="identifier">A</span><span class="special">&gt;::</span><span class="identifier">value</span><span class="special">;</span>
+  <span class="keyword">static</span> <span class="keyword">constexpr</span> <span class="keyword">int</span> <span class="identifier">rb</span> <span class="special">=</span> <span class="identifier">mpl</span><span class="special">::</span><span class="identifier">arithmetic_rank</span><span class="special">&lt;</span><span class="identifier">B</span><span class="special">&gt;::</span><span class="identifier">value</span><span class="special">;</span>
+
+  <span class="keyword">static</span> <span class="keyword">constexpr</span> <span class="keyword">bool</span> <span class="identifier">value</span> <span class="special">=</span> <span class="identifier">same_class</span> <span class="special">&amp;&amp;</span> <span class="special">!</span><span class="identifier">unsign_to_sign</span> <span class="special">&amp;&amp;</span> <span class="special">(</span><span class="identifier">ra</span> <span class="special">&gt;=</span> <span class="identifier">rb</span><span class="special">);</span>
+<span class="special">};</span>
+
+<span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">A</span><span class="special">&gt;</span>
+<span class="keyword">struct</span> <span class="identifier">safe_arithmetic_conversion</span><span class="special">&lt;</span><span class="identifier">A</span><span class="special">,</span> <span class="keyword">char</span><span class="special">&gt;</span> <span class="special">{</span>
+  <span class="keyword">static</span> <span class="keyword">constexpr</span> <span class="keyword">bool</span> <span class="identifier">value</span> <span class="special">=</span> <span class="identifier">safe_arithmetic_conversion</span><span class="special">&lt;</span><span class="identifier">A</span><span class="special">,</span> <span class="keyword">signed</span> <span class="keyword">char</span><span class="special">&gt;::</span><span class="identifier">value</span>
+                                <span class="special">&amp;&amp;</span> <span class="identifier">safe_arithmetic_conversion</span><span class="special">&lt;</span><span class="identifier">A</span><span class="special">,</span> <span class="keyword">unsigned</span> <span class="keyword">char</span><span class="special">&gt;::</span><span class="identifier">value</span><span class="special">;</span>
+<span class="special">};</span>
+
+<span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">B</span><span class="special">&gt;</span>
+<span class="keyword">struct</span> <span class="identifier">safe_arithmetic_conversion</span><span class="special">&lt;</span><span class="keyword">char</span><span class="special">,</span> <span class="identifier">B</span><span class="special">&gt;</span> <span class="special">{</span>
+  <span class="keyword">static</span> <span class="keyword">constexpr</span> <span class="keyword">bool</span> <span class="identifier">value</span> <span class="special">=</span> <span class="identifier">safe_arithmetic_conversion</span><span class="special">&lt;</span><span class="keyword">signed</span> <span class="keyword">char</span><span class="special">,</span> <span class="identifier">B</span><span class="special">&gt;::</span><span class="identifier">value</span>
+                                <span class="special">&amp;&amp;</span> <span class="identifier">safe_arithmetic_conversion</span><span class="special">&lt;</span><span class="keyword">unsigned</span> <span class="keyword">char</span><span class="special">,</span> <span class="identifier">B</span><span class="special">&gt;::</span><span class="identifier">value</span><span class="special">;</span>
+<span class="special">};</span>
+
+<span class="keyword">template</span> <span class="special">&lt;&gt;</span>
+<span class="keyword">struct</span> <span class="identifier">safe_arithmetic_conversion</span><span class="special">&lt;</span><span class="keyword">char</span><span class="special">,</span> <span class="keyword">char</span><span class="special">&gt;</span> <span class="special">:</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">true_type</span> <span class="special">{};</span>
+</pre>
+<p>
+        The type <code class="computeroutput"><span class="keyword">char</span></code> requires special
+        treatment, because it is implementation-defined if it is <code class="computeroutput"><span class="keyword">signed</span></code>
+        or <code class="computeroutput"><span class="keyword">unsigned</span></code>. Since we'd like
+        to eliminate implementation-specific behavior, an arithmetic conversion involving
+        <code class="computeroutput"><span class="keyword">char</span></code> is permitted only when
+        it would be permitted for both <code class="computeroutput"><span class="keyword">signed</span>
+        <span class="keyword">char</span></code> and <code class="computeroutput"><span class="keyword">unsigned</span>
+        <span class="keyword">char</span></code>.
+      </p>
+<div class="note"><table border="0" summary="Note">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="../../images/note.png"></td>
+<th align="left">Note</th>
+</tr>
+<tr><td align="left" valign="top"><p>
+          You are welcome to specialize this trait to modify the behavior of <code class="computeroutput"><span class="identifier">strict_variant</span></code>, but it might not always
+          be the simplest way. Consider specializing <code class="computeroutput"><span class="identifier">arithmetic_rank</span></code>
+          and/or <code class="computeroutput"><span class="identifier">classify_arithmetic</span></code>,
+          or <code class="computeroutput"><span class="identifier">safely_constructible</span></code>,
+          instead.
+        </p></td></tr>
+</table></div>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright &#169; 2016 Chris Beck<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="arithmetic_rank.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../reference.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="safe_pointer_conversion.html"><img src="../../images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>

@@ -92,8 +92,11 @@
         <span><a name="strict_variant.reference.dominates.synopsis"></a></span><a class="link" href="dominates.html#strict_variant.reference.dominates.synopsis">Synopsis</a>
       </h4>
 <p>
-        The default implementation affects arithmetic types or types which <span class="emphasis"><em>decay</em></span>
-        to arithmetic, which means they have have CV and/or reference qualifiers.
+        The default implementation will only returns <code class="computeroutput"><span class="keyword">true</span></code>
+        in scenarios in which <code class="computeroutput"><span class="identifier">A</span><span class="special">,</span>
+        <span class="identifier">B</span><span class="special">,</span> <span class="identifier">C</span></code> are arithmetic types or types which
+        <span class="emphasis"><em>decay</em></span> to arithmetic, which means they are arithmetic
+        types with CV qualifiers and/or references.
       </p>
 <pre class="programlisting"><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">A</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">B</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">C</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">ENABLE</span> <span class="special">=</span> <span class="keyword">void</span><span class="special">&gt;</span>
 <span class="keyword">struct</span> <span class="identifier">dominates</span> <span class="special">:</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">false_type</span> <span class="special">{};</span>
