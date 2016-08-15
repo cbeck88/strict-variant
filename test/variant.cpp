@@ -600,33 +600,32 @@ UNIT_TEST(promotion) {
   }
 }
 
-
 namespace value_type_test {
-  struct foo {};
-  struct bar {};
+struct foo {};
+struct bar {};
 
-  struct visitor {
-    mutable int flag_ = 0;
+struct visitor {
+  mutable int flag_ = 0;
 
-    void operator()(const foo &) const { flag_ = 1; }
+  void operator()(const foo &) const { flag_ = 1; }
 
-    void operator()(const bar &) const { flag_ = 4; }
+  void operator()(const bar &) const { flag_ = 4; }
 
-    void operator()(foo &) const { flag_ = 2; }
+  void operator()(foo &) const { flag_ = 2; }
 
-    void operator()(bar &) const { flag_ = 5; }
+  void operator()(bar &) const { flag_ = 5; }
 
-    void operator()(foo &&) const { flag_ = 3; }
+  void operator()(foo &&) const { flag_ = 3; }
 
-    void operator()(bar &&) const { flag_ = 6; }
-  };
+  void operator()(bar &&) const { flag_ = 6; }
+};
 
-  struct visitor2 {
-    mutable int flag_ = 0;
+struct visitor2 {
+  mutable int flag_ = 0;
 
-    void operator()(foo &) const { flag_ = 1; }
-    void operator()(bar &) const { flag_ = 2; }
-  };
+  void operator()(foo &) const { flag_ = 1; }
+  void operator()(bar &) const { flag_ = 2; }
+};
 } // end namespace value_type_test
 
 UNIT_TEST(apply_visitor_value_type) {
@@ -684,7 +683,7 @@ UNIT_TEST(visit_value_type) {
   x.visit(vis);
   TEST_EQ(vis.flag_, 2);
 
-  //std::move(x).visit(vis);
+  // std::move(x).visit(vis);
   var_t{}.visit(vis);
   TEST_EQ(vis.flag_, 3);
 

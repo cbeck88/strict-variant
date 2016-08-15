@@ -333,17 +333,21 @@ public:
   using dispatcher_t = detail::visitor_dispatch<detail::false_, 1 + sizeof...(Types)>;
 
   template <typename V>
-  auto visit(V && v) & -> decltype(dispatcher_t{}(int(), *static_cast<storage_t*>(nullptr), std::forward<V>(v))) {
+  auto visit(V && v) & -> decltype(dispatcher_t{}(int(), *static_cast<storage_t *>(nullptr),
+                                                  std::forward<V>(v))) {
     return dispatcher_t{}(this->which(), this->m_storage, std::forward<V>(v));
   }
 
   template <typename V>
-  auto visit(V && v) const & -> decltype(dispatcher_t{}(int(), *static_cast<const storage_t*>(nullptr), std::forward<V>(v))) {
+  auto visit(V && v) const & -> decltype(dispatcher_t{}(int(),
+                                                        *static_cast<const storage_t *>(nullptr),
+                                                        std::forward<V>(v))) {
     return dispatcher_t{}(this->which(), this->m_storage, std::forward<V>(v));
   }
 
   template <typename V>
-  auto visit(V && v) && -> decltype(dispatcher_t{}(int(), std::declval<storage_t>(), std::forward<V>(v))) {
+  auto visit(V && v) && -> decltype(dispatcher_t{}(int(), std::declval<storage_t>(),
+                                                   std::forward<V>(v))) {
     return dispatcher_t{}(this->which(), std::move(this->m_storage), std::forward<V>(v));
   }
 

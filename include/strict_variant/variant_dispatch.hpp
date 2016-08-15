@@ -185,14 +185,12 @@ struct visitor_dispatch {
   struct call_helper {
     using rtyper = return_typer<Internal, Storage, Visitor>;
 
-    static constexpr bool noexcept_value = conjunction<
-      mpl::ulist_map_t<rtyper::template noexcept_prop,
-                              mpl::count_t<num_types>>>::value;
+    static constexpr bool noexcept_value =
+      conjunction<mpl::ulist_map_t<rtyper::template noexcept_prop, mpl::count_t<num_types>>>::value;
 
-    using return_type =
-      typename mpl::typelist_fwd<mpl::common_return_type_t,
-                                 mpl::ulist_map_t<rtyper::template helper,
-                                                         mpl::count_t<num_types>>>::type;
+    using return_type = typename mpl::typelist_fwd<mpl::common_return_type_t,
+                                                   mpl::ulist_map_t<rtyper::template helper,
+                                                                    mpl::count_t<num_types>>>::type;
   };
 
   // Invoke the actual dispatcher
