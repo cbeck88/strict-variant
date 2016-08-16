@@ -322,39 +322,13 @@ public:
    * Visitation
    */
 
-  // C++17 visit syntax
-  using dispatcher_t = detail::visitor_dispatch<detail::false_, 1 + sizeof...(Types)>;
-
-  template <typename V>
-  auto visit(V && v) & -> decltype(dispatcher_t{}(int(), *static_cast<storage_t *>(nullptr),
-                                                  std::forward<V>(v))) {
-    return dispatcher_t{}(this->which(), this->m_storage, std::forward<V>(v));
-  }
-
-  template <typename V>
-  auto visit(V && v) const & -> decltype(dispatcher_t{}(int(),
-                                                        *static_cast<const storage_t *>(nullptr),
-                                                        std::forward<V>(v))) {
-    return dispatcher_t{}(this->which(), static_cast<const storage_t &>(this->m_storage),
-                          std::forward<V>(v));
-  }
-
-  template <typename V>
-  auto visit(V && v) && -> decltype(dispatcher_t{}(int(), std::declval<storage_t>(),
-                                                   std::forward<V>(v))) {
-    return dispatcher_t{}(this->which(), std::move(this->m_storage), std::forward<V>(v));
-  }
-
-  // Friend apply_visitor (boost::apply_visitor syntax)
-
   // Implementation details for apply_visitor
 private:
-  dispatcher_t get_visitor_dispatch() const { return {}; }
+  using dispatcher_t = detail::visitor_dispatch<detail::false_, 1 + sizeof...(Types)>;
 
 #define APPLY_VISITOR_IMPL_BODY                                                                    \
-  visitable.get_visitor_dispatch()(visitable.which(),                                              \
-                                   std::forward<Visitable>(visitable).m_storage,                   \
-                                   std::forward<Visitor>(visitor))
+  dispatcher_t{}(visitable.which(), std::forward<Visitable>(visitable).m_storage,                  \
+                 std::forward<Visitor>(visitor))
 
   // Visitable is assumed to be, forwarding reference to this type.
   template <typename Visitor, typename Visitable>
@@ -366,6 +340,23 @@ private:
 #undef APPLY_VISITOR_IMPL_BODY
 
 public:
+
+  // C++17 visit syntax
+
+  #define DECLARE_VISIT(QUAL, BODY) \
+  template <typename V> \
+  auto visit(V && v) QUAL -> decltype(BODY) { \
+    return BODY; \
+  }
+
+  DECLARE_VISIT(&, (apply_visitor_impl(std::forward<V>(v), *this)))
+  DECLARE_VISIT(const &, (apply_visitor_impl(std::forward<V>(v), *this)))
+  DECLARE_VISIT(&&, (apply_visitor_impl(std::forward<V>(v), std::move(*this))))
+
+  #undef DECLARE_VISIT
+
+  // Friend apply_visitor (boost::apply_visitor syntax)
+
 #define APPLY_VISITOR_BODY                                                                         \
   mpl::remove_reference_t<Visitable>::apply_visitor_impl(std::forward<Visitor>(visitor),           \
                                                          std::forward<Visitable>(visitable))
