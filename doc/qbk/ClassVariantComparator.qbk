@@ -20,11 +20,29 @@ In header `<strict_variant/variant_compare.hpp>`.
 [h3 Notes]
 
 * The first template parameter must be a `variant` type.
-* The second template parameter should be a template-template parameter such as `std::less`, which is the default. It must be specializable for each value type of the `variant`, and should produce a valid comparator in each case.
+* The second template parameter should be a template-template parameter such as `std::less`, which is the default. `ComparatorTemplate<V>` should produce a valid LessThan comparator for each value type `V` of the `variant`.
 * The third template parameter should be a comparator for the `int` type, such as `std::less<int>`, which is the default. This is used to compare the `which` values.
+
+[caution
+  A less-than comparator is said to ['induce] an equality-comparator by the following identity:
+
+  ``a == b    if and only if    !(a < b) && !(b < a)``
+
+  If a non-default `WhichComparator` is used (third template parameter), it still must induce the same equality-comparator as `std::less<int>`, or bad behavior will result.]
 
 [h3 Example]
 
+Note that even when `<strict_variant/variant_compare.hpp>` is included, `variant` does still not have a `operator <` overload for comparisons.
+Basically we consider that this is too error-prone. See a [@https://akrzemi1.wordpress.com/2014/12/02/a-gotcha-with-optional/ related discussion].
+
+You can use `strict_variant` with `std::set` like so:
+
 [strict_variant_std_set_example]
+
+An alternate method is to specialize `std::less` for `variant` types:
+
+[strict_variant_std_less_specialization_example]
+
+This may save some typing if you often use `variant` in associative containers, but it is also less explicit.
 
 [endsect]

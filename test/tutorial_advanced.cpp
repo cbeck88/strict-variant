@@ -143,7 +143,6 @@ class X {
 public:
   X() noexcept;
   X(const X &) noexcept(false);
-
   X & operator=(const X &) noexcept(false);
 };
 
@@ -151,8 +150,8 @@ public:
 void
 goal() {
   variant<int, X> v;
-  //=  v = 5;
-  //=  v = X();  // Error: No assignment if X has a throwing move!
+  //=v = 5;
+  //=v = X();  // Error: No assignment if X has a throwing move!
 }
 
 //]
