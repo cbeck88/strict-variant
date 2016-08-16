@@ -516,9 +516,6 @@ private:
 // destroyer
 template <typename First, typename... Types>
 struct variant<First, Types...>::destroyer {
-  typedef void result_type;
-
-  // "Choose the form of the destructor!"
   template <typename T>
   void operator()(T & t) const noexcept {
     t.~T();
@@ -736,8 +733,6 @@ variant<First, Types...>::swap(variant & other) noexcept {
 // avoid including extra stuff.
 template <typename First, typename... Types>
 struct eq_checker {
-  typedef bool result_type;
-
   using var_t = variant<First, Types...>;
 
   eq_checker(const var_t & lhs_variant)
