@@ -335,6 +335,7 @@ private:
   static auto apply_visitor_impl(Visitor && visitor,
                                  Visitable && visitable) noexcept(noexcept(APPLY_VISITOR_IMPL_BODY))
     -> decltype(APPLY_VISITOR_IMPL_BODY) {
+    static_assert(std::is_same<const variant, const mpl::remove_reference_t<Visitable>>::value, "Misuse of apply_visitor_impl!");
     return APPLY_VISITOR_IMPL_BODY;
   }
 
