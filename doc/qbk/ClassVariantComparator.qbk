@@ -7,7 +7,7 @@ A comparator object for a `variant` type which is appropriate to use with
 
 [table
   [[expression] [value]]
-  [[`Types...`] [ any types]]
+  [[`Types...`] [ any `LessThanComparable` types, meeting `variant` type requirements]]
   [[`variant_comparator<variant<Types...>>`][ A less-than comparator object for `variant<Types...>`. ]]
   [[`variant_comparator<variant<Types...>>{}(const variant<Types...>& a, const variant<Types...>& b)`][ True if `a.which() < b.which()`, or `a.which() == b.which()` and `val_a < val_b` where `val_a` represents the value contained by `a`, and similarly for `b` . ]]]
 
@@ -20,7 +20,7 @@ In header `<strict_variant/variant_compare.hpp>`.
 [h3 Notes]
 
 * The first template parameter must be a `variant` type.
-* The second template parameter should be a template-template parameter such as `std::less`, which is the default. `ComparatorTemplate<V>` should produce a valid LessThan comparator for each value type `V` of the `variant`.
+* The second template parameter should be a template-template parameter such as `std::less`, which is the default. `ComparatorTemplate<V>` should produce a valid less-than comparator for each value type `V` of the `variant`.
 * The third template parameter should be a comparator for the `int` type, such as `std::less<int>`, which is the default. This is used to compare the `which` values.
 
 [caution
