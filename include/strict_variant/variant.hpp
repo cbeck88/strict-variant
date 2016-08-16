@@ -149,12 +149,9 @@ private:
   /***
    * Visitors used to implement special member functions and such
    */
-  struct copy_constructor;
-  struct move_constructor;
-
+  struct constructor;
   struct assigner;
   struct destroyer;
-
   struct swapper;
 
   // initializer. This is the overloaded function object used in T && ctor.
@@ -424,33 +421,15 @@ using easy_variant = variant<wrap_if_throwing_move_t<Ts>...>;
  * Implementation details of private visitors
  */
 template <typename First, typename... Types>
-struct variant<First, Types...>::copy_constructor {
+struct variant<First, Types...>::constructor {
   typedef void result_type;
 
-  explicit copy_constructor(variant & self)
+  explicit constructor(variant & self)
     : m_self(self) {}
 
   template <typename T>
-  void operator()(const T & rhs) const {
-    m_self.initialize<find_which<T>::value>(rhs);
-  }
-
-private:
-  variant & m_self;
-};
-
-// Note: move_constructor is intended to pierce recursive_wrapper,
-// otherwise the moved-from variant is left in an empty state.
-template <typename First, typename... Types>
-struct variant<First, Types...>::move_constructor {
-  typedef void result_type;
-
-  explicit move_constructor(variant & self)
-    : m_self(self) {}
-
-  template <typename T>
-  void operator()(T & rhs) const noexcept {
-    m_self.initialize<find_which<T>::value>(std::move(rhs));
+  void operator()(T && rhs) const {
+    m_self.initialize<find_which<mpl::remove_reference_t<T>>::value>(std::forward<T>(rhs));
   }
 
 private:
@@ -546,7 +525,7 @@ variant<First, Types...>::variant() noexcept(
 template <typename First, typename... Types>
 variant<First, Types...>::variant(const variant & rhs) noexcept(
   detail::variant_noexcept_helper<First, Types...>::nothrow_copy_ctors) {
-  copy_constructor c(*this);
+  constructor c(*this);
   apply_visitor(c, rhs);
   STRICT_VARIANT_ASSERT(rhs.which() == this->which(), "Postcondition failed!");
   STRICT_VARIANT_ASSERT_WHICH_INVARIANT;
@@ -556,8 +535,8 @@ variant<First, Types...>::variant(const variant & rhs) noexcept(
 template <typename First, typename... Types>
 variant<First, Types...>::variant(variant && rhs) noexcept(
   detail::variant_noexcept_helper<First, Types...>::nothrow_move_ctors) {
-  move_constructor mc(*this);
-  apply_visitor(mc, rhs);
+  constructor mc(*this);
+  apply_visitor(mc, std::move(rhs));
   STRICT_VARIANT_ASSERT(rhs.which() == this->which(), "Postcondition failed!");
   STRICT_VARIANT_ASSERT_WHICH_INVARIANT;
 }
@@ -605,7 +584,7 @@ template <typename First, typename... Types>
 template <typename OFirst, typename... OTypes, typename Enable>
 variant<First, Types...>::variant(const variant<OFirst, OTypes...> & other) noexcept(
   detail::variant_noexcept_helper<OFirst, OTypes...>::nothrow_copy_ctors) {
-  copy_constructor c(*this);
+  constructor c(*this);
   apply_visitor(c, other);
   STRICT_VARIANT_ASSERT_WHICH_INVARIANT;
 }
@@ -615,8 +594,8 @@ template <typename First, typename... Types>
 template <typename OFirst, typename... OTypes, typename Enable>
 variant<First, Types...>::variant(variant<OFirst, OTypes...> && other) noexcept(
   detail::variant_noexcept_helper<OFirst, OTypes...>::nothrow_move_ctors) {
-  move_constructor c(*this);
-  apply_visitor(c, other);
+  constructor c(*this);
+  apply_visitor(c, std::move(other));
   STRICT_VARIANT_ASSERT_WHICH_INVARIANT;
 }
 
