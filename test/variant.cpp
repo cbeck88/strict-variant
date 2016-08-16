@@ -843,6 +843,11 @@ UNIT_TEST(throwing_move) {
   TEST_EQ(v.which(), 1);
   v.emplace<test_a>();
   TEST_EQ(v.which(), 0);
+
+  v.emplace<1>();
+  TEST_EQ(v.which(), 1);
+  v.emplace<0>();
+  TEST_EQ(v.which(), 0);
 }
 
 UNIT_TEST(easy_variant) {
@@ -860,6 +865,11 @@ UNIT_TEST(easy_variant) {
   TEST_EQ(v.which(), 1);
   v = test_a{};
   TEST_EQ(v.which(), 0);
+
+  v.emplace<0>();
+  TEST_EQ(v.which(), 0);
+  v.emplace<1>();
+  TEST_EQ(v.which(), 1);
 }
 
 struct test_eq {

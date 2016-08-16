@@ -49,6 +49,9 @@ namespace strict_variant {
     template <typename T, typename... Args>
     void emplace(Args &&... args);
 
+    template <std::size_t, typename... Args>
+    void emplace(Args &&... args);
+
     // Standard swap
     void swap(variant &) noexcept;
 
@@ -271,6 +274,15 @@ provide rollback-semantics if an exception is thrown while changing the type of 
    [variablelist
      [[Requires][`T` must be a value type of the variant, modulo `const` and `recursive_wrapper`, and ['either] the invoked constructor, ['or] the move constructor of `T`, must be `noexcept`.]]
      [[Throws][Only if the invoked constructor throws.]]]]]
+
+[[`template <std::size_t i, typename ... Args> void emplace(Args && ... args)`]
+ [ Emplaces a value of the `i`'th value type into the variant.
+
+   Force the variant to a particular type and value.
+
+   [variablelist
+     [[Throws][Only if the invoked constructor throws.]]]]]
+
 
 [[`void swap(variant &) noexcept`]
  [ Standard `swap` implementation.

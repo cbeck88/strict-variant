@@ -114,7 +114,7 @@ private:
     this->apply_visitor_internal(d);
   }
 
-  template <size_t index, typename... Args>
+  template <std::size_t index, typename... Args>
   void initialize(Args &&... args) noexcept(
     noexcept(static_cast<storage_t *>(nullptr)->template initialize<index>(
       std::forward<Args>(std::declval<Args>())...))) {
@@ -140,7 +140,7 @@ private:
    */
   template <typename Rhs>
   struct find_which {
-    static constexpr size_t value =
+    static constexpr std::size_t value =
       mpl::Find_With<detail::same_modulo_const_ref_wrapper<Rhs>::template prop, First,
                      Types...>::value;
     static_assert(value < (sizeof...(Types) + 1), "No match for value");
@@ -247,13 +247,26 @@ public:
     detail::variant_noexcept_helper<First, Types...>::nothrow_move_assign);
 
   // Emplace operation
-  template <typename T, typename... Args>
-  mpl::enable_if_t<!std::is_nothrow_constructible<T, Args...>::value> // returns void
-    emplace(Args &&... args) noexcept(false);
+  template <std::size_t index, typename... Args>
+  mpl::enable_if_t<!std::is_nothrow_constructible<typename storage_t::template value_t<index>,
+                                                  Args...>::value>
+  emplace(Args &&... args) noexcept(false);
 
+  template <std::size_t index, typename... Args>
+  mpl::enable_if_t<std::is_nothrow_constructible<typename storage_t::template value_t<index>,
+                                                 Args...>::value>
+  emplace(Args &&... args) noexcept;
+
+  // Emplace with explicitly specified type -- makes a call to index version
   template <typename T, typename... Args>
-  mpl::enable_if_t<std::is_nothrow_constructible<T, Args...>::value> // returns void
-    emplace(Args &&... args) noexcept;
+  void emplace(Args &&... args) noexcept(noexcept(
+    static_cast<variant *>(nullptr)->emplace<find_which<T>::value>(std::forward<Args>(args)...))) {
+    constexpr std::size_t idx = find_which<T>::value;
+    static_assert(idx < sizeof...(Types) + 1,
+                  "Requested type is not a member of this variant type");
+
+    this->emplace<idx>(std::forward<Args>(args)...);
+  }
 
   // Swap operation
   // Optimized in case of `recursive_wrapper` to use a pointer move.
@@ -268,7 +281,7 @@ public:
   // get
   template <typename T>
   T * get() noexcept {
-    constexpr size_t idx = find_which<T>::value;
+    constexpr std::size_t idx = find_which<T>::value;
     static_assert(idx < sizeof...(Types) + 1,
                   "Requested type is not a member of this variant type");
 
@@ -277,7 +290,7 @@ public:
 
   template <typename T>
   const T * get() const noexcept {
-    constexpr size_t idx = find_which<T>::value;
+    constexpr std::size_t idx = find_which<T>::value;
     static_assert(idx < sizeof...(Types) + 1,
                   "Requested type is not a member of this variant type");
 
@@ -453,7 +466,7 @@ struct variant<First, Types...>::assigner {
 
     static_assert(noexcept(m_self.destroy()), "Noexcept assumption failed!");
 
-    constexpr size_t index = find_which<mpl::remove_reference_t<Rhs>>::value;
+    constexpr std::size_t index = find_which<mpl::remove_reference_t<Rhs>>::value;
     constexpr bool assume_nothrow_init =
       std::is_lvalue_reference<Rhs>::value
         ? detail::variant_noexcept_helper<First, Types...>::assume_copy_nothrow
@@ -605,7 +618,7 @@ template <typename First, typename... Types>
 template <typename T, typename... Args>
 variant<First, Types...>::variant(emplace_tag<T>, Args &&... args) noexcept(
   std::is_nothrow_constructible<T, Args...>::value) {
-  constexpr size_t idx = find_which<T>::value;
+  constexpr std::size_t idx = find_which<T>::value;
   static_assert(idx < sizeof...(Types) + 1, "Requested type is not a member of this variant type");
 
   this->initialize<idx>(std::forward<Args>(args)...);
@@ -620,22 +633,30 @@ variant<First, Types...>::variant(emplace_tag<T>, Args &&... args) noexcept(
 //     and reinitialize in-place.
 //   when the invoked constructor is not noexcept, we use a move for safety.
 template <typename First, typename... Types>
-template <typename T, typename... Args>
-mpl::enable_if_t<!std::is_nothrow_constructible<T, Args...>::value> // returns void
-  variant<First, Types...>::emplace(Args &&... args) noexcept(false) {
-  static_assert(std::is_nothrow_move_constructible<T>::value,
-                "To use emplace, either the invoked ctor or the move ctor must be noexcept.");
+template <std::size_t idx, typename... Args>
+auto
+variant<First, Types...>::emplace(Args &&... args) noexcept(false)
+  -> mpl::enable_if_t<!std::is_nothrow_constructible<typename storage_t::template value_t<idx>,
+                                                     Args...>::value> {
+
+  using temp_t = typename storage_t::template value_t<idx>;
+  static_assert(
+    std::is_nothrow_move_constructible<temp_t>::value,
+    "To use emplace, either the invoked ctor or the move ctor of value type must be noexcept.");
   // TODO: If T is in a recursive_wrapper, we should construct recursive_wrapper<T> instead.
-  T temp(std::forward<Args>(args)...);
-  this->emplace<T>(std::move(temp));
+  temp_t temp(std::forward<Args>(args)...);
+  this->emplace<idx>(std::move(temp));
 }
 
 template <typename First, typename... Types>
-template <typename T, typename... Args>
-mpl::enable_if_t<std::is_nothrow_constructible<T, Args...>::value> // returns void
-  variant<First, Types...>::emplace(Args &&... args) noexcept {
-  constexpr size_t idx = find_which<T>::value;
+template <std::size_t idx, typename... Args>
+auto
+variant<First, Types...>::emplace(Args &&... args) noexcept
+  -> mpl::enable_if_t<std::is_nothrow_constructible<typename storage_t::template value_t<idx>,
+                                                    Args...>::value> {
   static_assert(idx < sizeof...(Types) + 1, "Requested type is not a member of this variant type");
+  static_assert(noexcept(this->initialize<idx>(std::forward<Args>(args)...)),
+                "Noexcept assumption failed!");
 
   this->destroy();
   this->initialize<idx>(std::forward<Args>(args)...);
@@ -681,8 +702,8 @@ struct variant<First, Types...>::swapper {
     // swap using a move
     template <typename U>
     void operator()(U & second_visit) const noexcept {
-      constexpr size_t t_idx = var_t::find_which<T>::value;
-      constexpr size_t u_idx = var_t::find_which<U>::value;
+      constexpr std::size_t t_idx = var_t::find_which<T>::value;
+      constexpr std::size_t u_idx = var_t::find_which<U>::value;
 
       STRICT_VARIANT_ASSERT(t_idx == first_var_.which(), "Bad access during swap!");
       STRICT_VARIANT_ASSERT(u_idx == second_var_.which(), "Bad access during swap!");
