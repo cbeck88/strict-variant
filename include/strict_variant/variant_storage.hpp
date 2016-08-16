@@ -83,32 +83,32 @@ struct storage {
    * "Internal" (non-piercing) access is achieved if detail::true_ is passed
    */
   template <size_t index>
-  value_t<index> & get_value(const detail::true_ &) & {
+  value_t<index> & get_value(detail::true_) & {
     return *reinterpret_cast<value_t<index> *>(this->address());
   }
 
   template <size_t index>
-  const value_t<index> & get_value(const detail::true_ &) const & {
+  const value_t<index> & get_value(detail::true_) const & {
     return *reinterpret_cast<const value_t<index> *>(this->address());
   }
 
   template <size_t index>
-  value_t<index> && get_value(const detail::true_ &) && {
+  value_t<index> && get_value(detail::true_) && {
     return std::move(*reinterpret_cast<value_t<index> *>(this->address()));
   }
 
   template <size_t index>
-  unwrap_type_t<value_t<index>> & get_value(const detail::false_ &) & {
+  unwrap_type_t<value_t<index>> & get_value(detail::false_) & {
     return detail::pierce_recursive_wrapper(this->get_value<index>(detail::true_{}));
   }
 
   template <size_t index>
-  const unwrap_type_t<value_t<index>> & get_value(const detail::false_ &) const & {
+  const unwrap_type_t<value_t<index>> & get_value(detail::false_) const & {
     return detail::pierce_recursive_wrapper(this->get_value<index>(detail::true_{}));
   }
 
   template <size_t index>
-  unwrap_type_t<value_t<index>> && get_value(const detail::false_ &) && {
+  unwrap_type_t<value_t<index>> && get_value(detail::false_) && {
     return std::move(detail::pierce_recursive_wrapper(this->get_value<index>(detail::true_{})));
   }
 };
