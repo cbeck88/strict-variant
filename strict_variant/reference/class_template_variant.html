@@ -71,6 +71,12 @@
     <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">,</span> <span class="keyword">typename</span><span class="special">...</span> <span class="identifier">Args</span><span class="special">&gt;</span>
     <span class="keyword">void</span> <span class="identifier">emplace</span><span class="special">(</span><span class="identifier">Args</span> <span class="special">&amp;&amp;...</span> <span class="identifier">args</span><span class="special">);</span>
 
+    <span class="keyword">template</span> <span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span><span class="special">,</span> <span class="keyword">typename</span><span class="special">...</span> <span class="identifier">Args</span><span class="special">&gt;</span>
+    <span class="keyword">void</span> <span class="identifier">emplace</span><span class="special">(</span><span class="identifier">Args</span> <span class="special">&amp;&amp;...</span> <span class="identifier">args</span><span class="special">);</span>
+
+    <span class="comment">// Standard swap</span>
+    <span class="keyword">void</span> <span class="identifier">swap</span><span class="special">(</span><span class="identifier">variant</span> <span class="special">&amp;)</span> <span class="keyword">noexcept</span><span class="special">;</span>
+
     <span class="comment">// Reports the runtime type.</span>
     <span class="keyword">int</span> <span class="identifier">which</span><span class="special">()</span> <span class="keyword">const</span><span class="special">;</span>
 
@@ -87,10 +93,16 @@
     <span class="keyword">template</span> <span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">index</span><span class="special">&gt;</span>
     <span class="keyword">const</span> <span class="keyword">auto</span> <span class="special">*</span> <span class="identifier">get</span><span class="special">()</span> <span class="keyword">const</span><span class="special">;</span>
 
-    <span class="comment">// Test for equality.</span>
-    <span class="keyword">bool</span> <span class="keyword">operator</span> <span class="special">==</span> <span class="special">(</span><span class="keyword">const</span> <span class="identifier">variant</span> <span class="special">&amp;)</span> <span class="keyword">const</span><span class="special">;</span>
-    <span class="keyword">bool</span> <span class="keyword">operator</span> <span class="special">!=</span> <span class="special">(</span><span class="keyword">const</span> <span class="identifier">variant</span> <span class="special">&amp;)</span> <span class="keyword">const</span><span class="special">;</span>
   <span class="special">};</span>
+
+  <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span><span class="special">...</span> <span class="identifier">Types</span><span class="special">&gt;</span>
+  <span class="keyword">inline</span> <span class="keyword">bool</span> <span class="keyword">operator</span><span class="special">==(</span><span class="keyword">const</span> <span class="identifier">variant</span><span class="special">&lt;</span><span class="identifier">Types</span><span class="special">...&gt;</span> <span class="special">&amp;,</span> <span class="keyword">const</span> <span class="identifier">variant</span><span class="special">&lt;</span><span class="identifier">Types</span><span class="special">...&gt;</span> <span class="special">&amp;);</span>
+
+  <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span><span class="special">...</span> <span class="identifier">Types</span><span class="special">&gt;</span>
+  <span class="keyword">inline</span> <span class="keyword">bool</span> <span class="keyword">operator</span><span class="special">!=(</span><span class="keyword">const</span> <span class="identifier">variant</span><span class="special">&lt;</span><span class="identifier">Types</span><span class="special">...&gt;</span> <span class="special">&amp;,</span> <span class="keyword">const</span> <span class="identifier">variant</span><span class="special">&lt;</span><span class="identifier">Types</span><span class="special">...&gt;</span> <span class="special">&amp;);</span>
+
+  <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span><span class="special">...</span> <span class="identifier">Types</span><span class="special">&gt;</span>
+  <span class="keyword">void</span> <span class="identifier">swap</span><span class="special">(</span><span class="identifier">variant</span><span class="special">&lt;</span><span class="identifier">Types</span><span class="special">...&gt;</span> <span class="special">&amp;,</span> <span class="identifier">variant</span><span class="special">&lt;</span><span class="identifier">Types</span><span class="special">...&gt;</span> <span class="special">&amp;)</span> <span class="keyword">noexcept</span><span class="special">;</span>
 
   <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">,</span> <span class="keyword">typename</span> <span class="special">...</span> <span class="identifier">Types</span><span class="special">&gt;</span>
   <span class="identifier">T</span> <span class="special">*</span> <span class="identifier">get</span><span class="special">(</span><span class="identifier">variant</span><span class="special">&lt;</span><span class="identifier">Types</span><span class="special">...&gt;</span> <span class="special">*</span> <span class="identifier">v</span><span class="special">);</span>
@@ -401,12 +413,25 @@
               these criteria, overload resolution occurs with all value types.
             </p>
 <p>
-              This feature acts to prevent: * Conversions which could be <span class="emphasis"><em>narrowing</em></span>
-              on some conforming implementation of C++. * Implicit conversions to
-              / from <code class="computeroutput"><span class="keyword">bool</span></code>, pointers,
-              and others. * Certain pointer conversions. * Certain kinds of overload
-              ambiguity when there are many integral types in the variant.
+              This feature acts to prevent:
             </p>
+<div class="itemizedlist"><ul class="itemizedlist" type="disc">
+<li class="listitem">
+                  Conversions which could be <span class="emphasis"><em>narrowing</em></span> on some
+                  conforming implementation of C++.
+                </li>
+<li class="listitem">
+                  Implicit conversions to / from <code class="computeroutput"><span class="keyword">bool</span></code>,
+                  pointers, and others.
+                </li>
+<li class="listitem">
+                  Certain pointer conversions.
+                </li>
+<li class="listitem">
+                  Certain kinds of overload ambiguity when there are many integral
+                  types in the variant.
+                </li>
+</ul></div>
 <p>
               Here are some concrete annotated examples:
             </p>
@@ -420,7 +445,8 @@
 <span class="identifier">variant</span><span class="special">&lt;</span><span class="keyword">long</span><span class="special">,</span> <span class="keyword">unsigned</span> <span class="keyword">long</span> <span class="keyword">long</span><span class="special">&gt;</span> <span class="identifier">v</span><span class="special">{</span><span class="number">10u</span><span class="special">};</span>     <span class="comment">// `unsigned -&gt; signed long` is considered unsafe.</span>
 </pre>
 <p>
-              See relevant type traits for more detail.
+              See relevant type traits for more detail: <a class="link" href="safely_constructible.html" title="Type relationship safely_constructible"><code class="computeroutput"><span class="identifier">safely_constructible</span></code></a> and
+              <a class="link" href="dominates.html" title="Type relationship dominates"><code class="computeroutput"><span class="identifier">dominates</span></code></a>
             </p>
 </dd>
 <dt><span class="term"><code class="computeroutput"><span class="identifier">variant</span><span class="special">(</span><span class="identifier">emplace_tag</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;,</span> <span class="identifier">Args</span> <span class="special">&amp;&amp;</span>
@@ -559,6 +585,41 @@
 </dl>
 </div>
 </dd>
+<dt><span class="term"><code class="computeroutput"><span class="keyword">template</span> <span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">i</span><span class="special">,</span> <span class="keyword">typename</span> <span class="special">...</span> <span class="identifier">Args</span><span class="special">&gt;</span> <span class="keyword">void</span> <span class="identifier">emplace</span><span class="special">(</span><span class="identifier">Args</span> <span class="special">&amp;&amp;</span>
+          <span class="special">...</span> <span class="identifier">args</span><span class="special">)</span></code></span></dt>
+<dd>
+<p>
+              Emplaces a value of the <code class="computeroutput"><span class="identifier">i</span></code>'th
+              value type into the variant.
+            </p>
+<p>
+              Force the variant to a particular type and value.
+            </p>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Throws</span></dt>
+<dd><p>
+                    Only if the invoked constructor throws.
+                  </p></dd>
+</dl>
+</div>
+</dd>
+<dt><span class="term"><code class="computeroutput"><span class="keyword">void</span> <span class="identifier">swap</span><span class="special">(</span><span class="identifier">variant</span> <span class="special">&amp;)</span> <span class="keyword">noexcept</span></code></span></dt>
+<dd>
+<p>
+              Standard <code class="computeroutput"><span class="identifier">swap</span></code> implementation.
+            </p>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Requires</span></dt>
+<dd><p>
+                    Each value type is <code class="computeroutput"><span class="identifier">nothrow_move_constructible</span></code>.
+                  </p></dd>
+</dl>
+</div>
+</dd>
 </dl>
 </div>
 <div class="variablelist">
@@ -607,18 +668,23 @@
 </dd>
 </dl>
 </div>
+<h5>
+<a name="strict_variant.reference.class_template_variant.h5"></a>
+        <span><a name="strict_variant.reference.class_template_variant.template_functions"></a></span><a class="link" href="class_template_variant.html#strict_variant.reference.class_template_variant.template_functions">Template
+        Functions</a>
+      </h5>
 <div class="variablelist">
-<p class="title"><b>Operators</b></p>
+<p class="title"><b></b></p>
 <dl>
-<dt><span class="term"><code class="computeroutput"><span class="keyword">bool</span> <span class="keyword">operator</span>
-          <span class="special">==(</span><span class="keyword">const</span>
-          <span class="identifier">variant</span> <span class="special">&amp;</span>
-          <span class="identifier">other</span><span class="special">)</span>
+<dt><span class="term"><code class="computeroutput"><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span><span class="special">...</span> <span class="identifier">Types</span><span class="special">&gt;</span> <span class="keyword">inline</span> <span class="keyword">bool</span> <span class="keyword">operator</span> <span class="special">==(</span><span class="keyword">const</span> <span class="identifier">variant</span><span class="special">&lt;</span><span class="identifier">Types</span><span class="special">...&gt;</span> <span class="special">&amp;</span>
+          <span class="identifier">first</span><span class="special">,</span>
+          <span class="keyword">const</span> <span class="identifier">variant</span><span class="special">&lt;</span><span class="identifier">Types</span><span class="special">...&gt;</span> <span class="special">&amp;</span>
+          <span class="identifier">second</span><span class="special">)</span>
           <span class="keyword">const</span></code></span></dt>
 <dd>
 <p>
-              Checks if <code class="computeroutput"><span class="identifier">which</span><span class="special">()</span>
-              <span class="special">==</span> <span class="identifier">other</span><span class="special">.</span><span class="identifier">which</span><span class="special">()</span></code>. Then checks if the contained values
+              Checks if <code class="computeroutput"><span class="identifier">first</span><span class="special">.</span><span class="identifier">which</span><span class="special">()</span>
+              <span class="special">==</span> <span class="identifier">second</span><span class="special">.</span><span class="identifier">which</span><span class="special">()</span></code>. Then checks if the contained values
               compare equal using <code class="computeroutput"><span class="keyword">operator</span>
               <span class="special">==</span></code>.
             </p>
@@ -636,24 +702,33 @@
 </dl>
 </div>
 </dd>
-<dt><span class="term"><code class="computeroutput"><span class="keyword">bool</span> <span class="keyword">operator</span>
-          <span class="special">!=(</span><span class="keyword">const</span>
-          <span class="identifier">variant</span> <span class="special">&amp;)</span>
+<dt><span class="term"><code class="computeroutput"><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span><span class="special">...</span> <span class="identifier">Types</span><span class="special">&gt;</span> <span class="keyword">inline</span> <span class="keyword">bool</span> <span class="keyword">operator</span> <span class="special">!=(</span><span class="keyword">const</span> <span class="identifier">variant</span><span class="special">&lt;</span><span class="identifier">Types</span><span class="special">...&gt;</span> <span class="special">&amp;</span>
+          <span class="identifier">first</span><span class="special">,</span>
+          <span class="keyword">const</span> <span class="identifier">variant</span><span class="special">&lt;</span><span class="identifier">Types</span><span class="special">...&gt;</span> <span class="special">&amp;</span>
+          <span class="identifier">second</span><span class="special">)</span>
           <span class="keyword">const</span></code></span></dt>
 <dd><p>
               Returns the negation of <code class="computeroutput"><span class="keyword">operator</span>
               <span class="special">==</span></code>.
             </p></dd>
-</dl>
-</div>
-<h5>
-<a name="strict_variant.reference.class_template_variant.h5"></a>
-        <span><a name="strict_variant.reference.class_template_variant.template_functions"></a></span><a class="link" href="class_template_variant.html#strict_variant.reference.class_template_variant.template_functions">Template
-        Functions</a>
-      </h5>
+<dt><span class="term"><code class="computeroutput"><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span><span class="special">...</span> <span class="identifier">Types</span><span class="special">&gt;</span> <span class="keyword">void</span> <span class="identifier">swap</span><span class="special">(</span><span class="identifier">variant</span><span class="special">&lt;</span><span class="identifier">Types</span><span class="special">...&gt;</span> <span class="special">&amp;</span>
+          <span class="identifier">first</span><span class="special">,</span>
+          <span class="identifier">variant</span><span class="special">&lt;</span><span class="identifier">Types</span><span class="special">...&gt;</span>
+          <span class="special">&amp;</span> <span class="identifier">other</span><span class="special">)</span> <span class="keyword">noexcept</span></code></span></dt>
+<dd>
+<p>
+              Swap the values contained in two containers.
+            </p>
 <div class="variablelist">
 <p class="title"><b></b></p>
 <dl>
+<dt><span class="term">Requires</span></dt>
+<dd><p>
+                    Each value type is <code class="computeroutput"><span class="identifier">nothrow_move_constructible</span></code>.
+                  </p></dd>
+</dl>
+</div>
+</dd>
 <dt><span class="term"><code class="computeroutput"><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span> <span class="identifier">T</span> <span class="special">*</span> <span class="identifier">get</span><span class="special">(</span><span class="identifier">variant</span> <span class="special">*)</span></code></span></dt>
 <dd></dd>
 <dt><span class="term"><code class="computeroutput"><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span> <span class="keyword">const</span> <span class="identifier">T</span> <span class="special">*</span> <span class="identifier">get</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">variant</span>
