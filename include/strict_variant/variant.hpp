@@ -349,15 +349,11 @@ public:
 
   // Implementation details for apply_visitor
 private:
-  storage_t & storage() & { return m_storage; }
-  storage_t && storage() && { return std::move(m_storage); }
-  const storage_t & storage() const & { return m_storage; }
-
   dispatcher_t get_visitor_dispatch() const { return {}; }
 
 #define APPLY_VISITOR_IMPL_BODY                                                                    \
   visitable.get_visitor_dispatch()(visitable.which(),                                              \
-                                   std::forward<Visitable>(visitable).storage(),                   \
+                                   std::forward<Visitable>(visitable).m_storage,                   \
                                    std::forward<Visitor>(visitor))
 
   // Visitable is assumed to be, forwarding reference to this type.
