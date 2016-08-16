@@ -323,7 +323,7 @@ public:
    */
 
   // Implementation details for apply_visitor
-private:
+  // private:
   using dispatcher_t = detail::visitor_dispatch<detail::false_, 1 + sizeof...(Types)>;
 
 #define APPLY_VISITOR_IMPL_BODY                                                                    \
@@ -335,13 +335,14 @@ private:
   static auto apply_visitor_impl(Visitor && visitor,
                                  Visitable && visitable) noexcept(noexcept(APPLY_VISITOR_IMPL_BODY))
     -> decltype(APPLY_VISITOR_IMPL_BODY) {
-    static_assert(std::is_same<const variant, const mpl::remove_reference_t<Visitable>>::value, "Misuse of apply_visitor_impl!");
+    static_assert(std::is_same<const variant, const mpl::remove_reference_t<Visitable>>::value,
+                  "Misuse of apply_visitor_impl!");
     return APPLY_VISITOR_IMPL_BODY;
   }
 
 #undef APPLY_VISITOR_IMPL_BODY
 
-public:
+  // public:
   // C++17 visit syntax
   template <typename V>
     auto visit(V && v)
@@ -364,27 +365,18 @@ public:
          -> decltype(apply_visitor_impl(std::forward<V>(v), std::move(*this))) {
     return apply_visitor_impl(std::forward<V>(v), std::move(*this));
   }
-
-// Friend apply_visitor (boost::apply_visitor syntax)
-
-#define APPLY_VISITOR_BODY                                                                         \
-  mpl::remove_reference_t<Visitable>::apply_visitor_impl(std::forward<Visitor>(visitor),           \
-                                                         std::forward<Visitable>(visitable))
-
-  // TODO: Why doesn't noexcept annotation work here? It causes ICE in gcc and clang
-  template <typename Visitor, typename Visitable>
-  friend auto apply_visitor(Visitor && visitor,
-                            Visitable && visitable) /*noexcept(noexcept(APPLY_VISITOR_BODY)) */
-    -> decltype(APPLY_VISITOR_BODY);
 };
 
 /***
- * apply one visitor function. This is the basic version, used in implementation
- * of multivisitation.
+ * apply one visitor function. `boost::variant` syntax.
+ * This is the basic version, used in implementation of multivisitation.
  */
+#define APPLY_VISITOR_BODY                                                                         \
+  mpl::remove_reference_t<Visitable>::apply_visitor_impl(std::forward<Visitor>(visitor),           \
+                                                         std::forward<Visitable>(visitable))
 template <typename Visitor, typename Visitable>
 auto
-apply_visitor(Visitor && visitor, Visitable && visitable) /*noexcept(noexcept(APPLY_VISITOR_BODY))*/
+apply_visitor(Visitor && visitor, Visitable && visitable) noexcept(noexcept(APPLY_VISITOR_BODY))
   -> decltype(APPLY_VISITOR_BODY) {
   return APPLY_VISITOR_BODY;
 }

@@ -229,11 +229,11 @@ struct some_other_visitor {
   double operator()(float f) const noexcept(false) { return f; }
 };
 
-// TODO: apply_visitor is not noexcept correct right now... see variant.hpp for code comment
+// TODO: Debug this
 // static_assert(noexcept(apply_visitor(some_visitor{}, std::declval<variant<int, float>>())),
 // "Apply visitor noexcept annotation not working!");
-// static_assert(!noexcept(apply_visitor(some_other_visitor{}, std::declval<variant<int,
-// float>>())), "Apply visitor noexcept annotation not working!");
+static_assert(!noexcept(apply_visitor(some_other_visitor{}, std::declval<variant<int, float>>())),
+              "Apply visitor noexcept annotation not working!");
 
 // Check that variant is resolving "ambiguous" constructions as expected
 UNIT_TEST(ambiguous_string) {
