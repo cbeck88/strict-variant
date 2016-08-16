@@ -332,7 +332,8 @@ private:
 
   // Visitable is assumed to be, forwarding reference to this type.
   template <typename Visitor, typename Visitable>
-  static auto apply_visitor_impl(Visitor && visitor, Visitable && visitable)
+  static auto apply_visitor_impl(Visitor && visitor,
+                                 Visitable && visitable) noexcept(noexcept(APPLY_VISITOR_IMPL_BODY))
     -> decltype(APPLY_VISITOR_IMPL_BODY) {
     return APPLY_VISITOR_IMPL_BODY;
   }
@@ -340,22 +341,30 @@ private:
 #undef APPLY_VISITOR_IMPL_BODY
 
 public:
-
   // C++17 visit syntax
-
-  #define DECLARE_VISIT(QUAL, BODY) \
-  template <typename V> \
-  auto visit(V && v) QUAL -> decltype(BODY) { \
-    return BODY; \
+  template <typename V>
+    auto visit(V && v)
+    & noexcept(noexcept(apply_visitor_impl(std::forward<V>(v), *static_cast<variant *>(nullptr))))
+        -> decltype(apply_visitor_impl(std::forward<V>(v), *this)) {
+    return apply_visitor_impl(std::forward<V>(v), *this);
   }
 
-  DECLARE_VISIT(&, (apply_visitor_impl(std::forward<V>(v), *this)))
-  DECLARE_VISIT(const &, (apply_visitor_impl(std::forward<V>(v), *this)))
-  DECLARE_VISIT(&&, (apply_visitor_impl(std::forward<V>(v), std::move(*this))))
+  template <typename V>
+  auto visit(V && v) const & noexcept(
+    noexcept(apply_visitor_impl(std::forward<V>(v), *static_cast<const variant *>(nullptr))))
+    -> decltype(apply_visitor_impl(std::forward<V>(v), *this)) {
+    return apply_visitor_impl(std::forward<V>(v), *this);
+  }
 
-  #undef DECLARE_VISIT
+  template <typename V>
+    auto visit(V && v)
+    && noexcept(noexcept(apply_visitor_impl(std::forward<V>(v),
+                                            std::move(*static_cast<variant *>(nullptr)))))
+         -> decltype(apply_visitor_impl(std::forward<V>(v), std::move(*this))) {
+    return apply_visitor_impl(std::forward<V>(v), std::move(*this));
+  }
 
-  // Friend apply_visitor (boost::apply_visitor syntax)
+// Friend apply_visitor (boost::apply_visitor syntax)
 
 #define APPLY_VISITOR_BODY                                                                         \
   mpl::remove_reference_t<Visitable>::apply_visitor_impl(std::forward<Visitor>(visitor),           \
@@ -364,7 +373,7 @@ public:
   // TODO: Why doesn't noexcept annotation work here? It causes ICE in gcc and clang
   template <typename Visitor, typename Visitable>
   friend auto apply_visitor(Visitor && visitor,
-                            Visitable && visitable) /* noexcept(noexcept(APPLY_VISITOR_BODY)) */
+                            Visitable && visitable) /*noexcept(noexcept(APPLY_VISITOR_BODY)) */
     -> decltype(APPLY_VISITOR_BODY);
 };
 
