@@ -642,12 +642,10 @@ auto
 variant<First, Types...>::emplace(Args &&... args) noexcept(false)
   -> mpl::enable_if_t<!std::is_nothrow_constructible<typename storage_t::template value_t<idx>,
                                                      Args...>::value> {
-
   using temp_t = typename storage_t::template value_t<idx>;
   static_assert(
     std::is_nothrow_move_constructible<temp_t>::value,
     "To use emplace, either the invoked ctor or the move ctor of value type must be noexcept.");
-  // TODO: If T is in a recursive_wrapper, we should construct recursive_wrapper<T> instead.
   temp_t temp(std::forward<Args>(args)...);
   this->emplace<idx>(std::move(temp));
 }
@@ -679,6 +677,7 @@ struct variant<First, Types...>::swapper {
   void do_swap() const noexcept { lhs_.apply_visitor_internal(*this); }
 
   // First visit is *this, to lhs_var
+  // Second visit is to rhs_var
   template <typename T>
   void operator()(T & first_visit) const noexcept {
     second_visitor<T> v{lhs_, rhs_, first_visit};
