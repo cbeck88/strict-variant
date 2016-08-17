@@ -110,8 +110,3 @@ Licensing and Distribution
 ==========================
 
 **strict variant** is available under the boost software license.
-
-TODO
-====
-
-- `noexcept` correctness for `apply_visitor`?
