@@ -56,8 +56,13 @@ move the value rather than the wrapper.
 Whenever a user-defined visitor is applied, we use this function to transparently
 remove the wrapper for them.
 
-We also use that for almost all of our own visitors -- essentially, the only time that
-we want to visit a `variant` and not pierce the wrapper, is when calling the destructor.
+We also use that for almost all of the ['internal] visitors, which are used to
+implement move construction, assignment, etc. The ['only] times that
+we want to visit a `variant` and ['not] pierce the wrapper, are
+[itemized_list
+  [when swapping two variants,]
+  [when calling the destructor.]
+]
 
 (Obviously, when constructing the value that gets moved into *our* storage though,
 we have to use exactly the type that was specified in the template parameters.
@@ -174,5 +179,16 @@ complete examples.
     `easy_variant` is move assignable as long as every template parameter is move assignable and move constructible. It is nothrow move assignable as long as
     all of the types are nothrow move assignable and nothrow move constructible -- none of them should actually end up in a `recursive_wrapper`.
     ]]]
+
+[variablelist
+  [[Q][
+    When is `strict_variant` nothrow swappable? `easy_variant`?
+  ]]
+  [[A][
+   `strict_variant` is nothrow swappable whenever all of its members are nothrow move constructible. `easy_variant` is always nothrow swappable.
+  
+   This is because when we swap, it's okay to use the pointer move, since it can't fail and won't produce an empty variant. As a result, ['swapping may be faster than move-assigning] when `recursive_wrapper` is involved, because it will avoid a dynamic allocation. If your `variant` contains a type which is default-constructible and has no external side-effects, it may be preferable
+   as a micro-optimization to default-construct a variant in that state and then call `swap`, rather than move-assigning or move-constructing.
+  ]]]
 
 [endsect]
