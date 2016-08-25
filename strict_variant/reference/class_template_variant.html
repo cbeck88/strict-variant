@@ -33,7 +33,6 @@
       </p>
 <pre class="programlisting"><span class="keyword">namespace</span> <span class="identifier">strict_variant</span> <span class="special">{</span>
 
-  <span class="comment">// Used in tag dispatch</span>
   <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
   <span class="keyword">struct</span> <span class="identifier">emplace_tag</span> <span class="special">{};</span>
 
@@ -165,7 +164,7 @@
         <span><a name="strict_variant.reference.class_template_variant.notes"></a></span><a class="link" href="class_template_variant.html#strict_variant.reference.class_template_variant.notes">Notes</a>
       </h5>
 <p>
-        The <code class="computeroutput"><span class="identifier">strict_variant</span><span class="special">::</span><span class="identifier">variant</span></code> is in many ways similar to <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code>, which strongly inspired this.
+        The <code class="computeroutput"><span class="identifier">strict_variant</span><span class="special">::</span><span class="identifier">variant</span></code> may be used similarly to <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code>.
       </p>
 <p>
         (However, this interface is exception-free. If you want to have analogues
@@ -319,7 +318,8 @@
               Generalizing constructor.
             </p>
 <p class="simpara">
-              Copy constructs a variant from another variant on strictly fewer types.
+              Copy constructs a variant from another variant over a subset of the
+              value types.
             </p>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -344,7 +344,8 @@
               Generalizing constructor.
             </p>
 <p>
-              Move constructs a variant from another variant on strictly fewer types.
+              Move constructs a variant from another variant over a subset of the
+              value types.
             </p>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -399,19 +400,18 @@
             </p>
 <p>
               Unless you customize those type traits, the behavior is only modified
+              when both:
             </p>
-<div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
-                  When <code class="computeroutput"><span class="identifier">T</span></code> itself is
-                  (or decays to) an <code class="computeroutput"><span class="identifier">arithmetic</span></code>
+<div class="itemizedlist"><ul class="itemizedlist" type="disc">
+<li class="listitem">
+                  The argument is a built-in <code class="computeroutput"><span class="identifier">arithmetic</span></code>
                   type or a pointer type.
-                </li></ul></div>
-<p>
-              [In regards to value types which are (or decay to) an <code class="computeroutput"><span class="identifier">arithmetic</span></code> type or a pointer type.]
-            </p>
-<p>
-              When <code class="computeroutput"><span class="identifier">T</span></code> does not meet
-              these criteria, overload resolution occurs with all value types.
-            </p>
+                </li>
+<li class="listitem">
+                  The value type is a built-in <code class="computeroutput"><span class="identifier">arithmetic</span></code>
+                  type or a pointer type.
+                </li>
+</ul></div>
 <p>
               This feature acts to prevent:
             </p>

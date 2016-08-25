@@ -53,7 +53,9 @@
               </td>
 <td>
                 <p>
-                  any types
+                  any <code class="computeroutput"><span class="identifier">LessThanComparable</span></code>
+                  types, meeting <code class="computeroutput"><span class="identifier">variant</span></code>
+                  type requirements
                 </p>
               </td>
 </tr>
@@ -117,9 +119,8 @@
           </li>
 <li class="listitem">
             The second template parameter should be a template-template parameter
-            such as <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">less</span></code>, which is the default. It must
-            be specializable for each value type of the <code class="computeroutput"><span class="identifier">variant</span></code>,
-            and should produce a valid comparator in each case.
+            such as <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">less</span></code>, which is the default. <code class="computeroutput"><span class="identifier">ComparatorTemplate</span><span class="special">&lt;</span><span class="identifier">V</span><span class="special">&gt;</span></code>
+            should produce a valid less-than comparator for each value type <code class="computeroutput"><span class="identifier">V</span></code> of the <code class="computeroutput"><span class="identifier">variant</span></code>.
           </li>
 <li class="listitem">
             The third template parameter should be a comparator for the <code class="computeroutput"><span class="keyword">int</span></code> type, such as <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">less</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">&gt;</span></code>, which is the default. This is used
@@ -127,13 +128,60 @@
             values.
           </li>
 </ul></div>
+<div class="caution"><table border="0" summary="Caution">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Caution]" src="../../images/caution.png"></td>
+<th align="left">Caution</th>
+</tr>
+<tr><td align="left" valign="top">
+<p>
+          A less-than comparator is said to <span class="emphasis"><em>induce</em></span> an equality-comparator
+          by the following identity:
+        </p>
+<pre class="programlisting"><span class="identifier">a</span> <span class="special">==</span> <span class="identifier">b</span>    <span class="keyword">if</span> <span class="keyword">and</span> <span class="identifier">only</span> <span class="keyword">if</span>    <span class="special">!(</span><span class="identifier">a</span> <span class="special">&lt;</span> <span class="identifier">b</span><span class="special">)</span> <span class="special">&amp;&amp;</span> <span class="special">!(</span><span class="identifier">b</span> <span class="special">&lt;</span> <span class="identifier">a</span><span class="special">)</span></pre>
+<p>
+          If a non-default <code class="computeroutput"><span class="identifier">WhichComparator</span></code>
+          is used (third template parameter), it still must induce the same equality-comparator
+          as <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">less</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">&gt;</span></code>,
+          or bad behavior will result.
+        </p>
+</td></tr>
+</table></div>
 <h4>
 <a name="strict_variant.reference.comparator.h3"></a>
         <span><a name="strict_variant.reference.comparator.example"></a></span><a class="link" href="comparator.html#strict_variant.reference.comparator.example">Example</a>
       </h4>
+<p>
+        Note that even when <code class="computeroutput"><span class="special">&lt;</span><span class="identifier">strict_variant</span><span class="special">/</span><span class="identifier">variant_compare</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span></code>
+        is included, <code class="computeroutput"><span class="identifier">variant</span></code> does
+        still not have a <code class="computeroutput"><span class="keyword">operator</span> <span class="special">&lt;</span></code>
+        overload for comparisons. Basically we consider that this is too error-prone.
+        See a <a href="https://akrzemi1.wordpress.com/2014/12/02/a-gotcha-with-optional/" target="_top">related
+        discussion</a>.
+      </p>
+<p>
+        You can use <code class="computeroutput"><span class="identifier">strict_variant</span></code>
+        with <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">set</span></code> like so:
+      </p>
 <pre class="programlisting"><span class="keyword">using</span> <span class="identifier">var_t</span> <span class="special">=</span> <span class="identifier">variant</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">,</span> <span class="keyword">int</span><span class="special">&gt;;</span>
 <span class="keyword">using</span> <span class="identifier">set_t</span> <span class="special">=</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">set</span><span class="special">&lt;</span><span class="identifier">var_t</span><span class="special">,</span> <span class="identifier">variant_comparator</span><span class="special">&lt;</span><span class="identifier">var_t</span><span class="special">&gt;&gt;;</span>
 </pre>
+<p>
+        An alternate method is to specialize <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">less</span></code>
+        for <code class="computeroutput"><span class="identifier">variant</span></code> types:
+      </p>
+<pre class="programlisting"><span class="keyword">namespace</span> <span class="identifier">std</span> <span class="special">{</span>
+<span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span><span class="special">...</span> <span class="identifier">Types</span><span class="special">&gt;</span>
+<span class="keyword">struct</span> <span class="identifier">less</span><span class="special">&lt;</span><span class="identifier">variant</span><span class="special">&lt;</span><span class="identifier">Types</span><span class="special">...&gt;&gt;</span> <span class="special">:</span> <span class="identifier">variant_comparator</span><span class="special">&lt;</span><span class="identifier">variant</span><span class="special">&lt;</span><span class="identifier">Types</span><span class="special">...&gt;&gt;</span> <span class="special">{};</span>
+<span class="special">}</span> <span class="comment">// end namespace std</span>
+
+<span class="keyword">using</span> <span class="identifier">var_t</span> <span class="special">=</span> <span class="identifier">variant</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">,</span> <span class="keyword">int</span><span class="special">&gt;;</span>
+<span class="keyword">using</span> <span class="identifier">set_t</span> <span class="special">=</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">set</span><span class="special">&lt;</span><span class="identifier">var_t</span><span class="special">&gt;;</span>
+</pre>
+<p>
+        This may save some typing if you often use <code class="computeroutput"><span class="identifier">variant</span></code>
+        in associative containers, but it is also less explicit.
+      </p>
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
 <td align="left"></td>

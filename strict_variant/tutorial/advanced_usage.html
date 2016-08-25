@@ -163,7 +163,7 @@
 </pre>
 <p>
         This works as long as the returns can be reconciled in a fashion similar
-        to <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">common_type</span></code>. <sup>[<a name="strict_variant.tutorial.advanced_usage.f0" href="#ftn.strict_variant.tutorial.advanced_usage.f0" class="footnote">11</a>]</sup>
+        to <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">common_type</span></code>. <sup>[<a name="strict_variant.tutorial.advanced_usage.f0" href="#ftn.strict_variant.tutorial.advanced_usage.f0" class="footnote">13</a>]</sup>
       </p>
 <p>
         One feature of <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code> which we <span class="emphasis"><em>don't currently
@@ -251,7 +251,6 @@
 <span class="keyword">public</span><span class="special">:</span>
   <span class="identifier">X</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
   <span class="identifier">X</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">X</span> <span class="special">&amp;)</span> <span class="keyword">noexcept</span><span class="special">(</span><span class="keyword">false</span><span class="special">);</span>
-
   <span class="identifier">X</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span><span class="keyword">const</span> <span class="identifier">X</span> <span class="special">&amp;)</span> <span class="keyword">noexcept</span><span class="special">(</span><span class="keyword">false</span><span class="special">);</span>
 <span class="special">};</span>
 
@@ -259,8 +258,8 @@
 <span class="keyword">void</span>
 <span class="identifier">goal</span><span class="special">()</span> <span class="special">{</span>
   <span class="identifier">variant</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">,</span> <span class="identifier">X</span><span class="special">&gt;</span> <span class="identifier">v</span><span class="special">;</span>
-    <span class="identifier">v</span> <span class="special">=</span> <span class="number">5</span><span class="special">;</span>
-    <span class="identifier">v</span> <span class="special">=</span> <span class="identifier">X</span><span class="special">();</span>  <span class="comment">// Error: No assignment if X has a throwing move!</span>
+  <span class="identifier">v</span> <span class="special">=</span> <span class="number">5</span><span class="special">;</span>
+  <span class="identifier">v</span> <span class="special">=</span> <span class="identifier">X</span><span class="special">();</span>  <span class="comment">// Error: No assignment if X has a throwing move!</span>
 <span class="special">}</span>
 </pre>
 <p>
@@ -312,7 +311,7 @@
 </ol></div>
 <div class="footnotes">
 <br><hr width="100" align="left">
-<div class="footnote"><p><sup>[<a name="ftn.strict_variant.tutorial.advanced_usage.f0" href="#strict_variant.tutorial.advanced_usage.f0" class="para">11</a>] </sup>
+<div class="footnote"><p><sup>[<a name="ftn.strict_variant.tutorial.advanced_usage.f0" href="#strict_variant.tutorial.advanced_usage.f0" class="para">13</a>] </sup>
           Note that we don't actually use <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">common_type</span></code>:
           for one, that is C++14, for two, it wouldn't allow us to return references.
           We compromise by allowing the return of lvalue references but not rvalue

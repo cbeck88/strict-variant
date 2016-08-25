@@ -122,10 +122,19 @@
         remove the wrapper for them.
       </p>
 <p>
-        We also use that for almost all of our own visitors -- essentially, the only
-        time that we want to visit a <code class="computeroutput"><span class="identifier">variant</span></code>
-        and not pierce the wrapper, is when calling the destructor.
+        We also use that for almost all of the <span class="emphasis"><em>internal</em></span> visitors,
+        which are used to implement move construction, assignment, etc. The <span class="emphasis"><em>only</em></span>
+        times that we want to visit a <code class="computeroutput"><span class="identifier">variant</span></code>
+        and <span class="emphasis"><em>not</em></span> pierce the wrapper, are
       </p>
+<div class="itemizedlist"><ul class="itemizedlist" type="disc">
+<li class="listitem">
+            when swapping two variants,
+          </li>
+<li class="listitem">
+            when calling the destructor.
+          </li>
+</ul></div>
 <p>
         (Obviously, when constructing the value that gets moved into <span class="bold"><strong>our</strong></span>
         storage though, we have to use exactly the type that was specified in the
@@ -155,10 +164,10 @@
 <p class="title"><b></b></p>
 <dl>
 <dt><span class="term">Q</span></dt>
-<dd><p>
+<dd>
               Is <code class="computeroutput"><span class="identifier">strict_variant</span></code> nothrow
               destructible?
-            </p></dd>
+            </dd>
 <dt><span class="term">A</span></dt>
 <dd><p>
               Yes. Each contained item must be, and the <code class="computeroutput"><span class="identifier">variant</span></code>
@@ -335,6 +344,35 @@
               move constructible. It is nothrow move assignable as long as all of
               the types are nothrow move assignable and nothrow move constructible
               -- none of them should actually end up in a <code class="computeroutput"><span class="identifier">recursive_wrapper</span></code>.
+            </p>
+</dd>
+</dl>
+</div>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Q</span></dt>
+<dd><p>
+              When is <code class="computeroutput"><span class="identifier">strict_variant</span></code>
+              nothrow swappable? <code class="computeroutput"><span class="identifier">easy_variant</span></code>?
+            </p></dd>
+<dt><span class="term">A</span></dt>
+<dd>
+<p>
+              <code class="computeroutput"><span class="identifier">strict_variant</span></code> is nothrow
+              swappable whenever all of its members are nothrow move constructible.
+              <code class="computeroutput"><span class="identifier">easy_variant</span></code> is always
+              nothrow swappable.
+            </p>
+<p>
+              This is because when we swap, it's okay to use the pointer move, since
+              it can't fail and won't produce an empty variant. As a result, <span class="emphasis"><em>swapping
+              may be faster than move-assigning</em></span> when <code class="computeroutput"><span class="identifier">recursive_wrapper</span></code>
+              is involved, because it will avoid a dynamic allocation. If your <code class="computeroutput"><span class="identifier">variant</span></code> contains a type which is
+              default-constructible and has no external side-effects, it may be preferable
+              as a micro-optimization to default-construct a variant in that state
+              and then call <code class="computeroutput"><span class="identifier">swap</span></code>,
+              rather than move-assigning or move-constructing.
             </p>
 </dd>
 </dl>

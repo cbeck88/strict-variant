@@ -24,19 +24,34 @@
       </p>
 <p>
         One way to approach the problem is to use a <code class="computeroutput"><span class="keyword">union</span></code>
-        type. Prior to C++11, a union could only contain POD types. Since C++11,
-        this restriction was relaxed, but the compiler still does not generate useful
-        special member functions. A union is ultimately a very low level construct
-        -- usually, it's a building block one may use in creating a more user-friendly
-        type, rather than a solution itself.
+        type. <span class="emphasis"><em>union</em></span> is a language-level feature inherited from
+        C. <sup>[<a name="strict_variant.intro.design.f0" href="#ftn.strict_variant.intro.design.f0" class="footnote">1</a>]</sup>
       </p>
 <p>
-        <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code> introduced a very simple, batteries-included
-        solution and became a very influential library. Besides providing a generic,
-        type-safe, discriminated union, it also provided a concept of <span class="emphasis"><em>static
-        visitor</em></span>. A static visitor is function object which the programmer
-        creates in order to "visit" the variant type in a systematic fashion,
-        rather than using a sequence of <code class="computeroutput"><span class="keyword">if</span>
+        Prior to C++11, a union could only contain POD types. Since C++11, this restriction
+        was relaxed, but the compiler still does not generate useful special member
+        functions, nor can it, really. A union is ultimately a very low level construct
+        -- usually in C++, it is there for compatibility with C, or it is used as
+        a building block in creating a more user-friendly type, rather than as a
+        solution itself.
+      </p>
+<p>
+        For purposes of C++, if we want to have a <code class="computeroutput"><span class="keyword">union</span></code>
+        type which is extended to act more like a standard container, a natural approach
+        is to use a <span class="emphasis"><em>discriminated union</em></span>. This means, a <code class="computeroutput"><span class="keyword">union</span></code>, together with an <code class="computeroutput"><span class="keyword">int</span></code>,
+        or an <code class="computeroutput"><span class="keyword">enum</span></code>, which keeps track
+        of which type is currently engaged within the <code class="computeroutput"><span class="keyword">union</span></code>.
+        When we have this extra information, we can access the union in a type-safe
+        way, and give it a copy constructor and so on. This idea was originally described
+        by Andrei Alexandrescu <sup>[<a name="strict_variant.intro.design.f1" href="#ftn.strict_variant.intro.design.f1" class="footnote">2</a>]</sup>.
+      </p>
+<p>
+        <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code> is a well-known implementation
+        of these ideas, and it became a very influential library. Besides providing
+        a generic, type-safe, discriminated union, it also provided a concept of
+        <span class="emphasis"><em>static visitor</em></span>. A static visitor is function object
+        which the programmer creates in order to "visit" the variant type
+        in a systematic fashion, rather than using a sequence of <code class="computeroutput"><span class="keyword">if</span>
         <span class="special">...</span> <span class="keyword">else</span></code>
         or similar .
       </p>
@@ -63,7 +78,7 @@
 <p>
         The core issue in implementing a <code class="computeroutput"><span class="identifier">variant</span></code>
         is how to handle a <span class="emphasis"><em>throwing, type-changing assignment</em></span>
-        <sup>[<a name="strict_variant.intro.design.f0" href="#ftn.strict_variant.intro.design.f0" class="footnote">1</a>]</sup>.
+        <sup>[<a name="strict_variant.intro.design.f2" href="#ftn.strict_variant.intro.design.f2" class="footnote">3</a>]</sup>.
       </p>
 <p>
         Fundamentally, there is a chicken-and-egg problem: When the variant is assigned
@@ -87,7 +102,7 @@
 <p>
         One simple solution is to allocate double the storage for the variant. Then,
         the new object need not be allocated in the same memory as the old object,
-        so it can always be constructed first and the issue is resolved. <sup>[<a name="strict_variant.intro.design.f1" href="#ftn.strict_variant.intro.design.f1" class="footnote">2</a>]</sup>
+        so it can always be constructed first and the issue is resolved. <sup>[<a name="strict_variant.intro.design.f3" href="#ftn.strict_variant.intro.design.f3" class="footnote">4</a>]</sup>
       </p>
 <p>
         But in some applications, the overhead of double memory usage isn't tolerable.
@@ -102,12 +117,12 @@
         any type-changing assignment, makes a backup copy of your object on the heap.
         Then the object in storage is destroyed and the new one is created. If construction
         fails, the variant holds onto the heap pointer, and subsequent accesses go
-        via that pointer, until a new assignment takes place. <sup>[<a name="strict_variant.intro.design.f2" href="#ftn.strict_variant.intro.design.f2" class="footnote">3</a>]</sup>
+        via that pointer, until a new assignment takes place. <sup>[<a name="strict_variant.intro.design.f4" href="#ftn.strict_variant.intro.design.f4" class="footnote">5</a>]</sup>
       </p>
 <p>
         In many scenarios, this is a great solution -- the storage overhead is at
         most the size of a pointer. However, if your object is expensive or impossible
-        to copy, then this won't work so well for you. <sup>[<a name="strict_variant.intro.design.f3" href="#ftn.strict_variant.intro.design.f3" class="footnote">4</a>]</sup>
+        to copy, then this won't work so well for you. <sup>[<a name="strict_variant.intro.design.f5" href="#ftn.strict_variant.intro.design.f5" class="footnote">6</a>]</sup>
       </p>
 <h5>
 <a name="strict_variant.intro.design.h3"></a>
@@ -121,7 +136,7 @@
         occurs when construction of the new object fails. This empty state can be
         queried, and if a variant is visited which was made empty by an earlier exception,
         then a <code class="computeroutput"><span class="identifier">bad_visit</span></code> is thrown.
-        This is the so-called "Kona Compromise". <sup>[<a name="strict_variant.intro.design.f4" href="#ftn.strict_variant.intro.design.f4" class="footnote">5</a>]</sup>
+        This is the so-called "Kona Compromise". <sup>[<a name="strict_variant.intro.design.f6" href="#ftn.strict_variant.intro.design.f6" class="footnote">7</a>]</sup>
       </p>
 <p>
         This solution has several obvious advantages -- we don't have to assume that
@@ -142,7 +157,7 @@
 <p>
         Indeed, many other modern C++ variant types targetting C++11 and C++14 have
         followed suit and adopted the <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">variant</span></code>
-        interface and behavior <sup>[<a name="strict_variant.intro.design.f5" href="#ftn.strict_variant.intro.design.f5" class="footnote">6</a>]</sup> <sup>[<a name="strict_variant.intro.design.f6" href="#ftn.strict_variant.intro.design.f6" class="footnote">7</a>]</sup>.
+        interface and behavior <sup>[<a name="strict_variant.intro.design.f7" href="#ftn.strict_variant.intro.design.f7" class="footnote">8</a>]</sup> <sup>[<a name="strict_variant.intro.design.f8" href="#ftn.strict_variant.intro.design.f8" class="footnote">9</a>]</sup>.
       </p>
 <p>
         However, in some projects, when the exception caused by object is thrown,
@@ -162,7 +177,7 @@
         Since most standard and boost containers provide strong-exception safety,
         it seems desirable to have at our disposal an efficient, modern C++ variant
         type which also provides this guarantee. And indeed, there have been some
-        standardization proposals like this <sup>[<a name="strict_variant.intro.design.f7" href="#ftn.strict_variant.intro.design.f7" class="footnote">8</a>]</sup> <sup>[<a name="strict_variant.intro.design.f8" href="#ftn.strict_variant.intro.design.f8" class="footnote">9</a>]</sup>.
+        standardization proposals like this <sup>[<a name="strict_variant.intro.design.f9" href="#ftn.strict_variant.intro.design.f9" class="footnote">10</a>]</sup> <sup>[<a name="strict_variant.intro.design.f10" href="#ftn.strict_variant.intro.design.f10" class="footnote">11</a>]</sup>.
       </p>
 <p>
         <code class="computeroutput"><span class="identifier">strict_variant</span></code> achieves this
@@ -256,7 +271,7 @@
       </p>
 <p>
         While it's been well-established that throwing moves are sometimes hard to
-        avoid and can't reasonably be banned from general-purpose containers, <sup>[<a name="strict_variant.intro.design.f9" href="#ftn.strict_variant.intro.design.f9" class="footnote">10</a>]</sup>, it seems that supporting them by putting them on the heap is
+        avoid and can't reasonably be banned from general-purpose containers, <sup>[<a name="strict_variant.intro.design.f11" href="#ftn.strict_variant.intro.design.f11" class="footnote">12</a>]</sup>, it seems that supporting them by putting them on the heap is
         a reasonable solution to the problem. If such objects are large and complex
         enough, it may be favorable to allocate them on the heap anyways.
       </p>
@@ -626,41 +641,49 @@
 <div class="footnotes">
 <br><hr width="100" align="left">
 <div class="footnote"><p><sup>[<a name="ftn.strict_variant.intro.design.f0" href="#strict_variant.intro.design.f0" class="para">1</a>] </sup>
-          C.f. Axel Naumann "The Variant Saga: A happy ending?" <a href="https://isocpp.org/blog/2015/11/the-variant-saga-a-happy-ending" target="_top">https://isocpp.org/blog/2015/11/the-variant-saga-a-happy-ending</a>
+          See <a href="http://eel.is/c++draft/class.union" target="_top">[class.union] in C++
+          standard.</a>
         </p></div>
 <div class="footnote"><p><sup>[<a name="ftn.strict_variant.intro.design.f1" href="#strict_variant.intro.design.f1" class="para">2</a>] </sup>
-          C.f. Anthony Williams. Double-Storage Proposal. 2002.
+          Andrei Alexandrescu. "Generic&lt;Programming&gt;: Discriminated Unions"
+          series: Part 1, Part 2, Part 3. C/C++ Users Journal. 2002.
         </p></div>
 <div class="footnote"><p><sup>[<a name="ftn.strict_variant.intro.design.f2" href="#strict_variant.intro.design.f2" class="para">3</a>] </sup>
+          C.f. Axel Naumann "The Variant Saga: A happy ending?" <a href="https://isocpp.org/blog/2015/11/the-variant-saga-a-happy-ending" target="_top">https://isocpp.org/blog/2015/11/the-variant-saga-a-happy-ending</a>
+        </p></div>
+<div class="footnote"><p><sup>[<a name="ftn.strict_variant.intro.design.f3" href="#strict_variant.intro.design.f3" class="para">4</a>] </sup>
+          C.f. Anthony Williams. Double-Storage Proposal. 2002.
+        </p></div>
+<div class="footnote"><p><sup>[<a name="ftn.strict_variant.intro.design.f4" href="#strict_variant.intro.design.f4" class="para">5</a>] </sup>
           C.f. Eric Friedman, Itay Maman. Online <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code>
           documentation <a href="http://www.boost.org/doc/libs/1_61_0/doc/html/variant/design.html#variant.design.never-empty" target="_top">boost:doc/html/variant/design.html#variant.design.never-empty</a>
         </p></div>
-<div class="footnote"><p><sup>[<a name="ftn.strict_variant.intro.design.f3" href="#strict_variant.intro.design.f3" class="para">4</a>] </sup>
+<div class="footnote"><p><sup>[<a name="ftn.strict_variant.intro.design.f5" href="#strict_variant.intro.design.f5" class="para">6</a>] </sup>
           Note that if <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code> is compiled with rvalue reference
           support, then this copy can be replaced with a move, which may be a big
           improvement. For an in-depth analysis see also <a class="link" href="../remarks/comparison.html" title="Comparison and Performance Characteristics">Comparison
           section</a>.
         </p></div>
-<div class="footnote"><p><sup>[<a name="ftn.strict_variant.intro.design.f4" href="#strict_variant.intro.design.f4" class="para">5</a>] </sup>
+<div class="footnote"><p><sup>[<a name="ftn.strict_variant.intro.design.f6" href="#strict_variant.intro.design.f6" class="para">7</a>] </sup>
           C.f. Axel Naumann. "Variant: a type-safe union (v6)" Proposal
           P0088r1 <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0088r1.html" target="_top">http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0088r1.html</a>
         </p></div>
-<div class="footnote"><p><sup>[<a name="ftn.strict_variant.intro.design.f5" href="#strict_variant.intro.design.f5" class="para">6</a>] </sup>
+<div class="footnote"><p><sup>[<a name="ftn.strict_variant.intro.design.f7" href="#strict_variant.intro.design.f7" class="para">8</a>] </sup>
           C.f. Agust&#237;n Berg&#233;. <code class="computeroutput"><span class="identifier">eggs</span><span class="special">::</span><span class="identifier">variant</span></code>
           online documentation. <a href="https://github.com/eggs-cpp/variant" target="_top">https://github.com/eggs-cpp/variant</a>
         </p></div>
-<div class="footnote"><p><sup>[<a name="ftn.strict_variant.intro.design.f6" href="#strict_variant.intro.design.f6" class="para">7</a>] </sup>
+<div class="footnote"><p><sup>[<a name="ftn.strict_variant.intro.design.f8" href="#strict_variant.intro.design.f8" class="para">9</a>] </sup>
           C.f. Artem Pavlenko. <code class="computeroutput"><span class="identifier">mapbox</span><span class="special">::</span><span class="identifier">variant</span></code>
           online documentation. <a href="https://github.com/mapbox/variant" target="_top">https://github.com/mapbox/variant</a>
         </p></div>
-<div class="footnote"><p><sup>[<a name="ftn.strict_variant.intro.design.f7" href="#strict_variant.intro.design.f7" class="para">8</a>] </sup>
+<div class="footnote"><p><sup>[<a name="ftn.strict_variant.intro.design.f9" href="#strict_variant.intro.design.f9" class="para">10</a>] </sup>
           C.f. David Sanke "Simply a Strong Variant". P0093R0 <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0093r0.html" target="_top">http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0093r0.html</a>
         </p></div>
-<div class="footnote"><p><sup>[<a name="ftn.strict_variant.intro.design.f8" href="#strict_variant.intro.design.f8" class="para">9</a>] </sup>
+<div class="footnote"><p><sup>[<a name="ftn.strict_variant.intro.design.f10" href="#strict_variant.intro.design.f10" class="para">11</a>] </sup>
           C.f. Anthony Williams "P0110R0: Implementing the strong guarantee
           for variant&lt;&gt; assignment" P0110R0 <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0110r0.html" target="_top">http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0110r0.html</a>
         </p></div>
-<div class="footnote"><p><sup>[<a name="ftn.strict_variant.intro.design.f9" href="#strict_variant.intro.design.f9" class="para">10</a>] </sup>
+<div class="footnote"><p><sup>[<a name="ftn.strict_variant.intro.design.f11" href="#strict_variant.intro.design.f11" class="para">12</a>] </sup>
           C.f. Ville Voutilainen Proposal P0129R0 <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0129r0.html" target="_top">http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0129r0.html</a>
         </p></div>
 </div>
