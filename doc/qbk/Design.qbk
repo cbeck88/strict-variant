@@ -4,13 +4,24 @@ In recent years, C++ developers have become very interested in heterogenous
 containers -- containers that can contain an value which might be of several
 different types.
 
-One way to approach the problem is to use a `union` type. Prior to C++11, a union
-could only contain POD types. Since C++11, this restriction was relaxed, but the
-compiler still does not generate useful special member functions. A union is
-ultimately a very low level construct -- usually, it's a building block one
-may use in creating a more user-friendly type, rather than a solution itself.
+One way to approach the problem is to use a `union` type. ['union] is a language-level
+feature inherited from C. [footnote See [@http://eel.is/c++draft/class.union [class.union] in C++ standard.]]
 
-`boost::variant` introduced a very simple, batteries-included solution and
+Prior to C++11, a union
+could only contain POD types. Since C++11, this restriction was relaxed, but the
+compiler still does not generate useful special member functions, nor can it, really.
+A union is ultimately a very low level construct -- usually in C++, it is there for compatibility
+with C, or it is used as a building block in creating a more user-friendly type,
+rather than as a solution itself.
+
+For purposes of C++, if we want to have a `union` type which is extended to act
+more like a standard container, a natural approach is to use a ['discriminated
+union]. This means, a `union`, together with an `int`, or an `enum`, which keeps
+track of which type is currently engaged within the `union`. When we have this
+extra information, we can access the union in a type-safe way, and give it a
+copy constructor and so on. This idea was originally described by Andrei Alexandrescu [footnote Andrei Alexandrescu. "Generic<Programming>: Discriminated Unions" series: Part 1, Part 2, Part 3. C/C++ Users Journal. 2002. ].
+
+`boost::variant` is a well-known implementation of these ideas, and it
 became a very influential library. Besides providing a generic, type-safe,
 discriminated union, it also provided a concept of ['static visitor]. A static
 visitor is function object which the programmer creates in order to "visit" the

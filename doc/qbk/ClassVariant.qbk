@@ -11,7 +11,6 @@ Defined in file `<strict_variant/variant.hpp>`:
 ```
 namespace strict_variant {
 
-  // Used in tag dispatch
   template <typename T>
   struct emplace_tag {};
 
@@ -119,7 +118,7 @@ These are the different possible types that the contained value may have.
 
 [h4 Notes]
 
-The `strict_variant::variant` is in many ways similar to `boost::variant`, which strongly inspired this.  
+The `strict_variant::variant` may be used similarly to `boost::variant`. 
 
 (However, this interface is exception-free. If you want to have
 analogues of the throwing functions in `boost::variant` you'll have to write them, which is pretty easy to do on top of the exception-free interface.)
@@ -173,7 +172,7 @@ provide rollback-semantics if an exception is thrown while changing the type of 
 [[`variant(const variant<OFirst, OTypes...> &)`]
  [ Generalizing constructor.
 
-   Copy constructs a variant from another variant on strictly fewer types.
+   Copy constructs a variant from another variant over a subset of the value types.
 
    [variablelist
      [[Requires][Each type `OFirst, OTypes...` is also a value type of this `variant`, modulo `const` and `recursive_wrapper`.]]
@@ -182,7 +181,7 @@ provide rollback-semantics if an exception is thrown while changing the type of 
 [[`variant(variant<OFirst, OTypes...> &&)`]
  [ Generalizing constructor.
 
-   Move constructs a variant from another variant on strictly fewer types.
+   Move constructs a variant from another variant over a subset of the value types.
 
    [variablelist
      [[Requires][Each type `OFirst, OTypes...` is also a value type of this `variant`, modulo `const` and `recursive_wrapper`.]]
@@ -205,12 +204,10 @@ provide rollback-semantics if an exception is thrown while changing the type of 
 
    Overload resolution occurs with the remaining types.
 
-   Unless you customize those type traits, the behavior is only modified
+   Unless you customize those type traits, the behavior is only modified when both:
    [itemized_list
-    [When `T` itself is (or decays to) an `arithmetic` type or a pointer type.]]
-    [In regards to value types which are (or decay to) an `arithmetic` type or a pointer type.]
-
-   When `T` does not meet these criteria, overload resolution occurs with all value types.
+    [The argument is a built-in `arithmetic` type or a pointer type.]
+    [The value type is a built-in `arithmetic` type or a pointer type.]]
 
    This feature acts to prevent:
    [itemized_list
