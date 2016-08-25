@@ -190,9 +190,7 @@ provide rollback-semantics if an exception is thrown while changing the type of 
 [[`variant(T &&)`]
  [ Construct from a forwarding reference.
 
-   Attempts to convert `T` to one of the value types of this variant, or an expression convertible to such.
-
-   This is resolved using overload resolution, with each of the ['value types] as a candidate.
+   Attempts to convert `T` to one of the value types of this variant, using ['C++ overload resolution], with each of the ['value types] as a candidate.
 
    However, before overload resolution occurs, some candidates are eliminated, if for instance they represent a non-portable conversion.
 
@@ -204,7 +202,7 @@ provide rollback-semantics if an exception is thrown while changing the type of 
 
    Overload resolution occurs with the remaining types.
 
-   Unless you customize those type traits, the behavior is only modified when both:
+   Unless you customize those type traits, candidates are only eliminated when both:
    [itemized_list
     [The argument is a built-in `arithmetic` type or a pointer type.]
     [The value type is a built-in `arithmetic` type or a pointer type.]]
