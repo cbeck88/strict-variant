@@ -68,6 +68,8 @@ scripting language will permit a variety of primitive values, so when binding to
   boost::variant<bool, int, float, std::string, ...>
 ```
 
+and this is the area that causes the most difficulties for overload resolution.
+
 **strict variant** therefore uses SFINAE to modify the overload resolution process.
 
 - When the variant is constructed from a value, each type is checked to see if a *safe* conversion to that type is possible.

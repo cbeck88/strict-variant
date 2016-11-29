@@ -33,10 +33,6 @@ alias strict_variant : : : : <include>../include/  ;
 
 alias test_harness : : : : <include>include/ ;
 
-### Setup boost includes
-
-alias boost : : : : <include>$(BOOST_INCLUDE_DIR) ;
-
 ### Build tests
 
 GNU_FLAGS = "-Wall -Werror -Wextra -pedantic -std=c++11" ;
