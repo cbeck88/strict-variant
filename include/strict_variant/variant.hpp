@@ -157,19 +157,18 @@ private:
   // initializer. This is the overloaded function object used in T && ctor.
   // Here T should be the forwarding reference
 
-  // Init helper finds the target type, the priority of the conversion, and
-  // whether it was allowed.
+  // init_helper trait maps an index to the corresponding value type, by
+  // interrogating storage_t to ensure consistency.
   template <unsigned idx>
   struct init_helper {
-    using target_type = unwrap_type_t<typename storage_t::template value_t<idx>>;
-    using type = target_type;
+    using type = unwrap_type_t<typename storage_t::template value_t<idx>>;
   };
 
-  // Initializer base is (possibly) a function object
+  // Initializer leaf is (possibly) a function object
   // If construction is prohibited, then don't generate operator()
   template <typename T, unsigned idx>
-  struct initializer_base {
-    using target_type = typename init_helper<idx>::target_type;
+  struct initializer_leaf {
+    using target_type = typename init_helper<idx>::type;
 
     template <typename V>
     void operator()(V && v, target_type val) noexcept(
@@ -188,7 +187,7 @@ private:
   struct initializer;
 
   template <typename T, unsigned... us>
-  struct initializer<T, mpl::ulist<us...>> : initializer_base<T, us>... {
+  struct initializer<T, mpl::ulist<us...>> : initializer_leaf<T, us>... {
     static_assert(sizeof...(us) > 0, "All value types were inelligible!");
   };
 
