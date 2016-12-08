@@ -166,6 +166,8 @@ private:
 
   // Initializer leaf is (possibly) a function object
   // If construction is prohibited, then don't generate operator()
+  // Note: Actually the "forbidding" is accomplished using filter_overloads
+  // below, we don't need to use SFINAE on operator() here.
   template <typename T, unsigned idx>
   struct initializer_leaf {
     using target_type = typename init_helper<idx>::type;
