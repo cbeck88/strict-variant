@@ -95,7 +95,7 @@ struct is_nothrow_moveable_or_wrapper<recursive_wrapper<T>> : std::true_type {};
 // Trait above is useful for figuring out if assingment can work.
 
 template <typename T>
-struct is_nothrow_default_constructible : std::is_nothrow_constructible<T> {};
+struct is_nothrow_default_constructible : std::is_nothrow_default_constructible<T> {};
 
 template <typename T>
 struct is_nothrow_default_constructible<recursive_wrapper<T>> : std::false_type {};

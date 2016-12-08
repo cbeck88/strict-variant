@@ -196,7 +196,11 @@ public:
   ~variant() noexcept { this->destroy(); }
 
   // Constructors
-  template <typename ENABLE = void>
+  // Note: We use detail:: instead of std:: for trait because we handle
+  // recursive_wrapper<T> specially
+  // TODO: It would be nice if we actually SFINAED the definitions of these
+  // special member functions, following akrzemi1's technical description:
+  // https://akrzemi1.wordpress.com/2015/03/02/a-conditional-copy-constructor/
   variant() noexcept(detail::is_nothrow_default_constructible<First>::value);
 
   variant(const variant & rhs) noexcept(
@@ -529,7 +533,6 @@ struct variant<First, Types...>::destroyer {
                         "Postcondition failed!")
 
 template <typename First, typename... Types>
-template <typename enable>
 variant<First, Types...>::variant() noexcept(
   detail::is_nothrow_default_constructible<First>::value) {
   static_assert(std::is_same<void, decltype(static_cast<void>(First()))>::value,
