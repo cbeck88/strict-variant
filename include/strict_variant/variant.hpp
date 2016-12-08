@@ -179,17 +179,17 @@ private:
 
   // Main object, created using inheritance
   // T should be a forwarding reference
-  template <
-    typename T,
-    typename UL =
-      typename filter_overloads<T, mpl::ulist_map_t<init_helper,
-                                                    mpl::count_t<sizeof...(Types) + 1>>>::type>
-  struct initializer;
+  template <typename T, typename UL>
+  struct initializer_base;
 
   template <typename T, unsigned... us>
-  struct initializer<T, mpl::ulist<us...>> : initializer_leaf<T, us>... {
+  struct initializer_base<T, mpl::ulist<us...>> : initializer_leaf<T, us>... {
     static_assert(sizeof...(us) > 0, "All value types were inelligible!");
   };
+
+  template <typename T>
+  struct initializer : initializer_base<T, typename filter_overloads<T, mpl::ulist_map_t<init_helper,
+                                                    mpl::count_t<sizeof...(Types) + 1>>>::type> {};
 
 public:
   ~variant() noexcept { this->destroy(); }
