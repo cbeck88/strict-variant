@@ -114,7 +114,7 @@ pierce_recursive_wrapper(const recursive_wrapper<T> & t) {
 }
 
 } // end namespace detail
-//]
+  //]
 
 /***
  * Trait to remove the wrapper

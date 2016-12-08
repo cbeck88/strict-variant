@@ -79,9 +79,8 @@ struct find_substitute<strict_variant::variant<Types...>, Expected> {
     (same_idx < sizeof...(Types)) ? same_idx
                                   : strict_variant::mpl::Find_With<conv_prop, Types...>::value;
 
-  typedef
-    typename strict_variant::mpl::Index_At_Or_Fallback<same_or_conv_idx, Expected, Types...>::type
-      type;
+  typedef typename strict_variant::mpl::Index_At_Or_Fallback<same_or_conv_idx, Expected,
+                                                             Types...>::type type;
 };
 
 } // end namespace detail
