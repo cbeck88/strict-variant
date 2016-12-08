@@ -39,7 +39,7 @@ class recursive_wrapper {
   T * m_t;
 
   void destroy() {
-    if (m_t) { delete m_t; }
+    delete m_t;
   }
 
 public:
