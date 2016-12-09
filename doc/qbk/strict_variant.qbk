@@ -25,7 +25,8 @@
 [import ../../include/strict_variant/safe_pointer_conversion.hpp]
 [import ../../include/strict_variant/variant_compare.hpp]
 
-[section:intro Introduction]
+[section:intro Overview]
+[include Intro.qbk]
 [include Motivation.qbk]
 [include Design.qbk]
 [endsect]

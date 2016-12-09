@@ -130,8 +130,9 @@ A(A&&)
 
   To summarize the differences:
 
-  - `std::variant` is rarely-empty, always stack-based. If an exception is thrown you end up
-    in the empty state, and get exceptions later if you try to visit.
+  - `std::variant` is rarely-empty, always stack-based. In fact, it's empty exactly
+    when an exception is thrown. Later, it throws different exceptions if you try to visit
+    when it is empty.
   - `boost::variant` is never-empty, usually stack-based. It has to make a dynamic allocation
     and a backup copy whenever an exception *could* be thrown, but that gets freed right after
     if an exception is not actually thrown.
@@ -139,8 +140,9 @@ A(A&&)
     nothrow moveable. It never makes a backup move or copy, and never throws an exception.
    
   Each approach has its merits. I chose the `strict_variant` approach because I find it
-  simpler and it avoids the drawbacks of `boost::variant` and `std::variant`. If you manage
-  to make all your types no-throw move constructible, which often I find I can, then `strict_variant`
+  simpler and it avoids what I consider to be drawbacks of `boost::variant` and `std::variant`. 
+  And, if you manage
+  to make all your types no-throw move constructible, which I often find I can, then `strict_variant`
   gives you optimal performance, the same as `std::variant`, without an empty state.
 
 

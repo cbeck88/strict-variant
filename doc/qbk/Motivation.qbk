@@ -7,29 +7,35 @@ style of `boost::variant`, designed for the C++11 standard.
 
 [h3 Motivation]
 
-Do you use `boost::variant` or one of the many open-source C++11 implementations of a "tagged union" or variant type
-in your C++ projects?
+`strict_variant` was created primarily to improve on some aspects of `boost::variant`:
 
-Do you dislike that code like this may compile, without any warning or error message?
+* Too easy to cause implicit conversions
+* Too easy to cause implementation-dependent conversions
+* Makes backup copies of your objects under the hood
+* Somewhat complex implementation (not always easy to understand when a backup copy will be made)
 
-```
-  boost::variant<std::string, int> v;  
+while maintaining the "never-empty" property, which was dropped in `std::variant` and many
+of the other open-source `variant` implementations.
 
-  v = true;  
-```
+To summarize the differences:
 
-Do you dislike that code like this may compile on some machines, but not others?
+* `std::variant` is rarely-empty, always stack-based. In fact, it's empty exactly
+  when an exception is thrown. Later, it throws different exceptions if you try to visit
+  when it is empty.
+* `boost::variant` is never-empty, usually stack-based. It has to make a dynamic allocation
+  and a backup copy whenever an exception *could* be thrown, but that gets freed right after
+  if an exception is not actually thrown.
+* `strict_variant` is never-empty, and stack-based exactly when the current value-type is
+  nothrow moveable. It never makes a backup move or copy, and never throws an exception.
+   
+Each approach has its merits. I chose the `strict_variant` approach because I find it
+simpler and it avoids what I consider to be drawbacks of `boost::variant` and `std::variant`. 
 
-```
-  boost::variant<long, unsigned int> v;  
+And, if you manage
+to make all your types no-throw move constructible, which I often find I can, then `strict_variant`
+gives you optimal performance, the same as `std::variant`, without an empty state.
 
-  v = 10;  
-```
-
-Do you crave the performance benefits of `std::variant`, but don't want to have
-to put up with an empty state?
-
-If so, then this may be the variant type for you.
+[h3 Goals]
 
 The design goals of `strict_variant` are:
 

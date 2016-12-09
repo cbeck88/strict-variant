@@ -67,6 +67,8 @@ instantiation of the variant. So we have to assume the worst when the user uses
 
 [h4 Add an `operator = (T &&)` overload?]
 
+[note This was done, and the documentation and future work needs to be updated. TODO]
+
 Currently, the only conversions from non-variant types to variants happen in the
 forwarding-reference constructor. A statement:
 
