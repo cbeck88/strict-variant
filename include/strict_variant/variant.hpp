@@ -154,8 +154,14 @@ private:
   struct destroyer;
   struct swapper;
 
-  // initializer. This is the overloaded function object used in T && ctor.
-  // Here T should be the forwarding reference
+  /***
+   * initializer_slot is a template function which figures out which slot
+   * should be used when initializing or assigning from an object of type T &&.
+   *
+   * This is used in T && ctor and T && operator =.
+   * It works by creating an appropriate overloaded function object and
+   * applying it to an argument of type T &&.
+   */
 
   // init_helper trait maps an index to the corresponding value type, by
   // interrogating storage_t to ensure consistency.
@@ -164,18 +170,15 @@ private:
     using type = unwrap_type_t<typename storage_t::template value_t<idx>>;
   };
 
-  // Initializer leaf is (possibly) a function object
-  // If construction is prohibited, then don't generate operator()
+  // Initializer leaf is a function object
   // Note: Actually the "forbidding" is accomplished using filter_overloads
   // below, we don't need to use SFINAE on operator() here.
   template <typename T, unsigned idx>
   struct initializer_leaf {
     using target_type = typename init_helper<idx>::type;
 
-    template <typename V>
-    void operator()(V && v, target_type val) noexcept(
-      noexcept(std::forward<V>(v).template initialize<idx>(std::move(val)))) {
-      std::forward<V>(v).template initialize<idx>(std::move(val));
+    constexpr std::integral_constant<unsigned, idx> operator()(target_type) const {
+      return {};
     }
   };
 
@@ -192,6 +195,12 @@ private:
   template <typename T>
   struct initializer : initializer_base<T, typename filter_overloads<T, mpl::ulist_map_t<init_helper,
                                                     mpl::count_t<sizeof...(Types) + 1>>>::type> {};
+
+  // Interface, this is what is actually used in T && ctor and assignment op
+  template <typename T>
+  static constexpr unsigned initializer_slot() {
+    return decltype(initializer<T>{}(std::declval<T>()))::value;
+  }
 
 public:
   ~variant() noexcept { this->destroy(); }
@@ -592,8 +601,8 @@ variant<First, Types...>::variant(T && t) {
   static_assert(!std::is_same<variant &, mpl::remove_const_t<T>>::value,
                 "why is variant(T&&) instantiated with a variant? why was a special "
                 "member function not selected?");
-  initializer<T> initer;
-  initer(*this, std::forward<T>(t));
+  constexpr unsigned idx = initializer_slot<T>();
+  this->initialize<idx>(std::forward<T>(t));
   STRICT_VARIANT_ASSERT_WHICH_INVARIANT;
 }
 
