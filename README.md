@@ -76,7 +76,7 @@ A(const A &)
   This may be pretty surprising to some programmers.
    
   By contrast, if you use the C++17 `std::variant`, or one of the variants with
-  "sometimes-empty" semantics, you get somehting like this (this output from `std::experimental::variant`)
+  "sometimes-empty" semantics, you get something like this (this output from `std::experimental::variant`)
   
   ```c++
 A()
@@ -102,8 +102,7 @@ A(A&&)
   
   This kind of thing usually doesn't matter, but sometimes if for instance you are
   debugging a nasty memory corruption problem (perhaps there's bad code in one of the objects contained
-  in the variant),
-  these extra objects, moves, and copies, may make things incidentally more complicated.
+  in the variant), then these extra objects, moves, and copies, may make things incidentally more complicated.
   
   Here's what you get with `strict_variant`:
   
@@ -127,7 +126,7 @@ A(A&&)
   
   Yet, `strict_variant` does not have an empty state, and is fully exception-safe!
 
-  (See code in [`example`](./example) folder.)
+  (These examples from `gcc 5.4`, see code in [`example`](./example) folder.)
 
   To summarize the differences:
 
@@ -158,6 +157,8 @@ Compiler Compatibility
 `strict_variant` targets the C++11 standard.
 
 It is known to work with `gcc >= 4.8` and `clang >= 3.5`, and is tested against `MSVC 2015`.
+
+`strict_variant` can be used in projects which require `-fno-exceptions` and `-fno-rtti`.
 
 Licensing and Distribution
 ==========================
