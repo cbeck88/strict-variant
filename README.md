@@ -127,7 +127,7 @@ A(A&&)
   
   Yet, `strict_variant` does not have an empty state, and is fully exception-safe!
 
-
+  (See code in [`example`](./example) folder.)
 
   To summarize the differences:
 
