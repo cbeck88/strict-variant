@@ -216,9 +216,7 @@ private:
   struct initializer_leaf {
     using target_type = typename init_helper<idx>::type;
 
-    constexpr std::integral_constant<unsigned, idx> operator()(target_type) const {
-      return {};
-    }
+    constexpr std::integral_constant<unsigned, idx> operator()(target_type) const { return {}; }
   };
 
   // Main object, created using inheritance
@@ -232,8 +230,11 @@ private:
   };
 
   template <typename T>
-  struct initializer : initializer_base<T, typename filter_overloads<T, mpl::ulist_map_t<init_helper,
-                                                    mpl::count_t<sizeof...(Types) + 1>>>::type> {};
+  struct initializer
+    : initializer_base<T,
+                       typename filter_overloads<T, mpl::ulist_map_t<init_helper,
+                                                                     mpl::count_t<sizeof...(Types)
+                                                                                  + 1>>>::type> {};
 
   // Interface, this is what is actually used in T && ctor and assignment op
   template <typename T>
@@ -534,7 +535,8 @@ struct variant<First, Types...>::assigner {
                 "All types in this variant must be nothrow move constructible or placed in a "
                 "recursive_wrapper, or the variant cannot be assigned!");
 
-  explicit assigner(variant & self) : m_self(self) {}
+  explicit assigner(variant & self)
+    : m_self(self) {}
 
   template <typename Rhs>
   void operator()(Rhs && rhs) const {
@@ -633,12 +635,12 @@ variant<First, Types...>::variant(T && t) {
 
 template <typename First, typename... Types>
 template <typename T, typename>
-variant<First, Types...> & variant<First, Types...>::operator= (T && t) {
+variant<First, Types...> &
+variant<First, Types...>::operator=(T && t) {
   constexpr unsigned idx = initializer_slot<T>();
   this->assign<idx>(std::forward<T>(t));
   return *this;
 }
-
 
 /// "Generalizing Ctor"
 /// Allow constructing from a variant over a subset of our types
@@ -666,7 +668,8 @@ variant<First, Types...>::variant(variant<OFirst, OTypes...> && other) noexcept(
 // Generalizing assignments
 template <typename First, typename... Types>
 template <typename OFirst, typename... OTypes, typename Enable>
-variant<First, Types...> & variant<First, Types...>::operator=(const variant<OFirst, OTypes...> & other) noexcept(
+variant<First, Types...> &
+variant<First, Types...>::operator=(const variant<OFirst, OTypes...> & other) noexcept(
   detail::variant_noexcept_helper<OFirst, OTypes...>::nothrow_copy_assign) {
   assigner a(*this);
   apply_visitor(a, other);
@@ -676,7 +679,8 @@ variant<First, Types...> & variant<First, Types...>::operator=(const variant<OFi
 
 template <typename First, typename... Types>
 template <typename OFirst, typename... OTypes, typename Enable>
-variant<First, Types...> & variant<First, Types...>::operator=(variant<OFirst, OTypes...> && other) noexcept(
+variant<First, Types...> &
+variant<First, Types...>::operator=(variant<OFirst, OTypes...> && other) noexcept(
   detail::variant_noexcept_helper<OFirst, OTypes...>::nothrow_move_assign) {
   assigner a(*this);
   apply_visitor(a, std::move(other));

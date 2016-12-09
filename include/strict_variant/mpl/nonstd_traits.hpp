@@ -63,8 +63,7 @@ using std::swap;
 struct do_is_nothrow_swappable {
   template <class T>
   static auto test(int)
-    -> std::integral_constant<bool, noexcept(swap(std::declval<T &>(),
-                                                  std::declval<T &>()))>;
+    -> std::integral_constant<bool, noexcept(swap(std::declval<T &>(), std::declval<T &>()))>;
 
   template <class>
   static std::false_type test(...);

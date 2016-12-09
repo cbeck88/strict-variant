@@ -38,9 +38,7 @@ template <typename T>
 class recursive_wrapper {
   T * m_t;
 
-  void destroy() {
-    delete m_t;
-  }
+  void destroy() { delete m_t; }
 
 public:
   ~recursive_wrapper() noexcept { this->destroy(); }
