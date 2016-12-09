@@ -123,6 +123,45 @@ private:
   }
 
   /***
+   * (Type-changing) Assignment
+   */
+  template <std::size_t index, typename Rhs>
+  void assign(Rhs && rhs) {
+    constexpr bool assume_nothrow_init =
+      std::is_lvalue_reference<Rhs>::value
+        ? detail::variant_noexcept_helper<First, Types...>::assume_copy_nothrow
+        : detail::variant_noexcept_helper<First, Types...>::assume_move_nothrow;
+
+    // This is a recursive_wrapper if that is what storage is using internally
+    using temp_t = typename storage_t::template value_t<index>;
+
+    // Three cases:
+    // 1) Already had an RHS type in the variant. Use assignment directly. Must pierce
+    // recursive_wrapper.
+    // 2) Must change type, but initializing the new value is noexcept. Can destroy and do it
+    // directly.
+    // 3) Must change type, and initializing the new value may throw. Do it on the stack, and then
+    // move into storage.
+
+    static_assert(noexcept(this->destroy()), "Noexcept assumption failed!");
+
+    if (this->which() == index) {
+      m_storage.template get_value<index>(detail::false_{}) = std::forward<Rhs>(rhs);
+    } else if (assume_nothrow_init || noexcept(this->initialize<index>(std::forward<Rhs>(rhs)))) {
+      this->destroy();
+      this->initialize<index>(std::forward<Rhs>(rhs));
+    } else {
+      static_assert(detail::variant_noexcept_helper<First, Types...>::assume_move_nothrow
+                      || noexcept(this->initialize<index>(std::declval<temp_t>())),
+                    "Noexcept assumption failed!");
+
+      temp_t tmp(std::forward<Rhs>(rhs));      // may throw
+      this->destroy();                         // nothrow
+      this->initialize<index>(std::move(tmp)); // nothrow
+    }
+  }
+
+  /***
    * Used for internal visitors
    */
   template <typename Visitor>
@@ -259,6 +298,11 @@ public:
 
   variant & operator=(variant && rhs) noexcept(
     detail::variant_noexcept_helper<First, Types...>::nothrow_move_assign);
+
+  template <typename T,
+            typename =
+              mpl::enable_if_t<!is_variant<mpl::remove_const_t<mpl::remove_reference_t<T>>>::value>>
+  variant & operator=(T && t);
 
   // Emplace operation
   template <std::size_t index, typename... Args>
@@ -460,7 +504,8 @@ struct variant<First, Types...>::constructor {
 
   template <typename T>
   void operator()(T && rhs) const {
-    m_self.initialize<find_which<mpl::remove_reference_t<T>>::value>(std::forward<T>(rhs));
+    constexpr std::size_t index = find_which<mpl::remove_reference_t<T>>::value;
+    m_self.template initialize<index>(std::forward<T>(rhs));
   }
 
 private:
@@ -468,6 +513,7 @@ private:
 };
 
 // assigner
+// TODO: rhs_which is not used anymore
 template <typename First, typename... Types>
 struct variant<First, Types...>::assigner {
 
@@ -481,41 +527,8 @@ struct variant<First, Types...>::assigner {
 
   template <typename Rhs>
   void operator()(Rhs && rhs) const {
-
-    static_assert(noexcept(m_self.destroy()), "Noexcept assumption failed!");
-
     constexpr std::size_t index = find_which<mpl::remove_reference_t<Rhs>>::value;
-    constexpr bool assume_nothrow_init =
-      std::is_lvalue_reference<Rhs>::value
-        ? detail::variant_noexcept_helper<First, Types...>::assume_copy_nothrow
-        : detail::variant_noexcept_helper<First, Types...>::assume_move_nothrow;
-
-    // This is a recursive_wrapper if that is what storage is using internally
-    using temp_t = typename storage_t::template value_t<index>;
-
-    // Three cases:
-    // 1) Already had an RHS type in the variant. Use assignment directly. Must pierce
-    // recursive_wrapper.
-    // 2) Must change type, but initializing the new value is noexcept. Can destroy and do it
-    // directly.
-    // 3) Must change type, and initializing the new value may throw. Do it on the stack, and then
-    // move into storage.
-
-    if (m_self.which() == m_rhs_which) {
-      STRICT_VARIANT_ASSERT(m_rhs_which == index, "Bad access!");
-      m_self.m_storage.template get_value<index>(detail::false_{}) = std::forward<Rhs>(rhs);
-    } else if (assume_nothrow_init || noexcept(m_self.initialize<index>(std::forward<Rhs>(rhs)))) {
-      m_self.destroy();
-      m_self.initialize<index>(std::forward<Rhs>(rhs));
-    } else {
-      static_assert(detail::variant_noexcept_helper<First, Types...>::assume_move_nothrow
-                      || noexcept(m_self.initialize<index>(std::declval<temp_t>())),
-                    "Noexcept assumption failed!");
-
-      temp_t tmp(std::forward<Rhs>(rhs));
-      m_self.destroy();                         // nothrow
-      m_self.initialize<index>(std::move(tmp)); // nothrow
-    }
+    m_self.template assign<index>(std::forward<Rhs>(rhs));
   }
 
 private:
@@ -605,6 +618,17 @@ variant<First, Types...>::variant(T && t) {
   this->initialize<idx>(std::forward<T>(t));
   STRICT_VARIANT_ASSERT_WHICH_INVARIANT;
 }
+
+/// Forwarding-reference assignment
+
+template <typename First, typename... Types>
+template <typename T, typename>
+variant<First, Types...> & variant<First, Types...>::operator= (T && t) {
+  constexpr unsigned idx = initializer_slot<T>();
+  this->assign<idx>(std::forward<T>(t));
+  return *this;
+}
+
 
 /// "Generalizing Ctor"
 /// Allow constructing from a variant over a subset of our types
