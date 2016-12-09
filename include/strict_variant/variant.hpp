@@ -527,7 +527,6 @@ private:
 };
 
 // assigner
-// TODO: rhs_which is not used anymore
 template <typename First, typename... Types>
 struct variant<First, Types...>::assigner {
 
@@ -535,9 +534,7 @@ struct variant<First, Types...>::assigner {
                 "All types in this variant must be nothrow move constructible or placed in a "
                 "recursive_wrapper, or the variant cannot be assigned!");
 
-  explicit assigner(variant & self, int rhs_which)
-    : m_self(self)
-    , m_rhs_which(rhs_which) {}
+  explicit assigner(variant & self) : m_self(self) {}
 
   template <typename Rhs>
   void operator()(Rhs && rhs) const {
@@ -547,7 +544,6 @@ struct variant<First, Types...>::assigner {
 
 private:
   variant & m_self;
-  int m_rhs_which;
 };
 
 // destroyer
@@ -602,7 +598,7 @@ template <typename First, typename... Types>
 variant<First, Types...> &
 variant<First, Types...>::operator=(const variant & rhs) noexcept(
   detail::variant_noexcept_helper<First, Types...>::nothrow_copy_assign) {
-  assigner a(*this, rhs.which());
+  assigner a(*this);
   apply_visitor(a, rhs);
   STRICT_VARIANT_ASSERT(rhs.which() == this->which(), "Postcondition failed!");
   STRICT_VARIANT_ASSERT_WHICH_INVARIANT;
@@ -614,7 +610,7 @@ template <typename First, typename... Types>
 variant<First, Types...> &
 variant<First, Types...>::operator=(variant && rhs) noexcept(
   detail::variant_noexcept_helper<First, Types...>::nothrow_move_assign) {
-  assigner ma(*this, rhs.which());
+  assigner ma(*this);
   apply_visitor(ma, std::move(rhs));
   STRICT_VARIANT_ASSERT(rhs.which() == this->which(), "Postcondition failed!");
   STRICT_VARIANT_ASSERT_WHICH_INVARIANT;
@@ -672,7 +668,7 @@ template <typename First, typename... Types>
 template <typename OFirst, typename... OTypes, typename Enable>
 variant<First, Types...> & variant<First, Types...>::operator=(const variant<OFirst, OTypes...> & other) noexcept(
   detail::variant_noexcept_helper<OFirst, OTypes...>::nothrow_copy_assign) {
-  assigner a(*this, other.which());
+  assigner a(*this);
   apply_visitor(a, other);
   STRICT_VARIANT_ASSERT_WHICH_INVARIANT;
   return *this;
@@ -682,7 +678,7 @@ template <typename First, typename... Types>
 template <typename OFirst, typename... OTypes, typename Enable>
 variant<First, Types...> & variant<First, Types...>::operator=(variant<OFirst, OTypes...> && other) noexcept(
   detail::variant_noexcept_helper<OFirst, OTypes...>::nothrow_move_assign) {
-  assigner a(*this, other.which());
+  assigner a(*this);
   apply_visitor(a, std::move(other));
   STRICT_VARIANT_ASSERT_WHICH_INVARIANT;
   return *this;
