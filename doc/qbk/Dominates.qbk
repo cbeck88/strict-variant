@@ -6,7 +6,7 @@ or making an assingment to variant using the `T &&` (forwarding-reference) const
 `dominates` is a predicate which is used to eliminate a type from the overload set in
 the case that a "stronger match" is present, which overload resolution wouldn't normally eliminate.
 
-`dominates` is used to implement the "priority" for integral types described in the [link strict_variant.intro.design design].
+`dominates` is used to implement the "priority" for integral types described in the [link strict_variant.overview.design design].
 
 [h3 Valid Expressions]
 [table

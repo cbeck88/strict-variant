@@ -1,7 +1,7 @@
 [library Strict Variant
     [quickbook 1.6]
     [id strict_variant]
-    [version 0.0]
+    [version 0.3]
     [copyright 2016 Chris Beck]
     [authors [Beck, Chris]]
     [category Containers]
@@ -25,8 +25,9 @@
 [import ../../include/strict_variant/safe_pointer_conversion.hpp]
 [import ../../include/strict_variant/variant_compare.hpp]
 
-[section:intro Overview]
 [include Intro.qbk]
+
+[section:overview Overview]
 [include Motivation.qbk]
 [include Design.qbk]
 [endsect]

@@ -1,6 +1,6 @@
 [section Implementation Notes]
 
-As mentioned in the [link strict_variant.intro.design design notes], the
+As mentioned in the [link strict_variant.overview.design design notes], the
 implementation details of the actual
 `variant` class end up being relatively simple, and the wrapper abstraction ends
 up doing much of the work related to exception safety.
