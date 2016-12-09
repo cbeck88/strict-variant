@@ -370,12 +370,9 @@
             </p>
 <p>
               Attempts to convert <code class="computeroutput"><span class="identifier">T</span></code>
-              to one of the value types of this variant, or an expression convertible
-              to such.
-            </p>
-<p>
-              This is resolved using overload resolution, with each of the <span class="emphasis"><em>value
-              types</em></span> as a candidate.
+              to one of the value types of this variant, using <span class="emphasis"><em>C++ overload
+              resolution</em></span>, with each of the <span class="emphasis"><em>value types</em></span>
+              as a candidate.
             </p>
 <p>
               However, before overload resolution occurs, some candidates are eliminated,
@@ -399,7 +396,7 @@
               Overload resolution occurs with the remaining types.
             </p>
 <p>
-              Unless you customize those type traits, the behavior is only modified
+              Unless you customize those type traits, candidates are only eliminated
               when both:
             </p>
 <div class="itemizedlist"><ul class="itemizedlist" type="disc">
