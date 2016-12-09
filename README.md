@@ -7,99 +7,150 @@
 Do you use `boost::variant` or one of the many open-source C++11 implementations of a "tagged union" or variant type
 in your C++ projects?
 
-Do you dislike that code like this may compile, without any warning or error message?
+I created `strict_variant` in order to address a few things about `boost::variant` that I didn't like.
 
-```c++
+- I didn't like that code like this may compile without any warning or error messages:
+
+  ```c++
   boost::variant<std::string, int> v;  
 
   v = true;  
-```
+  ```
+  
+  I'd usually rather that my `variant` is more restrictive about what implicit conversions can happen.
 
-Do you dislike that code like this may compile on some machines, but not others?
+- I didn't like that different integral conversions might be selected on different machines:
 
-```c++
+  ```c++
   boost::variant<long, unsigned int> v;  
 
-  v = 10;  
-```
+  v = 10;
+  ```
+  
+  The value of `v.which()` here can depend on implementation-defined details, which was bad for my application.
+  
+- I didn't like that `boost::variant` will silently make backup copies of my objects. For instance, consider this simple program,
+  in which `A` and `B` have been defined to log all ctor and dtor calls.
+  
+  ```c++
+  int main() {
+    using var_t = boost::variant<A, B>;
+  
+    var_t v{A()};
+    std::cout << "1" << std::endl;
+    v = B();
+    std::cout << "2" << std::endl;
+    v = A();
+    std::cout << "3" << std::endl;
+  }
+  ```
+  
+  `boost::variant` produces the following output:
 
-Do you crave the performance benefits of `std::variant`, but don't want to have
-to put up with an empty state?
+  ```c++
+A()
+A(A&&)
+~A()
+1
+B()
+B(B&&)
+A(const A &)
+~A()
+B(const B &)
+~A()
+~B()
+~B()
+2
+A()
+A(A&&)
+B(const B &)
+~B()
+A(const A &)
+~B()
+~A()
+~A()
+3
+~A()
+  ```
+  
+  This may be pretty surprising to some programmers.
+   
+  By contrast, if you use the C++17 `std::variant`, or one of the variants with
+  "sometimes-empty" semantics, you get somehting like this (this output from `std::experimental::variant`)
+  
+  ```c++
+A()
+A(A&&)
+~A()
+1
+B()
+~A()
+B(B&&)
+~B()
+2
+A()
+~B()
+A(A&&)
+~A()
+3
+~A()
+  ```
+  
+  This is much closer to what the naive programmer expects who doesn't know about internal
+  details of `boost::variant` -- the only copies of his objects that exist are what he can see
+  in his source code.
+  
+  This kind of thing usually doesn't matter, but sometimes if for instance you are
+  debugging a nasty memory corruption problem (perhaps there's bad code in one of the objects contained
+  in the variant),
+  these extra objects, moves, and copies, may make things incidentally more complicated.
+  
+  Here's what you get with `strict_variant`:
+  
+  ```c++
+A()
+A(A&&)
+~A()
+1
+B()
+B(B&&)
+~A()
+~B()
+2
+A()
+A(A&&)
+~B()
+~A()
+3
+~A()
+  ```
+  
+  Yet, `strict_variant` does not have an empty state, and is fully exception-safe!
 
-If so, then this may be the variant type for you.
 
-**strict variant** is yet another C++11 variant type, with the twist that it prevents "unsafe" implicit conversions
-such as narrowing conversions, conversions from bool to other integral types, pointer conversions, etc., and handles
-overload ambiguity differently from other C++ variant types.
 
-It may be well-suited for use in scenarios where you need to have a variant holding multiple different integral types,
-and really don't want to have any loss of precision or any "gotcha" conversions happening.
+  To summarize the differences:
 
-**strict variant** provides a strict *never-empty guarantee* like `boost::variant`, for ease of visitation. And it is *strongly exception-safe*, having
-rollback semantics if an assignment throws an exception. But it does not incur the cost of
-backup copies which `boost::variant` pays, due to a different implementation approach. In some cases this allows
-improved performance.
+  - `std::variant` is rarely-empty, always stack-based. If an exception is thrown you end up
+    in the empty state, and get exceptions later if you try to visit.
+  - `boost::variant` is never-empty, usually stack-based. It has to make a dynamic allocation
+    and a backup copy whenever an exception *could* be thrown, but that gets freed right after
+    if an exception is not actually thrown.
+  - `strict_variant` is never-empty, and stack-based exactly when the current value-type is
+    nothrow moveable. It never makes a backup move or copy, and never throws an exception.
+   
+  Each approach has its merits. I chose the `strict_variant` approach because I find it
+  simpler and it avoids the drawbacks of `boost::variant` and `std::variant`. If you manage
+  to make all your types no-throw move constructible, which often I find I can, then `strict_variant`
+  gives you optimal performance, the same as `std::variant`, without an empty state.
+
+
+For an in-depth discussion of the design, check out the documentation.
 
 Documentation
 =============
 
 On [github pages](https://cbeck88.github.io/strict-variant/index.html).
-
-Overview
-========
-
-The reason that `boost::variant` and most other variants, including the `std::variant` which was accepted to C++17,
-will allow implicit conversions, is that fundamentally they work through C++ overload resolution.
-
-Generally, when you assign a value of some type `T` to such a variant, these variants are going to construct a temporary function object
-which is overloaded once for each type in the variant's list. Then they apply the function object to the value, and overload
-resolution selects which conversion will actually happen.
-
-Overload resolution is a core C++ language feature, and in 95% of cases it works very well and does the right thing.
-
-However, in the 5% of cases where overload resolution does the wrong thing, it can be quite difficult to work around it.
-This includes the scenarios in which overload resolution is ambiguous, as well as the cases in which, due to some implicit conversion,
-an overload is selected which the user did not intend.
-
-One case when this might cause problems for you is when using variant types to interface with some scripting language for instance. The typical dynamically-typed
-scripting language will permit a variety of primitive values, so when binding to it, you may naturally end up with something like
-
-```c++
-  boost::variant<bool, int, float, std::string, ...>
-```
-
-and this is the area that causes the most difficulties for overload resolution.
-
-**strict variant** therefore uses SFINAE to modify the overload resolution process.
-
-- When the variant is constructed from a value, each type is checked to see if a *safe* conversion to that type is possible.
-  If not, then it is eliminated from overload resolution.
-
-- What conversions are "safe"?  
-  I wrote a type trait that implements a strict notion of safety which was appropriate for the project in which
-  I developed this. (See [1](include/strict_variant/conversion_rank.hpp), [2](include/strict_variant/safely_constructible.hpp)).
-  - Conversions are not permitted between any two of the following classes:  
-  Integral types, Floating point types, Character types, Boolean, Pointer types, and `wchar_t`.
-  - If an integral or floating point conversion *could* be narrowing on some conforming implementation of C++, then it is not safe.  
-  (So, `long` cannot be converted to `int`
-  even if you are on a 32-bit machine and they have the same size for you, because it could be narrowing on a 64-bit machine.)
-  - Signed can be promoted to unsigned, but the reverse is not allowed (since it is typically implementation-defined).
-  - Conversions like `char *` to `const char *` are permitted, and standard conversions like array-to-pointer are permitted, but otherwise no pointer conversions are permitted.
-
-- You can force the variant to a particular type using the `emplace` template function. Rarely necessary in my experience but sometimes useful, and saves a `move`.
-- There is also an emplace-ctor, where you select the type using tag dispatch.
-
-  ```c++
-    variant v{emplace_tag<my_type>, arg1, arg2, arg3};
-  ```
-
-So, keep in mind, this is not a drop-in replacement for `boost::variant` or one of the other versions, its semantics are fundamentally different.
-But in scenarios like those it was designed for, it may be easier to reason about and less error-prone.
-
-Never-Empty Guarantee
-=====================
-
-See documentation for how we handle this.
 
 Compiler Compatibility
 ======================
