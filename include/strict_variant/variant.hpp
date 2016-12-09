@@ -299,10 +299,24 @@ public:
   variant & operator=(variant && rhs) noexcept(
     detail::variant_noexcept_helper<First, Types...>::nothrow_move_assign);
 
+  // Forwarding reference assignment
   template <typename T,
             typename =
               mpl::enable_if_t<!is_variant<mpl::remove_const_t<mpl::remove_reference_t<T>>>::value>>
   variant & operator=(T && t);
+
+  // Generalizing assignment
+  template <typename OFirst, typename... OTypes,
+            typename Enable = mpl::enable_if_t<detail::proper_subvariant<variant<OFirst, OTypes...>,
+                                                                         variant>::value>>
+  variant & operator=(const variant<OFirst, OTypes...> & other) noexcept(
+    detail::variant_noexcept_helper<OFirst, OTypes...>::nothrow_copy_assign);
+
+  template <typename OFirst, typename... OTypes,
+            typename Enable = mpl::enable_if_t<detail::proper_subvariant<variant<OFirst, OTypes...>,
+                                                                         variant>::value>>
+  variant & operator=(variant<OFirst, OTypes...> && other) noexcept(
+    detail::variant_noexcept_helper<OFirst, OTypes...>::nothrow_move_assign);
 
   // Emplace operation
   template <std::size_t index, typename... Args>
@@ -651,6 +665,27 @@ variant<First, Types...>::variant(variant<OFirst, OTypes...> && other) noexcept(
   constructor c(*this);
   apply_visitor(c, std::move(other));
   STRICT_VARIANT_ASSERT_WHICH_INVARIANT;
+}
+
+// Generalizing assignments
+template <typename First, typename... Types>
+template <typename OFirst, typename... OTypes, typename Enable>
+variant<First, Types...> & variant<First, Types...>::operator=(const variant<OFirst, OTypes...> & other) noexcept(
+  detail::variant_noexcept_helper<OFirst, OTypes...>::nothrow_copy_assign) {
+  assigner a(*this, other.which());
+  apply_visitor(a, other);
+  STRICT_VARIANT_ASSERT_WHICH_INVARIANT;
+  return *this;
+}
+
+template <typename First, typename... Types>
+template <typename OFirst, typename... OTypes, typename Enable>
+variant<First, Types...> & variant<First, Types...>::operator=(variant<OFirst, OTypes...> && other) noexcept(
+  detail::variant_noexcept_helper<OFirst, OTypes...>::nothrow_move_assign) {
+  assigner a(*this, other.which());
+  apply_visitor(a, std::move(other));
+  STRICT_VARIANT_ASSERT_WHICH_INVARIANT;
+  return *this;
 }
 
 // Emplace ctor. Used to explicitly specify the type of the variant, and
