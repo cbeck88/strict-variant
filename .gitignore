@@ -7,4 +7,6 @@
 /bench/bench.log
 /doc/bin/
 /doc/html/
+/example/bin
+/example/stage
 update_docu.sh

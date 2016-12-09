@@ -1,0 +1,52 @@
+# project : default-build <optimization>off debug  ;
+project : default-build <optimization>speed release  ;
+
+INSTALL_LOC = <location>stage/ ;
+
+### Boost directory
+
+import os ;
+
+local BOOST_ROOT = [ os.environ BOOST_ROOT ] ;
+if $(BOOST_ROOT) {
+  # echo "BOOST_ROOT = '" $(BOOST_ROOT) "'" ;
+  BOOST_INCLUDE_DIR = $(BOOST_ROOT) ;
+} else {
+  echo "BOOST_ROOT variable not set!" ;
+  BOOST_INCLUDE_DIR = "/usr/include" ;
+}
+
+# Try to find boost/version.hpp
+
+if [ GLOB $(BOOST_INCLUDE_DIR)/boost/ : version.hpp ] {
+  echo "Using BOOST_INCLUDE_DIR = '" $(BOOST_INCLUDE_DIR) "'" ;  
+} else {
+  echo "Could not find boost, skipping boost tests" ;
+  BOOST_INCLUDE_DIR = ;
+}
+
+### Boost alias
+
+alias boost_headers : : : : <include>$(BOOST_INCLUDE_DIR) ;
+
+### Setup strict_variant target
+
+alias strict_variant_lib : : : : <include>../include/  ;
+
+### Setup experimental::variant target
+
+alias exp_variant_lib : : : : <include>../bench/mpark_variant/include/ ;
+
+### Example header
+
+alias example : : : : <include>. ;
+
+### Targets
+
+alias config : : : : <cxxflags>"-O3 -Wall -Werror -Wextra -pedantic -std=c++14 " ;
+
+exe sv : strict_variant.cpp strict_variant_lib config ;
+exe ev : exp_variant.cpp exp_variant_lib config ;
+exe bv : boost_variant.cpp boost_headers config ;
+
+install install-bin : sv bv ev : $(INSTALL_LOC) ;
