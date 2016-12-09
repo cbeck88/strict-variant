@@ -1,28 +1,290 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
-<title>Overview</title>
+<title>Intro</title>
 <link rel="stylesheet" href="../boostbook.css" type="text/css">
 <meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
-<link rel="home" href="../index.html" title="Chapter&#160;1.&#160;Strict Variant 0.0">
-<link rel="up" href="../index.html" title="Chapter&#160;1.&#160;Strict Variant 0.0">
-<link rel="prev" href="../index.html" title="Chapter&#160;1.&#160;Strict Variant 0.0">
-<link rel="next" href="intro/intro.html" title="Intro">
+<link rel="home" href="../index.html" title="Chapter&#160;1.&#160;Strict Variant 0.3">
+<link rel="up" href="../index.html" title="Chapter&#160;1.&#160;Strict Variant 0.3">
+<link rel="prev" href="../index.html" title="Chapter&#160;1.&#160;Strict Variant 0.3">
+<link rel="next" href="overview.html" title="Overview">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
 <div class="spirit-nav">
-<a accesskey="p" href="../index.html"><img src="../images/prev.png" alt="Prev"></a><a accesskey="u" href="../index.html"><img src="../images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../images/home.png" alt="Home"></a><a accesskey="n" href="intro/intro.html"><img src="../images/next.png" alt="Next"></a>
+<a accesskey="p" href="../index.html"><img src="../images/prev.png" alt="Prev"></a><a accesskey="u" href="../index.html"><img src="../images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../images/home.png" alt="Home"></a><a accesskey="n" href="overview.html"><img src="../images/next.png" alt="Next"></a>
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="strict_variant.intro"></a><a class="link" href="intro.html" title="Overview">Overview</a>
+<a name="strict_variant.intro"></a><a class="link" href="intro.html" title="Intro">Intro</a>
 </h2></div></div></div>
-<div class="toc"><dl>
-<dt><span class="section"><a href="intro/intro.html">Intro</a></span></dt>
-<dt><span class="section"><a href="intro/abstract_and_motivation.html">Abstract
-      and Motivation</a></span></dt>
-<dt><span class="section"><a href="intro/design.html">Design</a></span></dt>
-</dl></div>
+<p>
+      Do you use <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code> or one of the many open-source C++11
+      implementations of a "tagged union" or variant type in your C++ projects?
+    </p>
+<p>
+      I created <code class="computeroutput"><span class="identifier">strict_variant</span></code> in
+      order to address a few things about <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code>
+      that I didn't like.
+    </p>
+<div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
+          I didn't like that code like this may compile without any warning or error
+          messages:
+        </li></ul></div>
+<pre class="programlisting"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">,</span> <span class="keyword">int</span><span class="special">&gt;</span> <span class="identifier">v</span><span class="special">;</span>
+
+<span class="identifier">v</span> <span class="special">=</span> <span class="keyword">true</span><span class="special">;</span>
+</pre>
+<p>
+      I'd usually rather that my <code class="computeroutput"><span class="identifier">variant</span></code>
+      is more restrictive about what implicit conversions can happen.
+    </p>
+<div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
+          I didn't like that different integral conversions might be selected on
+          different machines:
+        </li></ul></div>
+<pre class="programlisting"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span><span class="special">&lt;</span><span class="keyword">long</span><span class="special">,</span> <span class="keyword">unsigned</span> <span class="keyword">int</span><span class="special">&gt;</span> <span class="identifier">v</span><span class="special">;</span>
+
+<span class="identifier">v</span> <span class="special">=</span> <span class="number">10</span><span class="special">;</span>
+</pre>
+<p>
+      The value of <code class="computeroutput"><span class="identifier">v</span><span class="special">.</span><span class="identifier">which</span><span class="special">()</span></code> here
+      can depend on implementation-defined details, which was bad for my application.
+    </p>
+<div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
+          I didn't like that <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code>
+          will silently make backup copies of my objects.
+        </li></ul></div>
+<h4>
+<a name="strict_variant.intro.h0"></a>
+      <span><a name="strict_variant.intro.backup_copies"></a></span><a class="link" href="intro.html#strict_variant.intro.backup_copies">Backup
+      Copies</a>
+    </h4>
+<p>
+      For instance, consider this simple program, in which <code class="computeroutput"><span class="identifier">A</span></code>
+      and <code class="computeroutput"><span class="identifier">B</span></code> have been defined to
+      log all ctor and dtor calls.
+    </p>
+<pre class="programlisting"><span class="keyword">int</span> <span class="identifier">main</span><span class="special">()</span> <span class="special">{</span>
+  <span class="keyword">using</span> <span class="identifier">var_t</span> <span class="special">=</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span><span class="special">&lt;</span><span class="identifier">A</span><span class="special">,</span> <span class="identifier">B</span><span class="special">&gt;;</span>
+
+  <span class="identifier">var_t</span> <span class="identifier">v</span><span class="special">{</span><span class="identifier">A</span><span class="special">()};</span>
+  <span class="identifier">std</span><span class="special">::</span><span class="identifier">cout</span> <span class="special">&lt;&lt;</span> <span class="string">"1"</span> <span class="special">&lt;&lt;</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">endl</span><span class="special">;</span>
+  <span class="identifier">v</span> <span class="special">=</span> <span class="identifier">B</span><span class="special">();</span>
+  <span class="identifier">std</span><span class="special">::</span><span class="identifier">cout</span> <span class="special">&lt;&lt;</span> <span class="string">"2"</span> <span class="special">&lt;&lt;</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">endl</span><span class="special">;</span>
+  <span class="identifier">v</span> <span class="special">=</span> <span class="identifier">A</span><span class="special">();</span>
+  <span class="identifier">std</span><span class="special">::</span><span class="identifier">cout</span> <span class="special">&lt;&lt;</span> <span class="string">"3"</span> <span class="special">&lt;&lt;</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">endl</span><span class="special">;</span>
+<span class="special">}</span>
+</pre>
+<p>
+      <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code> produces the following output:
+    </p>
+<pre class="programlisting"><span class="identifier">A</span><span class="special">()</span>
+<span class="identifier">A</span><span class="special">(</span><span class="identifier">A</span><span class="special">&amp;&amp;)</span>
+<span class="special">~</span><span class="identifier">A</span><span class="special">()</span>
+<span class="number">1</span>
+<span class="identifier">B</span><span class="special">()</span>
+<span class="identifier">B</span><span class="special">(</span><span class="identifier">B</span><span class="special">&amp;&amp;)</span>
+<span class="identifier">A</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">A</span> <span class="special">&amp;)</span>
+<span class="special">~</span><span class="identifier">A</span><span class="special">()</span>
+<span class="identifier">B</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">B</span> <span class="special">&amp;)</span>
+<span class="special">~</span><span class="identifier">A</span><span class="special">()</span>
+<span class="special">~</span><span class="identifier">B</span><span class="special">()</span>
+<span class="special">~</span><span class="identifier">B</span><span class="special">()</span>
+<span class="number">2</span>
+<span class="identifier">A</span><span class="special">()</span>
+<span class="identifier">A</span><span class="special">(</span><span class="identifier">A</span><span class="special">&amp;&amp;)</span>
+<span class="identifier">B</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">B</span> <span class="special">&amp;)</span>
+<span class="special">~</span><span class="identifier">B</span><span class="special">()</span>
+<span class="identifier">A</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">A</span> <span class="special">&amp;)</span>
+<span class="special">~</span><span class="identifier">B</span><span class="special">()</span>
+<span class="special">~</span><span class="identifier">A</span><span class="special">()</span>
+<span class="special">~</span><span class="identifier">A</span><span class="special">()</span>
+<span class="number">3</span>
+<span class="special">~</span><span class="identifier">A</span><span class="special">()</span>
+</pre>
+<p>
+      This may be pretty surprising to some programmers.
+    </p>
+<p>
+      By contrast, if you use the C++17 <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">variant</span></code>,
+      or one of the variants with "sometimes-empty" semantics, you get
+      something like this (this output from <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">experimental</span><span class="special">::</span><span class="identifier">variant</span></code>)
+    </p>
+<pre class="programlisting"><span class="identifier">A</span><span class="special">()</span>
+<span class="identifier">A</span><span class="special">(</span><span class="identifier">A</span><span class="special">&amp;&amp;)</span>
+<span class="special">~</span><span class="identifier">A</span><span class="special">()</span>
+<span class="number">1</span>
+<span class="identifier">B</span><span class="special">()</span>
+<span class="special">~</span><span class="identifier">A</span><span class="special">()</span>
+<span class="identifier">B</span><span class="special">(</span><span class="identifier">B</span><span class="special">&amp;&amp;)</span>
+<span class="special">~</span><span class="identifier">B</span><span class="special">()</span>
+<span class="number">2</span>
+<span class="identifier">A</span><span class="special">()</span>
+<span class="special">~</span><span class="identifier">B</span><span class="special">()</span>
+<span class="identifier">A</span><span class="special">(</span><span class="identifier">A</span><span class="special">&amp;&amp;)</span>
+<span class="special">~</span><span class="identifier">A</span><span class="special">()</span>
+<span class="number">3</span>
+<span class="special">~</span><span class="identifier">A</span><span class="special">()</span>
+</pre>
+<p>
+      This is much closer to what the naive programmer expects who doesn't know about
+      internal details of <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code> -- the only copies of his objects
+      that exist are what he can see in his source code.
+    </p>
+<p>
+      This kind of thing usually doesn't matter, but sometimes if for instance you
+      are debugging a nasty memory corruption problem (perhaps there's bad code in
+      one of the objects contained in the variant), then these extra objects, moves,
+      and copies, may make things incidentally more complicated.
+    </p>
+<p>
+      Here's what you get with <code class="computeroutput"><span class="identifier">strict_variant</span></code>:
+    </p>
+<pre class="programlisting"><span class="identifier">A</span><span class="special">()</span>
+<span class="identifier">A</span><span class="special">(</span><span class="identifier">A</span><span class="special">&amp;&amp;)</span>
+<span class="special">~</span><span class="identifier">A</span><span class="special">()</span>
+<span class="number">1</span>
+<span class="identifier">B</span><span class="special">()</span>
+<span class="identifier">B</span><span class="special">(</span><span class="identifier">B</span><span class="special">&amp;&amp;)</span>
+<span class="special">~</span><span class="identifier">A</span><span class="special">()</span>
+<span class="special">~</span><span class="identifier">B</span><span class="special">()</span>
+<span class="number">2</span>
+<span class="identifier">A</span><span class="special">()</span>
+<span class="identifier">A</span><span class="special">(</span><span class="identifier">A</span><span class="special">&amp;&amp;)</span>
+<span class="special">~</span><span class="identifier">B</span><span class="special">()</span>
+<span class="special">~</span><span class="identifier">A</span><span class="special">()</span>
+<span class="number">3</span>
+<span class="special">~</span><span class="identifier">A</span><span class="special">()</span>
+</pre>
+<p>
+      Yet, <code class="computeroutput"><span class="identifier">strict_variant</span></code> does not
+      have an empty state, and is fully exception-safe!
+    </p>
+<p>
+      (These examples from <code class="computeroutput"><span class="identifier">gcc</span> <span class="number">5.4</span></code>,
+      see code in [<code class="computeroutput"><span class="identifier">example</span></code>](./example)
+      folder.)
+    </p>
+<p>
+      To summarize the differences:
+    </p>
+<p>
+      - <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">variant</span></code> is rarely-empty, always stack-based.
+      In fact, it's empty exactly when an exception is thrown. Later, it throws different
+      exceptions if you try to visit when it is empty. - <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code>
+      is never-empty, usually stack-based. It has to make a dynamic allocation and
+      a backup copy whenever an exception <span class="bold"><strong>could</strong></span>
+      be thrown, but that gets freed right after if an exception is not actually
+      thrown. - <code class="computeroutput"><span class="identifier">strict_variant</span></code> is
+      never-empty, and stack-based exactly when the current value-type is nothrow
+      moveable. It never makes a backup move or copy, and never throws an exception.
+    </p>
+<p>
+      Each approach has its merits. I chose the <code class="computeroutput"><span class="identifier">strict_variant</span></code>
+      approach because I find it simpler and it avoids what I consider to be drawbacks
+      of <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code> and <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">variant</span></code>.
+      And, if you manage to make all your types no-throw move constructible, which
+      I often find I can, then <code class="computeroutput"><span class="identifier">strict_variant</span></code>
+      gives you optimal performance, the same as <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">variant</span></code>,
+      without an empty state.
+    </p>
+<h4>
+<a name="strict_variant.intro.h1"></a>
+      <span><a name="strict_variant.intro.implicit_conversions"></a></span><a class="link" href="intro.html#strict_variant.intro.implicit_conversions">Implicit
+      Conversions</a>
+    </h4>
+<p>
+      The reason that <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code> and most other variants, including
+      the <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">variant</span></code> which was accepted to C++17, will
+      allow implicit conversions, is that fundamentally they work through C++ overload
+      resolution.
+    </p>
+<p>
+      Generally, when you assign a value of some type <code class="computeroutput"><span class="identifier">T</span></code>
+      to such a variant, these variants are going to construct a temporary function
+      object which is overloaded once for each type in the variant's list. Then they
+      apply the function object to the value, and overload resolution selects which
+      conversion will actually happen.
+    </p>
+<p>
+      Overload resolution is a core C++ language feature, and in 95% of cases it
+      works very well and does the right thing.
+    </p>
+<p>
+      However, in the 5% of cases where overload resolution does the wrong thing,
+      it can be quite difficult to work around it. This includes the scenarios in
+      which overload resolution is ambiguous, as well as the cases in which, due
+      to some implicit conversion, an overload is selected which the user did not
+      intend.
+    </p>
+<p>
+      One case when this might cause problems for you is when using variant types
+      to interface with some scripting language for instance. The typical dynamically-typed
+      scripting language will permit a variety of primitive values, so when binding
+      to it, you may naturally end up with something like
+    </p>
+<pre class="programlisting"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span><span class="special">&lt;</span><span class="keyword">bool</span><span class="special">,</span> <span class="keyword">int</span><span class="special">,</span> <span class="keyword">float</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">,</span> <span class="special">...&gt;</span>
+</pre>
+<p>
+      and this is the area that causes the most difficulties for overload resolution.
+    </p>
+<p>
+      <span class="bold"><strong>strict variant</strong></span> therefore uses SFINAE to modify
+      the overload resolution process.
+    </p>
+<div class="itemizedlist"><ul class="itemizedlist" type="disc">
+<li class="listitem">
+          When the variant is constructed from a value, each type is checked to see
+          if a <span class="bold"><strong>safe</strong></span> conversion to that type is possible.
+          If not, then it is eliminated from overload resolution.
+        </li>
+<li class="listitem">
+          What conversions are "safe"? I wrote a type trait that implements
+          a strict notion of safety which was appropriate for the project in which
+          I developed this. (See [1](include/strict_variant/conversion_rank.hpp),
+          [2](include/strict_variant/safely_constructible.hpp)).
+          <div class="itemizedlist"><ul class="itemizedlist" type="circle">
+<li class="listitem">
+                Conversions are not permitted between any two of the following classes:
+                Integral types, Floating point types, Character types, Boolean, Pointer
+                types, and <code class="computeroutput"><span class="keyword">wchar_t</span></code>.
+              </li>
+<li class="listitem">
+                If an integral or floating point conversion <span class="bold"><strong>could</strong></span>
+                be narrowing on some conforming implementation of C++, then it is
+                not safe. (So, <code class="computeroutput"><span class="keyword">long</span></code>
+                cannot be converted to <code class="computeroutput"><span class="keyword">int</span></code>
+                even if you are on a 32-bit machine and they have the same size for
+                you, because it could be narrowing on a 64-bit machine.)
+              </li>
+<li class="listitem">
+                Signed can be promoted to unsigned, but the reverse is not allowed
+                (since it is typically implementation-defined).
+              </li>
+<li class="listitem">
+                Conversions like <code class="computeroutput"><span class="keyword">char</span> <span class="special">*</span></code> to <code class="computeroutput"><span class="keyword">const</span>
+                <span class="keyword">char</span> <span class="special">*</span></code>
+                are permitted, and standard conversions like array-to-pointer are
+                permitted, but otherwise no pointer conversions are permitted.
+              </li>
+</ul></div>
+        </li>
+<li class="listitem">
+          You can force the variant to a particular type using the <code class="computeroutput"><span class="identifier">emplace</span></code> template function. Rarely necessary
+          in my experience but sometimes useful, and saves a <code class="computeroutput"><span class="identifier">move</span></code>.
+        </li>
+<li class="listitem">
+          There is also an emplace-ctor, where you select the type using tag dispatch.
+        </li>
+</ul></div>
+<pre class="programlisting"><span class="identifier">variant</span> <span class="identifier">v</span><span class="special">{</span><span class="identifier">emplace_tag</span><span class="special">&lt;</span><span class="identifier">my_type</span><span class="special">&gt;,</span> <span class="identifier">arg1</span><span class="special">,</span> <span class="identifier">arg2</span><span class="special">,</span> <span class="identifier">arg3</span><span class="special">};</span>
+</pre>
+<p>
+      So, keep in mind, this is not a drop-in replacement for <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code>
+      or one of the other versions, its semantics are fundamentally different. But
+      in scenarios like those it was designed for, it may be easier to reason about
+      and less error-prone.
+    </p>
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
 <td align="left"></td>
@@ -34,7 +296,7 @@
 </tr></table>
 <hr>
 <div class="spirit-nav">
-<a accesskey="p" href="../index.html"><img src="../images/prev.png" alt="Prev"></a><a accesskey="u" href="../index.html"><img src="../images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../images/home.png" alt="Home"></a><a accesskey="n" href="intro/intro.html"><img src="../images/next.png" alt="Next"></a>
+<a accesskey="p" href="../index.html"><img src="../images/prev.png" alt="Prev"></a><a accesskey="u" href="../index.html"><img src="../images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../images/home.png" alt="Home"></a><a accesskey="n" href="overview.html"><img src="../images/next.png" alt="Next"></a>
 </div>
 </body>
 </html>

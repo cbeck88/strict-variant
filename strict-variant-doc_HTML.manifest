@@ -1,8 +1,8 @@
 index.html
 strict_variant/intro.html
-strict_variant/intro/intro.html
-strict_variant/intro/abstract_and_motivation.html
-strict_variant/intro/design.html
+strict_variant/overview.html
+strict_variant/overview/abstract_and_motivation.html
+strict_variant/overview/design.html
 strict_variant/tutorial.html
 strict_variant/tutorial/basic.html
 strict_variant/tutorial/advanced_usage.html
