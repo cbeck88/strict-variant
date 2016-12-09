@@ -9,7 +9,7 @@
 #include <utility>
 
 /***
- * Some traits that seem like they could (should?) be standard but aren't.
+ * Some traits that aren't standard but are kind of close
  */
 
 namespace strict_variant {
@@ -51,11 +51,34 @@ namespace adl_swap_ns {
 
 using std::swap;
 
-template <typename T>
-struct is_nothrow_swappable {
-  static constexpr bool value =
-    noexcept(swap(*static_cast<T *>(nullptr), *static_cast<T *>(nullptr)));
+// TODO: Fix on MSVC
+// error C2660: 'std::swap': function does not take 1 arguments
+#ifndef _MSC_VER
+
+/***
+ * is_nothrow_swappable
+ *   This implementation is stolen from WG proposal 0185
+ *   http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0185r1.html#Appendix
+ */
+struct do_is_nothrow_swappable {
+  template <class T>
+  static auto test(int)
+    -> std::integral_constant<bool, noexcept(swap(std::declval<T &>(),
+                                                  std::declval<T &>()))>;
+
+  template <class>
+  static std::false_type test(...);
 };
+
+template <typename T>
+struct is_nothrow_swappable : decltype(do_is_nothrow_swappable::test<T>(0)) {};
+
+#else
+
+template <typename T>
+struct is_nothrow_swappable : std::false_type {};
+
+#endif
 
 } // end namespace adl_swap_ns
 
