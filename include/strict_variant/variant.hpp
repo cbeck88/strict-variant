@@ -536,7 +536,7 @@ struct variant<First, Types...>::destroyer {
 template <typename First, typename... Types>
 variant<First, Types...>::variant() noexcept(
   detail::is_nothrow_default_constructible<First>::value) {
-  static_assert(std::is_same<void, decltype(static_cast<void>(First()))>::value,
+  static_assert(std::is_default_constructible<First>::value,
                 "First type must be default constructible or variant is not!");
   this->initialize<0>();
   STRICT_VARIANT_ASSERT_WHICH_INVARIANT;
