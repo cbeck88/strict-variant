@@ -33,10 +33,14 @@ I created `strict_variant` in order to address a few things about `boost::varian
   I also wanted that such behavior (what gets selected in such cases) is portable.
   
   (In `strict_variant` we modify overload resolution in these situations by removing some candidates.
-   For instance if two integer promotions are possible, but one of them is larger than another,
-   the larger one gets discarded, e.g. if `int -> long` and `int -> long long` are candidates,
-   the `long long` is eliminated. Also we eliminate many classes of problematic conversions,
-   anything that goes between `bool`, integral, floating point, pointer, character, and some others.
+   For instance:
+     * if two integer promotions are possible, but one of them is larger than another,
+       the larger one gets discarded,  
+       e.g. if `int -> long` and `int -> long long` are candidates,
+       the `long long` is eliminated.
+     * Also we eliminate many classes of problematic conversions,
+       anything that goes between `bool`, integral, floating point, pointer, character, and some others.  
+       
    See documentation for details.)
   
 - I didn't like that `boost::variant` will silently make backup copies of my objects. For instance, consider this simple program,
