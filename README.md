@@ -19,15 +19,18 @@ I created `strict_variant` in order to address a few things about `boost::varian
   
   I'd usually rather that my `variant` is more restrictive about what implicit conversions can happen.
 
-- I didn't like that different integral conversions might be selected on different machines:
+- I *wanted* that things like this should compile and do what makes sense, regardless of how C++ overload
+  resolution rules are specified (which is what determines `boost::variant` and `std::variant` behavior).
 
   ```c++
-  boost::variant<long, unsigned int> v;  
+  boost::variant<bool, int, float, std::string> v;  
 
-  v = 10;
+  v = true;  // selects bool
+  v = 10;    // selects int
+  v = 20.5f; // selects float
   ```
-  
-  The value of `v.which()` here can depend on implementation-defined details, which was bad for my application.
+
+  I also wanted that such behavior (what gets selected in such cases) is portable.
   
 - I didn't like that `boost::variant` will silently make backup copies of my objects. For instance, consider this simple program,
   in which `A` and `B` have been defined to log all ctor and dtor calls.
