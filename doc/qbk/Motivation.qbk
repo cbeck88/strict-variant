@@ -7,33 +7,171 @@ style of `boost::variant`, designed for the C++11 standard.
 
 [h3 Motivation]
 
-`strict_variant` was created primarily to improve on some aspects of `boost::variant`:
+`strict_variant` is similar in design to `boost::variant`, however, there are a
+few important changes to the [*interface] and the [*implementation]. The basic
+goal is to make it more convenient for the programmer to use -- debatably there
+are some efficiency gains in some situations, but that's not the primary goal.
 
-* Too easy to cause implicit conversions
-* Too easy to cause implementation-dependent conversions
-* Makes backup copies of your objects under the hood
-* Somewhat complex implementation (not always easy to understand when a backup copy will be made)
+[h4 Interface]
 
-while maintaining the "never-empty" property, which was dropped in `std::variant` and many
-of the other open-source `variant` implementations.
+Both `boost::variant` and `std::variant` support construction from any instance
+of one of the value types, or any type convertible to one of the value types. In
+`boost::variant`,
+even C++03 is supported, so in that case there actually is one constructor for
+each value type.
+In C++17 `std::variant`, it is specified that when constructing a variant from
+a value, the value-type / conversion which will be used is determined by overload
+resolution, essentially the same mechanism.
 
-To summarize the differences:
+However, this behavior is somewhat inconvenient in some scenarios. For instance,
+this code compiles just fine, though we might not want it to:
 
-* `std::variant` is rarely-empty, always stack-based. In fact, it's empty exactly
-  when an exception is thrown. Later, it throws different exceptions if you try to visit
-  when it is empty.
-* `boost::variant` is never-empty, usually stack-based. It has to make a dynamic allocation
-  and a backup copy whenever an exception *could* be thrown, but that gets freed right after
-  if an exception is not actually thrown.
-* `strict_variant` is never-empty, and stack-based exactly when the current value-type is
-  nothrow moveable. It never makes a backup move or copy, and never throws an exception.
-   
-Each approach has its merits. I chose the `strict_variant` approach because I find it
-simpler and it avoids what I consider to be drawbacks of `boost::variant` and `std::variant`. 
+```c++
 
-And, if you manage
-to make all your types no-throw move constructible, which I often find I can, then `strict_variant`
-gives you optimal performance, the same as `std::variant`, without an empty state.
+boost::variant<std::string, int> v;
+
+v = true; // bool -> int conversion is selected
+```
+
+and this code fails because of ambiguous overload resolution:
+
+```c++
+boost::variant<bool, long, unsigned long long, std::string> v;
+
+v = 100; // int -> long and int -> ull are equally good conversions
+```
+
+Another, slightly different example. This code does what you expect:
+
+```c++
+  boost::variant<int, std::string> v;
+  
+  v = "The future is now!";
+  std::cout << v.which() << std::endl;
+  std::cout << v << std::endl;
+```
+
+When tested with `boost 1.58` and `gcc 5.4.0`, it outputs:
+
+```c++
+1
+The future is now!
+```
+
+However, when we change it slightly, it does something totally different:
+
+```c++
+  boost::variant<bool, std::string> v;
+  
+  v = "The future is now!";
+  std::cout << v.which() << std::endl;
+  std::cout << v << std::endl;
+```
+
+It now selects `bool`, because of implicit pointer-to-bool conversions:
+
+```c++
+0
+1
+```
+
+`strict_variant` addresses such issues by modifying the overload
+resolution process. Before overload resolution takes place, some candidates
+are excluded.
+
+* If they represent an "unsafe" conversion of fundamental types. This includes
+  narrowing conversions, `unsigned -> signed`, and conversions between any of the
+  classes `bool`, integral, floating point, character, and some others.
+* If a candidate is safe, but there is a "strictly better" candidate, it will be
+  dropped. In our system, for instance, lower rank candidates are considered better.
+
+For a prime use-case, you might be using the variant to
+represent value types when binding C++ code to some scripting language
+implementation. Many scripting languages support `bool, int, float, std::string`,
+etc. as primitive values, but basically overload resolution is most likely to
+become ambiguous in situations like this. We refine the overload resolution
+process on the ['assumption] that what you are trying to do is store the value
+as faithfully as possible for later recovery, while still permitting portable integer
+promotions and such.
+
+For a complete description of the conversion rules, check out TODO LINK.
+
+[h4 Implementation]
+
+The second way in which `strict_variant` differs from `boost::variant` is the
+implementation approach -- how exactly is the storage managed, and how is the
+never-empty guarantee achieved.
+
+Much digital ink has been spilled regarding the technical difficulties of
+implementing a general, never-empty variant in C++. (For a long list of references
+see the footnotes of the design section.)
+
+At least, it's clear that there are many possible approaches to the problem, most
+of which are incomparable, and will outperform others in various situations --
+
+* Should we use double storage?
+* Should we avoid double storage but sometimes allocate ourselves on the heap?
+* Should we make "backup copies", and how aggressively?
+* Should we have an empty state? What should happen if we are visited or queried while empty?
+* Should we throw exceptions?
+
+In the next section we'll discuss various options in detail, but to motivate our approach,
+we'd like to argue that an approach which ['requires as little bandwidth to explain
+to the programmer as possible] is a good one. 
+
+To that end, let's try to design a general `variant` from the ground up by
+['reducing the problem to a simpler one].
+
+The simpler problem is,
+
+* designing a `variant` which is restricted to contain only
+value-types which are [*nothrow move constructible].
+
+It turns out that this problem is really much simpler -- there is no longer any
+issue with the "throwing, type-changing assignment". We can always vacate the
+storage and then move the new value in, since the move won't throw. Compared
+to the general problem, this kind of variant is straightforward to implement
+optimally. Basically everything can be done by "copy and swap" and similar idioms
+-- there are no "surprises" here really.
+
+Now,
+
+* how can we reduce general variant to this kind of variant?
+
+It turns out we can do it in a simple way using a little template:
+
+```c++
+
+template <typename T>
+using wrap_if_throwing_move_t = typename std::conditional<std::is_nothrow_move_constructible<T>::value,
+                                                          T,
+                                                          recursive_wrapper<T>>;
+```
+
+Now, for the general form of the variant, we apply `wrap_if_throwing_move_t` to
+each value-type.
+
+The point is that even if `T` has a throwing move, `recursive_wrapper<T>` can always
+be moved without throwing, because it is just a pointer.
+
+Some care must be taken -- throughout the `variant` interface, it is important that
+`recursive_wrapper` is transparently pierced for the user, not only for convenience,
+but for correctness -- the user should not be able to make the `recursive_wrapper`
+empty.
+
+But, with adequate care for such issues, you are now perfectly capable of going
+and writing your own `strict_variant`, and you'll get more or less the same
+thing at least in regards to all the "controversial" parts of implementing a
+variant.
+
+Possibly the most significant value-add of `strict_variant` is:
+
+* It's never empty like `boost::variant`, but you can have a much simpler mental
+  model of what it is doing under the hood, and it's easier to figure out
+  exactly which operations on it can potentially throw what exceptions.
+  
+For an extended comparison of this and several other possible implementation
+strategies, see the design page.
 
 [h3 Goals]
 
