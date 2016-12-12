@@ -54,7 +54,7 @@
 [section:remarks Remarks]
 [include Compatibility.qbk]
 [include ImplementationNotes.qbk]
-[include Comparison.qbk]
+[/ removing this section for now, it's not that well written [include Comparison.qbk]]
 [include Benchmarks.qbk]
 [include FutureDirections.qbk]
 [endsect]

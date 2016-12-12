@@ -78,8 +78,10 @@ assignment takes place. [footnote C.f. Eric Friedman, Itay Maman. Online `boost:
 
 In many scenarios, this is a great solution -- the storage overhead is at most
 the size of a pointer. However, if your object is
-expensive or impossible to copy, then this won't work so well for you. [footnote Note that if `boost::variant` is compiled with rvalue reference support, then this copy can be replaced with a move, which may be a big improvement.
-For an in-depth analysis see also [link strict_variant.remarks.comparison Comparison section].]
+expensive or impossible to copy, then this won't work so well for you. [/ Removing this footnote: I'm not sure it's totally accurate, and the comparison section is in need of rework or toss.
+
+[footnote Note that if `boost::variant` is compiled with rvalue reference support, then this copy can be replaced with a move, which may be a big improvement.
+For an in-depth analysis see also [link strict_variant.remarks.comparison Comparison section].]]
 
 [h4 `std::variant` approach]
 
