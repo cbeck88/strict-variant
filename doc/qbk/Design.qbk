@@ -403,7 +403,7 @@ the type of the desired object to emplace. All other parameters are forwarded
 to its constructor. This can be used to put objects in the variant that are
 neither copyable nor moveable, so long as they are somehow no-throw constructible.
 
-This can be used as an effective fallback when `strict_variant` refuses to generate
-assignment operators.
+This can be used to specify explicitly what value type shall result, regardless
+of overload resolution or the strict_variant rules.
 
 [endsect]

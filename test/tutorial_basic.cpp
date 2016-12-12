@@ -246,7 +246,7 @@ tutorial. But a few of them are:
 
 # If your type is neither moveable nor copyable, you cannot use assignment but
   you may be able to use `emplace`.
-# If your variant contains several types and assignment would be ambiguous, you
+# If assignment would be ambiguous, you
   can use `emplace` to explicitly select the type that you want to put in the
   container.
 */
