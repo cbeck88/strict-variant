@@ -1043,6 +1043,23 @@ UNIT_TEST(copy_assign_recursive_wrapper) {
   u = static_cast<const var_t &>(v);
 }
 
+UNIT_TEST(variant_assignment) {
+  struct D {
+    D() noexcept {}
+    D(const D &) noexcept {};
+    // D & operator =(const D &) = delete;
+  };
+
+  using var_t = variant<float, recursive_wrapper<D>>;
+  var_t v, u;
+
+  v.emplace<D>();
+  u = static_cast<const var_t &>(v);
+  v = 5.5f;
+  u = 5.0f;
+  v = D();
+}
+
 UNIT_TEST(variant_operator_eq) {
   using var_t = variant<float, std::string>;
   var_t u{5.0f};

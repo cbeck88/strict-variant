@@ -17,6 +17,8 @@ attractive.
 
 If you need this, you might want to take a good look at [@http://eggs-cpp.github.io/variant/index.html `eggs::variant`].
 
+Patches are welcome!
+
 [h4 `allocator` support]
 
 Since `recursive_wrapper` makes dynamic allocations on behalf of the variant,
@@ -65,59 +67,16 @@ But as far as I know this isn't feasible -- the `noexcept` annotations on the
 instantiation of the variant. So we have to assume the worst when the user uses
 `recursive_wrapper`, so far as I know.
 
-[h4 Add an `operator = (T &&)` overload?]
-
-[note This was done, and the documentation and future work needs to be updated. TODO]
-
-Currently, the only conversions from non-variant types to variants happen in the
-forwarding-reference constructor. A statement:
-
-```
-  var_t v;
-  v = 5;
-```
-
-actually compiles to something like this:
-
-```
-  var_t v;
-  v = var_t{5};
-```
-
-This is why assignment cannot work if *any* of the types in `strict_variant` has
-a throwing move. Even if the value `5` as above does not.
-
-Currently, the only assignment operators are the usual special member functions.
-
-We could consider adding an `operator = (T&&)` overload so that syntax like
-
-```
-  v = 5;
-```
-
-is legal, even if `var_t` contains some types with throwing moves.
-
-However,
-
-# It would involve significant code duplication -- we would also have to duplicate
-  the "generalizing constructors" which promote a variant to a variant
-  over more types.
-# There are already effective workarounds -- use `emplace`, the `emplace ctor`,
-  or use `easy_variant`.
-
-I haven't been able to convince myself that adding this is actually a good idea,
-but I might be open to it in the future.
-
-After most recent refactors, the code duplication here would be much less, and
-`boost::variant` does this, so it might be a good idea to do it also.
-
 [h4 Support references using `std::reference_wrapper`?]
 
-The `std::variant` does this, but it doesn't seem all that useful, and would introduce
+The `boost::variant` does this, but it doesn't seem all that useful, and would introduce
 more complex rules for safety.
 
 [h4 Support arrays implicitly using `std::array`?]
 
 It seems simpler to just explicitly forbid arrays, but I didn't do this yet either.
+
+Note that actually, iiuc both references and arrays are forbidden in C++17 `std::variant`
+spec.
 
 [endsect]
