@@ -188,7 +188,7 @@ provide rollback-semantics if an exception is thrown while changing the type of 
      [[Throws][If the move constructor of the passed variant may throw.]]]]]
 
 [[`variant(T &&)`]
- [ Construct from a forwarding reference.
+ [ Constructs from a value convertible (via a permitted conversion) to one of the value types.
 
    Attempts to convert `T` to one of the value types of this variant, using ['C++ overload resolution], with each of the ['value types] as a candidate.
 
@@ -250,6 +250,25 @@ provide rollback-semantics if an exception is thrown while changing the type of 
                  [If the engaged type is `recursive_wrapper<T>`, then this may throw `std::bad_alloc`.]
                  [If the engaged type is `recursive_wrapper<T>`, and `T` has a throwing move, then this may throw such exceptions.]
                  [Otherwise this call is `noexcept`.]]]]]]]
+
+[[`variant & operator=(const variant<OFirst, OTypes...> &)`]
+ [ Copy-assigns from a variant over a subset of the value types.
+
+   [variablelist
+     [[Requires][Has the same requirements and exception scenarios as the corresponding "Generalizing" copy ctor.]]]]]
+
+[[`variant & operator=(variant<OFirst, OTypes...> &&)`]
+ [ Move-assigns from a variant over a subset of the value types.
+
+   [variablelist
+     [[Requires][Has the same requirements and exception scenarios as the corresponding "Generalizing" move ctor.]]]]]
+
+[[`variant & operator=(T &&)`]
+ [ Assigns from a value convertible (via a permitted conversion) to one of the value types.
+
+   [variablelist
+     [[Requires][Has the same requirements and exception scenarios as the corresponding converting ctor.]]]]]
+
 
 [[`template <typename T, typename ... Args> void emplace(Args && ... args)`]
  [ Emplaces a value of type `T` into the variant.
