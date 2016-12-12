@@ -39,6 +39,9 @@
 <p>
         If you need this, you might want to take a good look at <a href="http://eggs-cpp.github.io/variant/index.html" target="_top"><code class="computeroutput"><span class="identifier">eggs</span><span class="special">::</span><span class="identifier">variant</span></code></a>.
       </p>
+<p>
+        Patches are welcome!
+      </p>
 <h5>
 <a name="strict_variant.remarks.future_directions.h1"></a>
         <span><a name="strict_variant.remarks.future_directions.allocator_support"></a></span><a class="link" href="future_directions.html#strict_variant.remarks.future_directions.allocator_support"><code class="computeroutput"><span class="identifier">allocator</span></code> support</a>
@@ -113,94 +116,25 @@
       </p>
 <h5>
 <a name="strict_variant.remarks.future_directions.h4"></a>
-        <span><a name="strict_variant.remarks.future_directions.add_an_operator_t_overload"></a></span><a class="link" href="future_directions.html#strict_variant.remarks.future_directions.add_an_operator_t_overload">Add
-        an <code class="computeroutput"><span class="keyword">operator</span> <span class="special">=</span>
-        <span class="special">(</span><span class="identifier">T</span> <span class="special">&amp;&amp;)</span></code> overload?</a>
-      </h5>
-<div class="note"><table border="0" summary="Note">
-<tr>
-<td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="../../images/note.png"></td>
-<th align="left">Note</th>
-</tr>
-<tr><td align="left" valign="top"><p>
-          This was done, and the documentation and future work needs to be updated.
-          TODO
-        </p></td></tr>
-</table></div>
-<p>
-        Currently, the only conversions from non-variant types to variants happen
-        in the forwarding-reference constructor. A statement:
-      </p>
-<pre class="programlisting"><span class="identifier">var_t</span> <span class="identifier">v</span><span class="special">;</span>
-<span class="identifier">v</span> <span class="special">=</span> <span class="number">5</span><span class="special">;</span>
-</pre>
-<p>
-        actually compiles to something like this:
-      </p>
-<pre class="programlisting"><span class="identifier">var_t</span> <span class="identifier">v</span><span class="special">;</span>
-<span class="identifier">v</span> <span class="special">=</span> <span class="identifier">var_t</span><span class="special">{</span><span class="number">5</span><span class="special">};</span>
-</pre>
-<p>
-        This is why assignment cannot work if <span class="bold"><strong>any</strong></span>
-        of the types in <code class="computeroutput"><span class="identifier">strict_variant</span></code>
-        has a throwing move. Even if the value <code class="computeroutput"><span class="number">5</span></code>
-        as above does not.
-      </p>
-<p>
-        Currently, the only assignment operators are the usual special member functions.
-      </p>
-<p>
-        We could consider adding an <code class="computeroutput"><span class="keyword">operator</span>
-        <span class="special">=</span> <span class="special">(</span><span class="identifier">T</span><span class="special">&amp;&amp;)</span></code>
-        overload so that syntax like
-      </p>
-<pre class="programlisting"><span class="identifier">v</span> <span class="special">=</span> <span class="number">5</span><span class="special">;</span>
-</pre>
-<p>
-        is legal, even if <code class="computeroutput"><span class="identifier">var_t</span></code> contains
-        some types with throwing moves.
-      </p>
-<p>
-        However,
-      </p>
-<div class="orderedlist"><ol class="orderedlist" type="1">
-<li class="listitem">
-            It would involve significant code duplication -- we would also have to
-            duplicate the "generalizing constructors" which promote a variant
-            to a variant over more types.
-          </li>
-<li class="listitem">
-            There are already effective workarounds -- use <code class="computeroutput"><span class="identifier">emplace</span></code>,
-            the <code class="computeroutput"><span class="identifier">emplace</span> <span class="identifier">ctor</span></code>,
-            or use <code class="computeroutput"><span class="identifier">easy_variant</span></code>.
-          </li>
-</ol></div>
-<p>
-        I haven't been able to convince myself that adding this is actually a good
-        idea, but I might be open to it in the future.
-      </p>
-<p>
-        After most recent refactors, the code duplication here would be much less,
-        and <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code> does this, so it might be a good
-        idea to do it also.
-      </p>
-<h5>
-<a name="strict_variant.remarks.future_directions.h5"></a>
         <span><a name="strict_variant.remarks.future_directions.support_references_using_std_ref"></a></span><a class="link" href="future_directions.html#strict_variant.remarks.future_directions.support_references_using_std_ref">Support
         references using <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">reference_wrapper</span></code>?</a>
       </h5>
 <p>
-        The <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">variant</span></code> does this, but it doesn't seem
+        The <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code> does this, but it doesn't seem
         all that useful, and would introduce more complex rules for safety.
       </p>
 <h5>
-<a name="strict_variant.remarks.future_directions.h6"></a>
+<a name="strict_variant.remarks.future_directions.h5"></a>
         <span><a name="strict_variant.remarks.future_directions.support_arrays_implicitly_using_"></a></span><a class="link" href="future_directions.html#strict_variant.remarks.future_directions.support_arrays_implicitly_using_">Support
         arrays implicitly using <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">array</span></code>?</a>
       </h5>
 <p>
         It seems simpler to just explicitly forbid arrays, but I didn't do this yet
         either.
+      </p>
+<p>
+        Note that actually, iiuc both references and arrays are forbidden in C++17
+        <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">variant</span></code> spec.
       </p>
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>

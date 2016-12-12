@@ -32,9 +32,7 @@
 <span class="keyword">class</span> <span class="identifier">recursive_wrapper</span> <span class="special">{</span>
   <span class="identifier">T</span> <span class="special">*</span> <span class="identifier">m_t</span><span class="special">;</span>
 
-  <span class="keyword">void</span> <span class="identifier">destroy</span><span class="special">()</span> <span class="special">{</span>
-    <span class="keyword">delete</span> <span class="identifier">m_t</span><span class="special">;</span>
-  <span class="special">}</span>
+  <span class="keyword">void</span> <span class="identifier">destroy</span><span class="special">()</span> <span class="special">{</span> <span class="keyword">delete</span> <span class="identifier">m_t</span><span class="special">;</span> <span class="special">}</span>
 
 <span class="keyword">public</span><span class="special">:</span>
   <span class="special">~</span><span class="identifier">recursive_wrapper</span><span class="special">()</span> <span class="keyword">noexcept</span> <span class="special">{</span> <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">destroy</span><span class="special">();</span> <span class="special">}</span>

@@ -366,7 +366,8 @@
 <dt><span class="term"><code class="computeroutput"><span class="identifier">variant</span><span class="special">(</span><span class="identifier">T</span> <span class="special">&amp;&amp;)</span></code></span></dt>
 <dd>
 <p>
-              Construct from a forwarding reference.
+              Constructs from a value convertible (via a permitted conversion) to
+              one of the value types.
             </p>
 <p>
               Attempts to convert <code class="computeroutput"><span class="identifier">T</span></code>
@@ -538,27 +539,80 @@
 </dl>
 </div>
 </dd>
+<dt><span class="term"><code class="computeroutput"><span class="identifier">variant</span> <span class="special">&amp;</span>
+          <span class="keyword">operator</span><span class="special">=(</span><span class="keyword">const</span> <span class="identifier">variant</span><span class="special">&lt;</span><span class="identifier">OFirst</span><span class="special">,</span> <span class="identifier">OTypes</span><span class="special">...&gt;</span> <span class="special">&amp;)</span></code></span></dt>
+<dd>
+<p class="simpara">
+              Copy-assigns from a variant over a subset of the value types.
+            </p>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Requires</span></dt>
+<dd><p>
+                    Has the same requirements and exception scenarios as the corresponding
+                    "Generalizing" copy ctor.
+                  </p></dd>
+</dl>
+</div>
+</dd>
+<dt><span class="term"><code class="computeroutput"><span class="identifier">variant</span> <span class="special">&amp;</span>
+          <span class="keyword">operator</span><span class="special">=(</span><span class="identifier">variant</span><span class="special">&lt;</span><span class="identifier">OFirst</span><span class="special">,</span> <span class="identifier">OTypes</span><span class="special">...&gt;</span>
+          <span class="special">&amp;&amp;)</span></code></span></dt>
+<dd>
+<p>
+              Move-assigns from a variant over a subset of the value types.
+            </p>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Requires</span></dt>
+<dd><p>
+                    Has the same requirements and exception scenarios as the corresponding
+                    "Generalizing" move ctor.
+                  </p></dd>
+</dl>
+</div>
+</dd>
+<dt><span class="term"><code class="computeroutput"><span class="identifier">variant</span> <span class="special">&amp;</span>
+          <span class="keyword">operator</span><span class="special">=(</span><span class="identifier">T</span> <span class="special">&amp;&amp;)</span></code></span></dt>
+<dd>
+<p>
+              Assigns from a value convertible (via a permitted conversion) to one
+              of the value types.
+            </p>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Requires</span></dt>
+<dd><p>
+                    Has the same requirements and exception scenarios as the corresponding
+                    converting ctor.
+                  </p></dd>
+</dl>
+</div>
+</dd>
 <dt><span class="term"><code class="computeroutput"><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">,</span> <span class="keyword">typename</span> <span class="special">...</span> <span class="identifier">Args</span><span class="special">&gt;</span> <span class="keyword">void</span> <span class="identifier">emplace</span><span class="special">(</span><span class="identifier">Args</span> <span class="special">&amp;&amp;</span>
           <span class="special">...</span> <span class="identifier">args</span><span class="special">)</span></code></span></dt>
 <dd>
-<p class="simpara">
+<p>
               Emplaces a value of type <code class="computeroutput"><span class="identifier">T</span></code>
               into the variant.
             </p>
-<p class="simpara">
+<p>
               Force the variant to a particular type and value.
             </p>
-<p class="simpara">
+<p>
               The user explicitly specifies the desired type as a template parameter.
             </p>
-<p class="simpara">
+<p>
               There are actually two implementations of <code class="computeroutput"><span class="identifier">emplace</span></code>,
               depending on whether the invoked ctor is <code class="computeroutput"><span class="keyword">noexcept</span></code>.
               If it is, construction takes in place directly in the storage. If it
               is not, construction takes place on the stack, and the value is moved
               into storage. (For strong exception-safety.)
             </p>
-<p class="simpara">
+<p>
               <code class="computeroutput"><span class="identifier">emplace</span></code> may be used
               to resolve ambiguity in assignment, or to put a value in the container
               which is not <code class="computeroutput"><span class="identifier">nothrow_move_constructible</span></code>.

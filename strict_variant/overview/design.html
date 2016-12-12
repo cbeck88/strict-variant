@@ -122,7 +122,7 @@
 <p>
         In many scenarios, this is a great solution -- the storage overhead is at
         most the size of a pointer. However, if your object is expensive or impossible
-        to copy, then this won't work so well for you. <sup>[<a name="strict_variant.overview.design.f5" href="#ftn.strict_variant.overview.design.f5" class="footnote">6</a>]</sup>
+        to copy, then this won't work so well for you.
       </p>
 <h5>
 <a name="strict_variant.overview.design.h3"></a>
@@ -136,7 +136,7 @@
         occurs when construction of the new object fails. This empty state can be
         queried, and if a variant is visited which was made empty by an earlier exception,
         then a <code class="computeroutput"><span class="identifier">bad_visit</span></code> is thrown.
-        This is the so-called "Kona Compromise". <sup>[<a name="strict_variant.overview.design.f6" href="#ftn.strict_variant.overview.design.f6" class="footnote">7</a>]</sup>
+        This is the so-called "Kona Compromise". <sup>[<a name="strict_variant.overview.design.f5" href="#ftn.strict_variant.overview.design.f5" class="footnote">6</a>]</sup>
       </p>
 <p>
         This solution has several obvious advantages -- we don't have to assume that
@@ -157,7 +157,7 @@
 <p>
         Indeed, many other modern C++ variant types targetting C++11 and C++14 have
         followed suit and adopted the <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">variant</span></code>
-        interface and behavior <sup>[<a name="strict_variant.overview.design.f7" href="#ftn.strict_variant.overview.design.f7" class="footnote">8</a>]</sup> <sup>[<a name="strict_variant.overview.design.f8" href="#ftn.strict_variant.overview.design.f8" class="footnote">9</a>]</sup>.
+        interface and behavior <sup>[<a name="strict_variant.overview.design.f6" href="#ftn.strict_variant.overview.design.f6" class="footnote">7</a>]</sup> <sup>[<a name="strict_variant.overview.design.f7" href="#ftn.strict_variant.overview.design.f7" class="footnote">8</a>]</sup>.
       </p>
 <p>
         However, in some projects, when the exception caused by object is thrown,
@@ -177,7 +177,7 @@
         Since most standard and boost containers provide strong-exception safety,
         it seems desirable to have at our disposal an efficient, modern C++ variant
         type which also provides this guarantee. And indeed, there have been some
-        standardization proposals like this <sup>[<a name="strict_variant.overview.design.f9" href="#ftn.strict_variant.overview.design.f9" class="footnote">10</a>]</sup> <sup>[<a name="strict_variant.overview.design.f10" href="#ftn.strict_variant.overview.design.f10" class="footnote">11</a>]</sup>.
+        standardization proposals like this <sup>[<a name="strict_variant.overview.design.f8" href="#ftn.strict_variant.overview.design.f8" class="footnote">9</a>]</sup> <sup>[<a name="strict_variant.overview.design.f9" href="#ftn.strict_variant.overview.design.f9" class="footnote">10</a>]</sup>.
       </p>
 <p>
         <code class="computeroutput"><span class="identifier">strict_variant</span></code> achieves this
@@ -271,7 +271,7 @@
       </p>
 <p>
         While it's been well-established that throwing moves are sometimes hard to
-        avoid and can't reasonably be banned from general-purpose containers, <sup>[<a name="strict_variant.overview.design.f11" href="#ftn.strict_variant.overview.design.f11" class="footnote">12</a>]</sup>, it seems that supporting them by putting them on the heap is
+        avoid and can't reasonably be banned from general-purpose containers, <sup>[<a name="strict_variant.overview.design.f10" href="#ftn.strict_variant.overview.design.f10" class="footnote">11</a>]</sup>, it seems that supporting them by putting them on the heap is
         a reasonable solution to the problem. If such objects are large and complex
         enough, it may be favorable to allocate them on the heap anyways.
       </p>
@@ -635,8 +635,8 @@
         no-throw constructible.
       </p>
 <p>
-        This can be used as an effective fallback when <code class="computeroutput"><span class="identifier">strict_variant</span></code>
-        refuses to generate assignment operators.
+        This can be used to specify explicitly what value type shall result, regardless
+        of overload resolution or the strict_variant rules.
       </p>
 <div class="footnotes">
 <br><hr width="100" align="left">
@@ -659,31 +659,25 @@
           documentation <a href="http://www.boost.org/doc/libs/1_61_0/doc/html/variant/design.html#variant.design.never-empty" target="_top">boost:doc/html/variant/design.html#variant.design.never-empty</a>
         </p></div>
 <div class="footnote"><p><sup>[<a name="ftn.strict_variant.overview.design.f5" href="#strict_variant.overview.design.f5" class="para">6</a>] </sup>
-          Note that if <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code> is compiled with rvalue reference
-          support, then this copy can be replaced with a move, which may be a big
-          improvement. For an in-depth analysis see also <a class="link" href="../remarks/comparison.html" title="Comparison and Performance Characteristics">Comparison
-          section</a>.
-        </p></div>
-<div class="footnote"><p><sup>[<a name="ftn.strict_variant.overview.design.f6" href="#strict_variant.overview.design.f6" class="para">7</a>] </sup>
           C.f. Axel Naumann. "Variant: a type-safe union (v6)" Proposal
           P0088r1 <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0088r1.html" target="_top">http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0088r1.html</a>
         </p></div>
-<div class="footnote"><p><sup>[<a name="ftn.strict_variant.overview.design.f7" href="#strict_variant.overview.design.f7" class="para">8</a>] </sup>
+<div class="footnote"><p><sup>[<a name="ftn.strict_variant.overview.design.f6" href="#strict_variant.overview.design.f6" class="para">7</a>] </sup>
           C.f. Agust&#237;n Berg&#233;. <code class="computeroutput"><span class="identifier">eggs</span><span class="special">::</span><span class="identifier">variant</span></code>
           online documentation. <a href="https://github.com/eggs-cpp/variant" target="_top">https://github.com/eggs-cpp/variant</a>
         </p></div>
-<div class="footnote"><p><sup>[<a name="ftn.strict_variant.overview.design.f8" href="#strict_variant.overview.design.f8" class="para">9</a>] </sup>
+<div class="footnote"><p><sup>[<a name="ftn.strict_variant.overview.design.f7" href="#strict_variant.overview.design.f7" class="para">8</a>] </sup>
           C.f. Artem Pavlenko. <code class="computeroutput"><span class="identifier">mapbox</span><span class="special">::</span><span class="identifier">variant</span></code>
           online documentation. <a href="https://github.com/mapbox/variant" target="_top">https://github.com/mapbox/variant</a>
         </p></div>
-<div class="footnote"><p><sup>[<a name="ftn.strict_variant.overview.design.f9" href="#strict_variant.overview.design.f9" class="para">10</a>] </sup>
+<div class="footnote"><p><sup>[<a name="ftn.strict_variant.overview.design.f8" href="#strict_variant.overview.design.f8" class="para">9</a>] </sup>
           C.f. David Sanke "Simply a Strong Variant". P0093R0 <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0093r0.html" target="_top">http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0093r0.html</a>
         </p></div>
-<div class="footnote"><p><sup>[<a name="ftn.strict_variant.overview.design.f10" href="#strict_variant.overview.design.f10" class="para">11</a>] </sup>
+<div class="footnote"><p><sup>[<a name="ftn.strict_variant.overview.design.f9" href="#strict_variant.overview.design.f9" class="para">10</a>] </sup>
           C.f. Anthony Williams "P0110R0: Implementing the strong guarantee
           for variant&lt;&gt; assignment" P0110R0 <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0110r0.html" target="_top">http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0110r0.html</a>
         </p></div>
-<div class="footnote"><p><sup>[<a name="ftn.strict_variant.overview.design.f11" href="#strict_variant.overview.design.f11" class="para">12</a>] </sup>
+<div class="footnote"><p><sup>[<a name="ftn.strict_variant.overview.design.f10" href="#strict_variant.overview.design.f10" class="para">11</a>] </sup>
           C.f. Ville Voutilainen Proposal P0129R0 <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0129r0.html" target="_top">http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0129r0.html</a>
         </p></div>
 </div>
