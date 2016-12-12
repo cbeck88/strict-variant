@@ -79,4 +79,27 @@ It seems simpler to just explicitly forbid arrays, but I didn't do this yet eith
 Note that actually, iiuc both references and arrays are forbidden in C++17 `std::variant`
 spec.
 
+[/ TODO: think this through in greater detail, move ctor can't be handled this way
+
+[h4 Implement move by swap]
+
+After some thought and some time using it, I'm now considering changing the way that
+the strict variant move ctor and move assignment operator are implemented. Basically,
+instead of "piercing the `recursive_wrapper`" and calling the corresponding operations,
+it should just be down to a call to `variant::swap`.
+
+The reasons are that:
+
+* This will usually be more efficient -- you don't have to dereference any pointers
+or make any dynamic allocations, as you currently do if some of the types are in
+`recursive_wrapper`.
+* This will always be a `noexcept` operation, so `variant` will then be nothrow
+move constructible. This is a lot better for the user, and means that things like
+`std::vector<variant>` will be much faster, since they won't make a bunch of copies.
+
+The drawback is that it may be confusing for the user -- why didn't my object die
+after 
+
+]
+
 [endsect]
