@@ -31,63 +31,233 @@
         <span><a name="strict_variant.overview.abstract_and_motivation.motivation"></a></span><a class="link" href="abstract_and_motivation.html#strict_variant.overview.abstract_and_motivation.motivation">Motivation</a>
       </h4>
 <p>
-        <code class="computeroutput"><span class="identifier">strict_variant</span></code> was created
-        primarily to improve on some aspects of <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code>:
+        <code class="computeroutput"><span class="identifier">strict_variant</span></code> is similar
+        in design to <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code>, however, there are a few important
+        changes to the <span class="bold"><strong>interface</strong></span> and the <span class="bold"><strong>implementation</strong></span>. The basic goal is to make it more
+        convenient for the programmer to use -- debatably there are some efficiency
+        gains in some situations, but that's not the primary goal.
+      </p>
+<h5>
+<a name="strict_variant.overview.abstract_and_motivation.h2"></a>
+        <span><a name="strict_variant.overview.abstract_and_motivation.interface"></a></span><a class="link" href="abstract_and_motivation.html#strict_variant.overview.abstract_and_motivation.interface">Interface</a>
+      </h5>
+<p>
+        Both <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code> and <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">variant</span></code>
+        support construction from any instance of one of the value types, or any
+        type convertible to one of the value types. In <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code>,
+        even C++03 is supported, so in that case there actually is one constructor
+        for each value type. In C++17 <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">variant</span></code>,
+        it is specified that when constructing a variant from a value, the value-type
+        / conversion which will be used is determined by overload resolution, essentially
+        the same mechanism.
+      </p>
+<p>
+        However, this behavior is somewhat inconvenient in some scenarios. For instance,
+        this code compiles just fine, though we might not want it to:
+      </p>
+<pre class="programlisting"><span class="identifier">c</span><span class="special">++</span>
+
+<span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">,</span> <span class="keyword">int</span><span class="special">&gt;</span> <span class="identifier">v</span><span class="special">;</span>
+
+<span class="identifier">v</span> <span class="special">=</span> <span class="keyword">true</span><span class="special">;</span> <span class="comment">// bool -&gt; int conversion is selected</span>
+</pre>
+<p>
+        and this code fails because of ambiguous overload resolution:
+      </p>
+<pre class="programlisting"><span class="identifier">c</span><span class="special">++</span>
+<span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span><span class="special">&lt;</span><span class="keyword">bool</span><span class="special">,</span> <span class="keyword">long</span><span class="special">,</span> <span class="keyword">unsigned</span> <span class="keyword">long</span> <span class="keyword">long</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">&gt;</span> <span class="identifier">v</span><span class="special">;</span>
+
+<span class="identifier">v</span> <span class="special">=</span> <span class="number">100</span><span class="special">;</span> <span class="comment">// int -&gt; long and int -&gt; ull are equally good conversions</span>
+</pre>
+<p>
+        Another, slightly different example. This code does what you expect:
+      </p>
+<pre class="programlisting"><span class="identifier">c</span><span class="special">++</span>
+  <span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">&gt;</span> <span class="identifier">v</span><span class="special">;</span>
+
+  <span class="identifier">v</span> <span class="special">=</span> <span class="string">"The future is now!"</span><span class="special">;</span>
+  <span class="identifier">std</span><span class="special">::</span><span class="identifier">cout</span> <span class="special">&lt;&lt;</span> <span class="identifier">v</span><span class="special">.</span><span class="identifier">which</span><span class="special">()</span> <span class="special">&lt;&lt;</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">endl</span><span class="special">;</span>
+  <span class="identifier">std</span><span class="special">::</span><span class="identifier">cout</span> <span class="special">&lt;&lt;</span> <span class="identifier">v</span> <span class="special">&lt;&lt;</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">endl</span><span class="special">;</span>
+</pre>
+<p>
+        When tested with <code class="computeroutput"><span class="identifier">boost</span> <span class="number">1.58</span></code>
+        and <code class="computeroutput"><span class="identifier">gcc</span> <span class="number">5.4</span><span class="special">.</span><span class="number">0</span></code>, it outputs:
+      </p>
+<pre class="programlisting"><span class="identifier">c</span><span class="special">++</span>
+<span class="number">1</span>
+<span class="identifier">The</span> <span class="identifier">future</span> <span class="identifier">is</span> <span class="identifier">now</span><span class="special">!</span>
+</pre>
+<p>
+        However, when we change it slightly, it does something totally different:
+      </p>
+<pre class="programlisting"><span class="identifier">c</span><span class="special">++</span>
+  <span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span><span class="special">&lt;</span><span class="keyword">bool</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">&gt;</span> <span class="identifier">v</span><span class="special">;</span>
+
+  <span class="identifier">v</span> <span class="special">=</span> <span class="string">"The future is now!"</span><span class="special">;</span>
+  <span class="identifier">std</span><span class="special">::</span><span class="identifier">cout</span> <span class="special">&lt;&lt;</span> <span class="identifier">v</span><span class="special">.</span><span class="identifier">which</span><span class="special">()</span> <span class="special">&lt;&lt;</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">endl</span><span class="special">;</span>
+  <span class="identifier">std</span><span class="special">::</span><span class="identifier">cout</span> <span class="special">&lt;&lt;</span> <span class="identifier">v</span> <span class="special">&lt;&lt;</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">endl</span><span class="special">;</span>
+</pre>
+<p>
+        It now selects <code class="computeroutput"><span class="keyword">bool</span></code>, because
+        of implicit pointer-to-bool conversions:
+      </p>
+<pre class="programlisting"><span class="identifier">c</span><span class="special">++</span>
+<span class="number">0</span>
+<span class="number">1</span>
+</pre>
+<p>
+        <code class="computeroutput"><span class="identifier">strict_variant</span></code> addresses
+        such issues by modifying the overload resolution process. Before overload
+        resolution takes place, some candidates are excluded.
       </p>
 <div class="itemizedlist"><ul class="itemizedlist" type="disc">
 <li class="listitem">
-            Too easy to cause implicit conversions
+            If they represent an "unsafe" conversion of fundamental types.
+            This includes narrowing conversions, <code class="computeroutput"><span class="keyword">unsigned</span>
+            <span class="special">-&gt;</span> <span class="keyword">signed</span></code>,
+            and conversions between any of the classes <code class="computeroutput"><span class="keyword">bool</span></code>,
+            integral, floating point, character, and some others.
           </li>
 <li class="listitem">
-            Too easy to cause implementation-dependent conversions
-          </li>
-<li class="listitem">
-            Makes backup copies of your objects under the hood
-          </li>
-<li class="listitem">
-            Somewhat complex implementation (not always easy to understand when a
-            backup copy will be made)
+            If a candidate is safe, but there is a "strictly better" candidate,
+            it will be dropped. In our system, for instance, lower rank candidates
+            are considered better.
           </li>
 </ul></div>
 <p>
-        while maintaining the "never-empty" property, which was dropped
-        in <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">variant</span></code> and many of the other open-source
-        <code class="computeroutput"><span class="identifier">variant</span></code> implementations.
+        For a prime use-case, you might be using the variant to represent value types
+        when binding C++ code to some scripting language implementation. Many scripting
+        languages support <code class="computeroutput"><span class="keyword">bool</span><span class="special">,</span>
+        <span class="keyword">int</span><span class="special">,</span> <span class="keyword">float</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span></code>,
+        etc. as primitive values, but basically overload resolution is most likely
+        to become ambiguous in situations like this. We refine the overload resolution
+        process on the <span class="emphasis"><em>assumption</em></span> that what you are trying to
+        do is store the value as faithfully as possible for later recovery, while
+        still permitting portable integer promotions and such.
       </p>
 <p>
-        To summarize the differences:
+        For a complete description of the conversion rules, check out TODO LINK.
+      </p>
+<h5>
+<a name="strict_variant.overview.abstract_and_motivation.h3"></a>
+        <span><a name="strict_variant.overview.abstract_and_motivation.implementation"></a></span><a class="link" href="abstract_and_motivation.html#strict_variant.overview.abstract_and_motivation.implementation">Implementation</a>
+      </h5>
+<p>
+        The second way in which <code class="computeroutput"><span class="identifier">strict_variant</span></code>
+        differs from <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code> is the implementation approach
+        -- how exactly is the storage managed, and how is the never-empty guarantee
+        achieved.
+      </p>
+<p>
+        Much digital ink has been spilled regarding the technical difficulties of
+        implementing a general, never-empty variant in C++. (For a long list of references
+        see the footnotes of the design section.)
+      </p>
+<p>
+        At least, it's clear that there are many possible approaches to the problem,
+        most of which are incomparable, and will outperform others in various situations
+        --
       </p>
 <div class="itemizedlist"><ul class="itemizedlist" type="disc">
 <li class="listitem">
-            <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">variant</span></code> is rarely-empty, always stack-based.
-            In fact, it's empty exactly when an exception is thrown. Later, it throws
-            different exceptions if you try to visit when it is empty.
+            Should we use double storage?
           </li>
 <li class="listitem">
-            <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code> is never-empty, usually stack-based.
-            It has to make a dynamic allocation and a backup copy whenever an exception
-            <span class="bold"><strong>could</strong></span> be thrown, but that gets freed
-            right after if an exception is not actually thrown.
+            Should we avoid double storage but sometimes allocate ourselves on the
+            heap?
           </li>
 <li class="listitem">
-            <code class="computeroutput"><span class="identifier">strict_variant</span></code> is never-empty,
-            and stack-based exactly when the current value-type is nothrow moveable.
-            It never makes a backup move or copy, and never throws an exception.
+            Should we make "backup copies", and how aggressively?
+          </li>
+<li class="listitem">
+            Should we have an empty state? What should happen if we are visited or
+            queried while empty?
+          </li>
+<li class="listitem">
+            Should we throw exceptions?
           </li>
 </ul></div>
 <p>
-        Each approach has its merits. I chose the <code class="computeroutput"><span class="identifier">strict_variant</span></code>
-        approach because I find it simpler and it avoids what I consider to be drawbacks
-        of <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code> and <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">variant</span></code>.
+        In the next section we'll discuss various options in detail, but to motivate
+        our approach, we'd like to argue that an approach which <span class="emphasis"><em>requires
+        as little bandwidth to explain to the programmer as possible</em></span> is
+        a good one.
       </p>
 <p>
-        And, if you manage to make all your types no-throw move constructible, which
-        I often find I can, then <code class="computeroutput"><span class="identifier">strict_variant</span></code>
-        gives you optimal performance, the same as <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">variant</span></code>,
-        without an empty state.
+        To that end, let's try to design a general <code class="computeroutput"><span class="identifier">variant</span></code>
+        from the ground up by <span class="emphasis"><em>reducing the problem to a simpler one</em></span>.
+      </p>
+<p>
+        The simpler problem is,
+      </p>
+<div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
+            designing a <code class="computeroutput"><span class="identifier">variant</span></code> which
+            is restricted to contain only value-types which are <span class="bold"><strong>nothrow
+            move constructible</strong></span>.
+          </li></ul></div>
+<p>
+        It turns out that this problem is really much simpler -- there is no longer
+        any issue with the "throwing, type-changing assignment". We can
+        always vacate the storage and then move the new value in, since the move
+        won't throw. Compared to the general problem, this kind of variant is straightforward
+        to implement optimally. Basically everything can be done by "copy and
+        swap" and similar idioms -- there are no "surprises" here
+        really.
+      </p>
+<p>
+        Now,
+      </p>
+<div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
+            how can we reduce general variant to this kind of variant?
+          </li></ul></div>
+<p>
+        It turns out we can do it in a simple way using a little template:
+      </p>
+<pre class="programlisting"><span class="identifier">c</span><span class="special">++</span>
+
+<span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
+<span class="keyword">using</span> <span class="identifier">wrap_if_throwing_move_t</span> <span class="special">=</span> <span class="keyword">typename</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">conditional</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">is_nothrow_move_constructible</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;::</span><span class="identifier">value</span><span class="special">,</span>
+                                                          <span class="identifier">T</span><span class="special">,</span>
+                                                          <span class="identifier">recursive_wrapper</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;&gt;;</span>
+</pre>
+<p>
+        Now, for the general form of the variant, we apply <code class="computeroutput"><span class="identifier">wrap_if_throwing_move_t</span></code>
+        to each value-type.
+      </p>
+<p>
+        The point is that even if <code class="computeroutput"><span class="identifier">T</span></code>
+        has a throwing move, <code class="computeroutput"><span class="identifier">recursive_wrapper</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span></code>
+        can always be moved without throwing, because it is just a pointer.
+      </p>
+<p>
+        Some care must be taken -- throughout the <code class="computeroutput"><span class="identifier">variant</span></code>
+        interface, it is important that <code class="computeroutput"><span class="identifier">recursive_wrapper</span></code>
+        is transparently pierced for the user, not only for convenience, but for
+        correctness -- the user should not be able to make the <code class="computeroutput"><span class="identifier">recursive_wrapper</span></code>
+        empty.
+      </p>
+<p>
+        But, with adequate care for such issues, you are now perfectly capable of
+        going and writing your own <code class="computeroutput"><span class="identifier">strict_variant</span></code>,
+        and you'll get more or less the same thing at least in regards to all the
+        "controversial" parts of implementing a variant.
+      </p>
+<p>
+        Possibly the most significant value-add of <code class="computeroutput"><span class="identifier">strict_variant</span></code>
+        is:
+      </p>
+<div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
+            It's never empty like <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code>,
+            but you can have a much simpler mental model of what it is doing under
+            the hood, and it's easier to figure out exactly which operations on it
+            can potentially throw what exceptions.
+          </li></ul></div>
+<p>
+        For an extended comparison of this and several other possible implementation
+        strategies, see the design page.
       </p>
 <h4>
-<a name="strict_variant.overview.abstract_and_motivation.h2"></a>
+<a name="strict_variant.overview.abstract_and_motivation.h4"></a>
         <span><a name="strict_variant.overview.abstract_and_motivation.goals"></a></span><a class="link" href="abstract_and_motivation.html#strict_variant.overview.abstract_and_motivation.goals">Goals</a>
       </h4>
 <p>
