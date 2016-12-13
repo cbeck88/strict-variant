@@ -145,7 +145,7 @@ It turns out we can do it in a simple way using a little template:
 template <typename T>
 using wrap_if_throwing_move_t = typename std::conditional<std::is_nothrow_move_constructible<T>::value,
                                                           T,
-                                                          recursive_wrapper<T>>;
+                                                          recursive_wrapper<T>>::type;
 ```
 
 (The reader will hopefully recall `recursive_wrapper` from `boost::variant`.  
