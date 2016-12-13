@@ -26,7 +26,7 @@ resolution, essentially the same mechanism.
 However, this behavior is somewhat inconvenient in some scenarios. For instance,
 this code compiles just fine, though we might not want it to:
 
-```c++
+```
 
 boost::variant<std::string, int> v;
 
@@ -35,7 +35,7 @@ v = true; // bool -> int conversion is selected
 
 and this code fails because of ambiguous overload resolution:
 
-```c++
+```
 boost::variant<bool, long, unsigned long long, std::string> v;
 
 v = 100; // int -> long and int -> ull are equally good conversions
@@ -43,7 +43,7 @@ v = 100; // int -> long and int -> ull are equally good conversions
 
 Another, slightly different example. This code does what you expect:
 
-```c++
+```
   boost::variant<int, std::string> v;
   
   v = "The future is now!";
@@ -53,14 +53,14 @@ Another, slightly different example. This code does what you expect:
 
 When tested with `boost 1.58` and `gcc 5.4.0`, it outputs:
 
-```c++
+```
 1
 The future is now!
 ```
 
 However, when we change it slightly, it does something totally different:
 
-```c++
+```
   boost::variant<bool, std::string> v;
   
   v = "The future is now!";
@@ -70,16 +70,17 @@ However, when we change it slightly, it does something totally different:
 
 It now selects `bool`, because of implicit pointer-to-bool conversions:
 
-```c++
+```
 0
 1
 ```
 
 `strict_variant` addresses such issues by modifying the overload
 resolution process. Before overload resolution takes place, some candidates
-are excluded.
+are excluded:
 
-* If they represent an "unsafe" conversion of fundamental types. This includes
+* If they represent an "unsafe" conversion of fundamental types, it will be discarded.
+  This includes
   narrowing conversions, `unsigned -> signed`, and conversions between any of the
   classes `bool`, integral, floating point, character, and some others.
 * If a candidate is safe, but there is a "strictly better" candidate, it will be
@@ -103,19 +104,18 @@ implementation approach -- how exactly is the storage managed, and how is the
 never-empty guarantee achieved.
 
 Much digital ink has been spilled regarding the technical difficulties of
-implementing a general, never-empty variant in C++. (For a long list of references
+implementing a general, never-empty variant in C++. (For a long list of references,
 see the footnotes of the design section.)
 
-At least, it's clear that there are many possible approaches to the problem, most
-of which are incomparable, and will outperform others in various situations --
+At least, it's clear that there is no "perfect" solution and there are instead
+many possible compromises, most of which are incomparable.
 
-* Should we use double storage?
-* Should we avoid double storage but sometimes allocate ourselves on the heap?
-* Should we make "backup copies", and how aggressively?
+* Should we use double storage? Should we sometimes make heap allocations?
+* Should we make "backup copies" for exception safety, and how aggressively?
 * Should we have an empty state? What should happen if we are visited or queried while empty?
 * Should we throw exceptions?
 
-In the next section we'll discuss various options in detail, but to motivate our approach,
+In the design section we'll discuss various options in detail, but to motivate our approach,
 we'd like to argue that an approach which ['requires as little bandwidth to explain
 to the programmer as possible] is a good one. 
 
@@ -140,7 +140,7 @@ Now,
 
 It turns out we can do it in a simple way using a little template:
 
-```c++
+```
 
 template <typename T>
 using wrap_if_throwing_move_t = typename std::conditional<std::is_nothrow_move_constructible<T>::value,
@@ -148,15 +148,21 @@ using wrap_if_throwing_move_t = typename std::conditional<std::is_nothrow_move_c
                                                           recursive_wrapper<T>>;
 ```
 
-Now, for the general form of the variant, we apply `wrap_if_throwing_move_t` to
-each value-type.
+(The reader will hopefully recall `recursive_wrapper` from `boost::variant`.  
+  
+A `recursive_wrapper<T>` represents a heap-allocated instance of `T`, it can
+be used to declare a variant which morally contains a `T` even if `T` is an
+incomplete type.)
+
+Now, for the general form of the variant, we simply apply `wrap_if_throwing_move_t` to
+each value-type, and defer to the simpler implementation.
 
 The point is that even if `T` has a throwing move, `recursive_wrapper<T>` can always
-be moved without throwing, because it is just a pointer.
+be moved into storage without throwing, because it is just a pointer.
 
 Some care must be taken -- throughout the `variant` interface, it is important that
-`recursive_wrapper` is transparently pierced for the user, not only for convenience,
-but for correctness -- the user should not be able to make the `recursive_wrapper`
+`recursive_wrapper` is transparently pierced for the user, not only for convenience
+now, but for correctness -- the user should not be able to make the `recursive_wrapper`
 empty.
 
 But, with adequate care for such issues, you are now perfectly capable of going
@@ -164,11 +170,79 @@ and writing your own `strict_variant`, and you'll get more or less the same
 thing at least in regards to all the "controversial" parts of implementing a
 variant.
 
-Possibly the most significant value-add of `strict_variant` is:
+To illustrate the differences, consider the following example:
 
-* It's never empty like `boost::variant`, but you can have a much simpler mental
-  model of what it is doing under the hood, and it's easier to figure out
-  exactly which operations on it can potentially throw what exceptions.
+```
+  using var_t = boost::variant<A, B>;
+  
+  var_t v{A()};
+  std::cout << "1" << std::endl;
+  v = B();
+  std::cout << "2" << std::endl;
+  v = A();
+  std::cout << "3" << std::endl;
+```
+
+where `A` and `B` have been configured to log all ctor and dtor calls.
+
+`boost::variant` generates the following output:
+
+```
+A()
+A(A&&)
+~A()
+1
+B()
+B(B&&)
+A(const A &)
+~A()
+B(const B &)
+~A()
+~B()
+~B()
+2
+A()
+A(A&&)
+B(const B &)
+~B()
+A(const A &)
+~B()
+~A()
+~A()
+3
+~A()
+```
+
+while `strict_variant` generates
+
+```
+A()
+A(A&&)
+~A()
+1
+B()
+B(B&&)
+~A()
+~B()
+2
+A()
+A(A&&)
+~B()
+~A()
+3
+~A()
+```
+
+For a programmer, this means the following:
+
+* `boost::variant` has to make backup copies of both `A` and `B`, while `strict_variant`
+  constructs the same number of objects as `std::variant` or one of the rarely-empty variants.
+  When debugging low-level problem, it may become important to know about the extra object instances.
+* When I write `v = A();` and `v` is a `boost::variant`, this can throw both `A`-exceptions and `B`-exceptions.
+  With `strict_variant` it can only throw `A`-exceptions.
+
+But, these issues aside, I argue that `strict_variant` adds value because the programmer
+can have a much simpler mental model of how it works and what exactly can happen when they manipulate it.
   
 For an extended comparison of this and several other possible implementation
 strategies, see the design page.
