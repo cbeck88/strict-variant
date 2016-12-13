@@ -205,7 +205,7 @@
 <pre class="programlisting"><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
 <span class="keyword">using</span> <span class="identifier">wrap_if_throwing_move_t</span> <span class="special">=</span> <span class="keyword">typename</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">conditional</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">is_nothrow_move_constructible</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;::</span><span class="identifier">value</span><span class="special">,</span>
                                                           <span class="identifier">T</span><span class="special">,</span>
-                                                          <span class="identifier">recursive_wrapper</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;&gt;;</span>
+                                                          <span class="identifier">recursive_wrapper</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;&gt;::</span><span class="identifier">type</span><span class="special">;</span>
 </pre>
 <p>
         (The reader will hopefully recall <code class="computeroutput"><span class="identifier">recursive_wrapper</span></code>
