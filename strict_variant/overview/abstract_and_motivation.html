@@ -213,13 +213,18 @@
       </p>
 <p>
         A <code class="computeroutput"><span class="identifier">recursive_wrapper</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span></code> represents
-        a heap-allocated instance of <code class="computeroutput"><span class="identifier">T</span></code>,
-        it can be used to declare a variant which morally contains a <code class="computeroutput"><span class="identifier">T</span></code> even if <code class="computeroutput"><span class="identifier">T</span></code>
+        a heap-allocated instance of <code class="computeroutput"><span class="identifier">T</span></code>.
+        It can be used to declare a variant which morally contains a <code class="computeroutput"><span class="identifier">T</span></code> even if <code class="computeroutput"><span class="identifier">T</span></code>
         is an incomplete type.)
       </p>
 <p>
         Now, for the general form of the variant, we simply apply <code class="computeroutput"><span class="identifier">wrap_if_throwing_move_t</span></code>
         to each value-type, and defer to the simpler implementation.
+      </p>
+<p>
+        (In the <code class="computeroutput"><span class="identifier">strict_variant</span></code> library,
+        the template class <code class="computeroutput"><span class="identifier">strict_variant</span><span class="special">::</span><span class="identifier">variant</span></code>
+        is the "easy case" solution, and the template alias <code class="computeroutput"><span class="identifier">strict_variant</span><span class="special">::</span><span class="identifier">easy_variant</span></code> is the general-case solution.)
       </p>
 <p>
         The point is that even if <code class="computeroutput"><span class="identifier">T</span></code>
@@ -235,11 +240,17 @@
 <p>
         But, with adequate care for such issues, you are now perfectly capable of
         going and writing your own <code class="computeroutput"><span class="identifier">strict_variant</span></code>,
-        and you'll get more or less the same thing at least in regards to all the
-        "controversial" parts of implementing a variant.
+        and you'll get the same thing at least in regards to all the "controversial"
+        parts of implementing a variant.
       </p>
+<h5>
+<a name="strict_variant.overview.abstract_and_motivation.h4"></a>
+        <span><a name="strict_variant.overview.abstract_and_motivation.example"></a></span><a class="link" href="abstract_and_motivation.html#strict_variant.overview.abstract_and_motivation.example">Example</a>
+      </h5>
 <p>
-        To illustrate the differences, consider the following example:
+        To illustrate the differences between the <code class="computeroutput"><span class="identifier">strict_variant</span></code>
+        and <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code> implementations, consider the following
+        example:
       </p>
 <pre class="programlisting"><span class="keyword">using</span> <span class="identifier">var_t</span> <span class="special">=</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span><span class="special">&lt;</span><span class="identifier">A</span><span class="special">,</span> <span class="identifier">B</span><span class="special">&gt;;</span>
 
@@ -329,7 +340,7 @@
         strategies, see the design page.
       </p>
 <h4>
-<a name="strict_variant.overview.abstract_and_motivation.h4"></a>
+<a name="strict_variant.overview.abstract_and_motivation.h5"></a>
         <span><a name="strict_variant.overview.abstract_and_motivation.goals"></a></span><a class="link" href="abstract_and_motivation.html#strict_variant.overview.abstract_and_motivation.goals">Goals</a>
       </h4>
 <p>
