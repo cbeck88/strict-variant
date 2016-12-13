@@ -150,12 +150,16 @@ using wrap_if_throwing_move_t = typename std::conditional<std::is_nothrow_move_c
 
 (The reader will hopefully recall `recursive_wrapper` from `boost::variant`.  
   
-A `recursive_wrapper<T>` represents a heap-allocated instance of `T`, it can
+A `recursive_wrapper<T>` represents a heap-allocated instance of `T`. It can
 be used to declare a variant which morally contains a `T` even if `T` is an
 incomplete type.)
 
 Now, for the general form of the variant, we simply apply `wrap_if_throwing_move_t` to
 each value-type, and defer to the simpler implementation.
+
+(In the `strict_variant` library, the template class `strict_variant::variant`
+is the "easy case" solution, and the template alias `strict_variant::easy_variant`
+is the general-case solution.)
 
 The point is that even if `T` has a throwing move, `recursive_wrapper<T>` can always
 be moved into storage without throwing, because it is just a pointer.
@@ -166,11 +170,14 @@ now, but for correctness -- the user should not be able to make the `recursive_w
 empty.
 
 But, with adequate care for such issues, you are now perfectly capable of going
-and writing your own `strict_variant`, and you'll get more or less the same
+and writing your own `strict_variant`, and you'll get the same
 thing at least in regards to all the "controversial" parts of implementing a
 variant.
 
-To illustrate the differences, consider the following example:
+[h4 Example]
+
+To illustrate the differences between the `strict_variant` and `boost::variant`
+implementations, consider the following example:
 
 ```
   using var_t = boost::variant<A, B>;
