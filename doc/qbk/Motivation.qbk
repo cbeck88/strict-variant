@@ -243,9 +243,10 @@ A(A&&)
 For a programmer, this means the following:
 
 * `boost::variant` has to make backup copies of both `A` and `B`, while `strict_variant`
-  constructs the same number of objects as `std::variant` or one of the rarely-empty variants.
-  When debugging low-level problem, it may become important to know about the extra object instances.
-* When I write `v = A();` and `v` is a `boost::variant`, this can throw both `A`-exceptions and `B`-exceptions.
+  constructs the same number of objects as `std::variant` or one of the rarely-empty variants.  
+  When debugging low-level problems, it may become important to know about the extra object instances -- it's
+  not always "invisible" to the programmer.
+* When I write `v = A();` and `v` is a `boost::variant`, this can throw both `A`-exceptions and `B`-exceptions.  
   With `strict_variant` it can only throw `A`-exceptions.
 
 But, these issues aside, I argue that `strict_variant` adds value because the programmer
