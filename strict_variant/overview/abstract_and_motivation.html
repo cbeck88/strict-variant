@@ -319,8 +319,9 @@
             <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code> has to make backup copies of
             both <code class="computeroutput"><span class="identifier">A</span></code> and <code class="computeroutput"><span class="identifier">B</span></code>, while <code class="computeroutput"><span class="identifier">strict_variant</span></code>
             constructs the same number of objects as <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">variant</span></code>
-            or one of the rarely-empty variants. When debugging low-level problem,
-            it may become important to know about the extra object instances.
+            or one of the rarely-empty variants. When debugging low-level problems,
+            it may become important to know about the extra object instances -- it's
+            not always "invisible" to the programmer.
           </li>
 <li class="listitem">
             When I write <code class="computeroutput"><span class="identifier">v</span> <span class="special">=</span>
