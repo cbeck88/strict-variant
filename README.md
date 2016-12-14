@@ -7,7 +7,7 @@
 Do you use `boost::variant` or one of the many open-source C++11 implementations of a "tagged union" or variant type
 in your C++ projects?
 
-I created `strict_variant` in order to address a few things about `boost::variant` that I didn't like.
+`boost::variant` is a great library. I created `strict_variant` in order to address a few things about `boost::variant` that I didn't like.
 
 - I didn't like that code like this may compile without any warning or error messages:
 
@@ -28,20 +28,24 @@ I created `strict_variant` in order to address a few things about `boost::varian
   v = true;  // selects bool
   v = 10;    // selects long 
   v = 20.5f; // selects double
+  v = "foo"; // selects string
   ```
 
   I also wanted that such behavior (what gets selected in such cases) is portable.
-  
-  (In `strict_variant` we modify overload resolution in these situations by removing some candidates.
-   For instance:
-     * if two integer promotions are possible, but one of them is larger than another,
-       the larger one gets discarded,  
+
+  (For code examples like this, where `boost::variant` has unfortunate behavior, see "Abstract and Motivation" in the documentation.)
+
+  In `strict_variant` we modify overload resolution in these situations by removing some candidates.
+
+  For instance:
+     * We eliminate many classes of problematic conversions, including narrowing and pointer conversions.
+     * We prohibit standard conversions between `bool`, integral, floating point, pointer, character, and some other classes.  
+     * We impose "rank-based priority". If two integer promotions are permitted
+       but one of them is larger than another, the larger one gets discarded,  
        e.g. if `int -> long` and `int -> long long` are candidates,
        the `long long` is eliminated.
-     * Also we eliminate many classes of problematic conversions,
-       anything that goes between `bool`, integral, floating point, pointer, character, and some others.  
        
-   See documentation for details.)
+   See documentation for details.
   
 - I didn't like that `boost::variant` will silently make backup copies of my objects. For instance, consider this simple program,
   in which `A` and `B` have been defined to log all ctor and dtor calls.
