@@ -10,3 +10,4 @@
 /example/bin
 /example/stage
 update_docu.sh
+find_and_replace.sh
