@@ -1,5 +1,16 @@
 [section Future Directions]
 
+[h4 Analogue of `boost::blank`]
+
+Boost variant also supports a special type `boost::blank` which it treats as a
+designated empty state if it is one of the value-types. This allows it to avoid
+making some of its dynamic allocations -- it behaves more like `std::variant`
+then.
+
+This is potentially useful for `strict_variant` also. It would be nice also
+if we can be `nothrow_move_constructible` in this scenario, even when `recursive_wrapper`
+are used.
+
 [h4 `constexpr` support]
 
 `constexpr` support is somewhat harder to do well at C++11 standard compared to
@@ -33,11 +44,13 @@ that are constructed. But execution of this plan is left to future work.
 
 One way to mitigate the costs of using `recursive_wrapper` in the variant would
 be if it were possible to "take ownership" of the dynamic allocation from the
-variant. The idea would be, once the contained type has been determined to be
-`recursive_wrapper<T>`, we could imagine a function which consumes the variant
-and yields `unique_ptr<T>`, taking ownership of the pointer that is in storage.
+variant. Basically the idea would be to have some kind of "destructive visit"
+that consumes that variant and passes the stored value to the visitor,
+putting it in a `std::unique_ptr` if it was held in a `recursive_wrapper`.
 
-This is also left to future work.
+This is sort of a riff on the "destructive move" proposal:
+
+http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4158.pdf
 
 [h4 Improve `noexcept` annotations of `variant` when using `recursive_wrapper`?]
 
