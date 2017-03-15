@@ -178,7 +178,7 @@ Compiler Compatibility
 
 It is known to work with `gcc >= 4.8` and `clang >= 3.5`, and is tested against `MSVC 2015`.
 
-`strict_variant` can be used in projects which require `-fno-exceptions` and `-fno-rtti`.
+`strict_variant` can be used as-is in projects which require `-fno-exceptions` and `-fno-rtti`.
 
 Licensing and Distribution
 ==========================
