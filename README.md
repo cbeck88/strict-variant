@@ -64,7 +64,7 @@ in your C++ projects?
   ```
   
   `boost::variant` produces the following output:
-
+  
   ```c++
 A()
 A(A&&)
