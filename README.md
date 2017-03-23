@@ -63,32 +63,32 @@ in your C++ projects?
   }
   ```
   
-  `boost::variant` produces the following output:
+  The `boost::variant` produces the following output:
   
   ```c++
-A()
-A(A&&)
-~A()
-1
-B()
-B(B&&)
-A(const A &)
-~A()
-B(const B &)
-~A()
-~B()
-~B()
-2
-A()
-A(A&&)
-B(const B &)
-~B()
-A(const A &)
-~B()
-~A()
-~A()
-3
-~A()
+  A()
+  A(A&&)
+  ~A()
+  1
+  B()
+  B(B&&)
+  A(const A &)
+  ~A()
+  B(const B &)
+  ~A()
+  ~B()
+  ~B()
+  2
+  A()
+  A(A&&)
+  B(const B &)
+  ~B()
+  A(const A &)
+  ~B()
+  ~A()
+  ~A()
+  3
+  ~A()
   ```
   
   This may be pretty surprising to some programmers.
@@ -97,21 +97,21 @@ A(const A &)
   "sometimes-empty" semantics, you get something like this (this output from `std::experimental::variant`)
   
   ```c++
-A()
-A(A&&)
-~A()
-1
-B()
-~A()
-B(B&&)
-~B()
-2
-A()
-~B()
-A(A&&)
-~A()
-3
-~A()
+  A()
+  A(A&&)
+  ~A()
+  1
+  B()
+  ~A()
+  B(B&&)
+  ~B()
+  2
+  A()
+  ~B()
+  A(A&&)
+  ~A()
+  3
+  ~A()
   ```
   
   This is much closer to what the naive programmer expects who doesn't know about internal
@@ -125,21 +125,21 @@ A(A&&)
   Here's what you get with `strict_variant`:
   
   ```c++
-A()
-A(A&&)
-~A()
-1
-B()
-B(B&&)
-~A()
-~B()
-2
-A()
-A(A&&)
-~B()
-~A()
-3
-~A()
+  A()
+  A(A&&)
+  ~A()
+  1
+  B()
+  B(B&&)
+  ~A()
+  ~B()
+  2
+  A()
+  A(A&&)
+  ~B()
+  ~A()
+  3
+  ~A()
   ```
   
   Yet, `strict_variant` does not have an empty state, and is fully exception-safe!
