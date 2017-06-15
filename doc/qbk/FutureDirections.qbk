@@ -36,9 +36,13 @@ Since `recursive_wrapper` makes dynamic allocations on behalf of the variant,
 a quite natural refinement would be to allow custom allocators to be used with
 the wrapper.
 
-Most likely, the allocator should become a template parameter and a member of
-the `strict_variant` itself, which then passes it on to any `recursive_wrapper`
-that are constructed. But execution of this plan is left to future work.
+I'm leery of adding the allocator as a template parameter to `variant` itself,
+since it will complicate usage significantly, and no one else does this.
+
+However, a decent compromise is to support only stateless allocators,
+and to pass these as a second template parameter to `recursive_wrapper`. Users
+can make their own version of template alias `easy_variant` using their custom
+allcators, which would still be quite ergonomic.
 
 [h4 Extract heap objects]
 
