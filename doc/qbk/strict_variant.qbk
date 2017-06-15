@@ -41,8 +41,9 @@
 
 [section:reference Reference]
 [include ClassVariant.qbk]
-[include ClassVariantComparator.qbk]
+[include AliasEasyVariant.qbk]
 [include ClassRecursiveWrapper.qbk]
+[include ClassVariantComparator.qbk]
 [include ArithmeticCategory.qbk]
 [include ArithmeticRank.qbk]
 [include SafeArithmeticConversion.qbk]

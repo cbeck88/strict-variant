@@ -1,0 +1,39 @@
+[section Alias template `easy_variant`]
+
+`easy_variant` is an extension of `variant`, which includes generic handling for throwing moves in user-defined types.
+
+[h3 Synopsis]
+
+Defined in file `<strict_variant/variant.hpp>`:
+
+```
+  template <typename... Ts>
+  using easy_variant = variant<wrap_if_throwing_move_t<Ts>...>;
+```
+
+where `wrap_if_throwing_move_t` is defined:
+
+```
+  struct <typename T, typename = std::enable_if_t<std::is_nothrow_destructible<T>::value && !std::is_reference<T>::value>>
+  struct wrap_if_throwing_move {
+    using type = typename std::conditional<std::is_nothrow_move_constructible<T>::value,
+                                           T,
+                                           recursive_wrapper<T>>::type;
+  };
+
+  template <typename T>
+  using wrap_if_throwing_move_t = typename wrap_if_throwing_move<T>::type;
+```
+   
+That is, if `T` is no-throw move constructible, we use `T`, otherwise, we use `recursive_wrapper<T>`.
+
+[h3 Description]
+
+`easy_variant` is meant to easily replace uses of `boost::variant` and other common variant types.
+
+Since `recursive_wrapper` is no-throw move constructible, and is transparently pierced at all parts
+of the `variant` interface, `easy_variant` is always able to generate assignment operators and such
+regardless of the `noexcept` status of the user-defined types which are passed to it. It is thus a
+general-purpose variant type.
+
+[endsect]

@@ -419,46 +419,4 @@ provide rollback-semantics if an exception is thrown while changing the type of 
   ]]
 ]
 
-[h4 Template Aliases]
-
-[variablelist
-
-[[`template <typename... Types> easy_variant`]
- [
-   Template alias `easy_variant` is defined in terms of strict_variant.
-
-   The purpose of `easy_variant` is to try to make a version of `strict_variant` which is
-   more forgiving in regards to throwing moves.
-
-   If one of the types in the list has a throwing move,
-   it gets implicitly wrapped in `recursive_wrapper`, so that `strict_variant` can generate
-   an assignment operator.
-
-   Example implementation:
-
-   ```
-     template <typename... Ts>
-     using easy_variant = variant<wrap_if_throwing_move_t<Ts>...>;
-   ```
-
-   where `wrap_if_throwing_move_t` is defined:
-
-
-   ```
-     struct <typename T, typename = std::enable_if_t<std::is_nothrow_destructible<T>::value && !std::is_reference<T>::value>>
-     struct wrap_if_throwing_move {
-       using type = typename std::conditional<std::is_nothrow_move_constructible<T>::value,
-                                              T,
-                                              recursive_wrapper<T>>::type;
-     };
-
-     template <typename T>
-     using wrap_if_throwing_move_t = typename wrap_if_throwing_move<T>::type;
-   ```
-
-  Since `recursive_wrapper` is transparently pierced at all parts of the interface,
-  `easy_variant` can be dropped in for `strict_variant` if desired.
-
-]]]
-
 [endsect]
