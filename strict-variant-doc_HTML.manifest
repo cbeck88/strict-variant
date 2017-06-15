@@ -7,8 +7,9 @@ strict_variant/tutorial/basic.html
 strict_variant/tutorial/advanced_usage.html
 strict_variant/reference.html
 strict_variant/reference/class_template_variant.html
-strict_variant/reference/comparator.html
+strict_variant/reference/alias_template_easy_variant.html
 strict_variant/reference/class_template_recursive_wrapper.html
+strict_variant/reference/comparator.html
 strict_variant/reference/arithmetic_category.html
 strict_variant/reference/arithmetic_rank.html
 strict_variant/reference/safe_arithmetic_conversion.html

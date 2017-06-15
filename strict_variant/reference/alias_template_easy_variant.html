@@ -1,0 +1,86 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<title>Alias template easy_variant</title>
+<link rel="stylesheet" href="../../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="../../index.html" title="Chapter&#160;1.&#160;Strict Variant 0.3">
+<link rel="up" href="../reference.html" title="Reference">
+<link rel="prev" href="class_template_variant.html" title="Class template variant">
+<link rel="next" href="class_template_recursive_wrapper.html" title="Class template recursive_wrapper">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<div class="spirit-nav">
+<a accesskey="p" href="class_template_variant.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../reference.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="class_template_recursive_wrapper.html"><img src="../../images/next.png" alt="Next"></a>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="strict_variant.reference.alias_template_easy_variant"></a><a class="link" href="alias_template_easy_variant.html" title="Alias template easy_variant">Alias
+      template <code class="computeroutput"><span class="identifier">easy_variant</span></code></a>
+</h3></div></div></div>
+<p>
+        <code class="computeroutput"><span class="identifier">easy_variant</span></code> is an extension
+        of <code class="computeroutput"><span class="identifier">variant</span></code>, which includes
+        generic handling for throwing moves in user-defined types.
+      </p>
+<h4>
+<a name="strict_variant.reference.alias_template_easy_variant.h0"></a>
+        <span><a name="strict_variant.reference.alias_template_easy_variant.synopsis"></a></span><a class="link" href="alias_template_easy_variant.html#strict_variant.reference.alias_template_easy_variant.synopsis">Synopsis</a>
+      </h4>
+<p>
+        Defined in file <code class="computeroutput"><span class="special">&lt;</span><span class="identifier">strict_variant</span><span class="special">/</span><span class="identifier">variant</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span></code>:
+      </p>
+<pre class="programlisting"><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span><span class="special">...</span> <span class="identifier">Ts</span><span class="special">&gt;</span>
+<span class="keyword">using</span> <span class="identifier">easy_variant</span> <span class="special">=</span> <span class="identifier">variant</span><span class="special">&lt;</span><span class="identifier">wrap_if_throwing_move_t</span><span class="special">&lt;</span><span class="identifier">Ts</span><span class="special">&gt;...&gt;;</span>
+</pre>
+<p>
+        where <code class="computeroutput"><span class="identifier">wrap_if_throwing_move_t</span></code>
+        is defined:
+      </p>
+<pre class="programlisting"><span class="keyword">struct</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">,</span> <span class="keyword">typename</span> <span class="special">=</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">enable_if_t</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">is_nothrow_destructible</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;::</span><span class="identifier">value</span> <span class="special">&amp;&amp;</span> <span class="special">!</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">is_reference</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;::</span><span class="identifier">value</span><span class="special">&gt;&gt;</span>
+<span class="keyword">struct</span> <span class="identifier">wrap_if_throwing_move</span> <span class="special">{</span>
+  <span class="keyword">using</span> <span class="identifier">type</span> <span class="special">=</span> <span class="keyword">typename</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">conditional</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">is_nothrow_move_constructible</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;::</span><span class="identifier">value</span><span class="special">,</span>
+                                         <span class="identifier">T</span><span class="special">,</span>
+                                         <span class="identifier">recursive_wrapper</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;&gt;::</span><span class="identifier">type</span><span class="special">;</span>
+<span class="special">};</span>
+
+<span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
+<span class="keyword">using</span> <span class="identifier">wrap_if_throwing_move_t</span> <span class="special">=</span> <span class="keyword">typename</span> <span class="identifier">wrap_if_throwing_move</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;::</span><span class="identifier">type</span><span class="special">;</span>
+</pre>
+<p>
+        That is, if <code class="computeroutput"><span class="identifier">T</span></code> is no-throw
+        move constructible, we use <code class="computeroutput"><span class="identifier">T</span></code>,
+        otherwise, we use <code class="computeroutput"><span class="identifier">recursive_wrapper</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span></code>.
+      </p>
+<h4>
+<a name="strict_variant.reference.alias_template_easy_variant.h1"></a>
+        <span><a name="strict_variant.reference.alias_template_easy_variant.description"></a></span><a class="link" href="alias_template_easy_variant.html#strict_variant.reference.alias_template_easy_variant.description">Description</a>
+      </h4>
+<p>
+        <code class="computeroutput"><span class="identifier">easy_variant</span></code> is meant to
+        easily replace uses of <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code>
+        and other common variant types.
+      </p>
+<p>
+        Since <code class="computeroutput"><span class="identifier">recursive_wrapper</span></code> is
+        no-throw move constructible, and is transparently pierced at all parts of
+        the <code class="computeroutput"><span class="identifier">variant</span></code> interface, <code class="computeroutput"><span class="identifier">easy_variant</span></code> is always able to generate
+        assignment operators and such regardless of the <code class="computeroutput"><span class="keyword">noexcept</span></code>
+        status of the user-defined types which are passed to it. It is thus a general-purpose
+        variant type.
+      </p>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright &#169; 2016 Chris Beck<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="class_template_variant.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../reference.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="class_template_recursive_wrapper.html"><img src="../../images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>
