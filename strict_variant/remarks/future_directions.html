@@ -18,6 +18,23 @@
 </h3></div></div></div>
 <h5>
 <a name="strict_variant.remarks.future_directions.h0"></a>
+        <span><a name="strict_variant.remarks.future_directions.analogue_of_boost_blank"></a></span><a class="link" href="future_directions.html#strict_variant.remarks.future_directions.analogue_of_boost_blank">Analogue
+        of <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">blank</span></code></a>
+      </h5>
+<p>
+        Boost variant also supports a special type <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">blank</span></code>
+        which it treats as a designated empty state if it is one of the value-types.
+        This allows it to avoid making some of its dynamic allocations -- it behaves
+        more like <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">variant</span></code> then.
+      </p>
+<p>
+        This is potentially useful for <code class="computeroutput"><span class="identifier">strict_variant</span></code>
+        also. It would be nice also if we can be <code class="computeroutput"><span class="identifier">nothrow_move_constructible</span></code>
+        in this scenario, even when <code class="computeroutput"><span class="identifier">recursive_wrapper</span></code>
+        are used.
+      </p>
+<h5>
+<a name="strict_variant.remarks.future_directions.h1"></a>
         <span><a name="strict_variant.remarks.future_directions.constexpr_support"></a></span><a class="link" href="future_directions.html#strict_variant.remarks.future_directions.constexpr_support"><code class="computeroutput"><span class="keyword">constexpr</span></code> support</a>
       </h5>
 <p>
@@ -43,7 +60,7 @@
         Patches are welcome!
       </p>
 <h5>
-<a name="strict_variant.remarks.future_directions.h1"></a>
+<a name="strict_variant.remarks.future_directions.h2"></a>
         <span><a name="strict_variant.remarks.future_directions.allocator_support"></a></span><a class="link" href="future_directions.html#strict_variant.remarks.future_directions.allocator_support"><code class="computeroutput"><span class="identifier">allocator</span></code> support</a>
       </h5>
 <p>
@@ -52,29 +69,36 @@
         would be to allow custom allocators to be used with the wrapper.
       </p>
 <p>
-        Most likely, the allocator should become a template parameter and a member
-        of the <code class="computeroutput"><span class="identifier">strict_variant</span></code> itself,
-        which then passes it on to any <code class="computeroutput"><span class="identifier">recursive_wrapper</span></code>
-        that are constructed. But execution of this plan is left to future work.
+        I'm leery of adding the allocator as a template parameter to <code class="computeroutput"><span class="identifier">variant</span></code> itself, since it will complicate
+        usage significantly, and no one else does this.
+      </p>
+<p>
+        However, a decent compromise is to support only stateless allocators, and
+        to pass these as a second template parameter to <code class="computeroutput"><span class="identifier">recursive_wrapper</span></code>.
+        Users can make their own version of template alias <code class="computeroutput"><span class="identifier">easy_variant</span></code>
+        using their custom allcators, which would still be quite ergonomic.
       </p>
 <h5>
-<a name="strict_variant.remarks.future_directions.h2"></a>
+<a name="strict_variant.remarks.future_directions.h3"></a>
         <span><a name="strict_variant.remarks.future_directions.extract_heap_objects"></a></span><a class="link" href="future_directions.html#strict_variant.remarks.future_directions.extract_heap_objects">Extract
         heap objects</a>
       </h5>
 <p>
         One way to mitigate the costs of using <code class="computeroutput"><span class="identifier">recursive_wrapper</span></code>
         in the variant would be if it were possible to "take ownership"
-        of the dynamic allocation from the variant. The idea would be, once the contained
-        type has been determined to be <code class="computeroutput"><span class="identifier">recursive_wrapper</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span></code>,
-        we could imagine a function which consumes the variant and yields <code class="computeroutput"><span class="identifier">unique_ptr</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span></code>,
-        taking ownership of the pointer that is in storage.
+        of the dynamic allocation from the variant. Basically the idea would be to
+        have some kind of "destructive visit" that consumes that variant
+        and passes the stored value to the visitor, putting it in a <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">unique_ptr</span></code>
+        if it was held in a <code class="computeroutput"><span class="identifier">recursive_wrapper</span></code>.
       </p>
 <p>
-        This is also left to future work.
+        This is sort of a riff on the "destructive move" proposal:
+      </p>
+<p>
+        http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4158.pdf
       </p>
 <h5>
-<a name="strict_variant.remarks.future_directions.h3"></a>
+<a name="strict_variant.remarks.future_directions.h4"></a>
         <span><a name="strict_variant.remarks.future_directions.improve_noexcept_annotations_of_"></a></span><a class="link" href="future_directions.html#strict_variant.remarks.future_directions.improve_noexcept_annotations_of_">Improve
         <code class="computeroutput"><span class="keyword">noexcept</span></code> annotations of <code class="computeroutput"><span class="identifier">variant</span></code> when using <code class="computeroutput"><span class="identifier">recursive_wrapper</span></code>?</a>
       </h5>
@@ -115,7 +139,7 @@
         so far as I know.
       </p>
 <h5>
-<a name="strict_variant.remarks.future_directions.h4"></a>
+<a name="strict_variant.remarks.future_directions.h5"></a>
         <span><a name="strict_variant.remarks.future_directions.support_references_using_std_ref"></a></span><a class="link" href="future_directions.html#strict_variant.remarks.future_directions.support_references_using_std_ref">Support
         references using <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">reference_wrapper</span></code>?</a>
       </h5>
@@ -124,7 +148,7 @@
         all that useful, and would introduce more complex rules for safety.
       </p>
 <h5>
-<a name="strict_variant.remarks.future_directions.h5"></a>
+<a name="strict_variant.remarks.future_directions.h6"></a>
         <span><a name="strict_variant.remarks.future_directions.support_arrays_implicitly_using_"></a></span><a class="link" href="future_directions.html#strict_variant.remarks.future_directions.support_arrays_implicitly_using_">Support
         arrays implicitly using <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">array</span></code>?</a>
       </h5>

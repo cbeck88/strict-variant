@@ -24,10 +24,10 @@
 <div class="itemizedlist"><ul class="itemizedlist" type="disc">
 <li class="listitem">
             <code class="computeroutput"><span class="identifier">STRICT_VARIANT_ASSUME_MOVE_NOTHROW</span></code>
-            <br> Assume that moves of input types won't throw, regardless of their
-            <code class="computeroutput"><span class="keyword">noexcept</span></code> status. This might
-            be useful if you are using old versions of the standard library and things
-            like <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span></code> are not no-throw move constructible
+            <br> Assume that moving the input types won't throw, regardless of
+            their <code class="computeroutput"><span class="keyword">noexcept</span></code> status. This
+            might be useful if you are using old versions of the standard library
+            and things like <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span></code> are not no-throw move constructible
             for you, but you want <code class="computeroutput"><span class="identifier">strict_variant</span><span class="special">::</span><span class="identifier">variant</span></code>
             to act as though they are. This will allow you to get assignment operators
             for the variant as though everything were move constructible, but if
@@ -35,14 +35,23 @@
           </li>
 <li class="listitem">
             <code class="computeroutput"><span class="identifier">STRICT_VARIANT_ASSUME_COPY_NOTHROW</span></code>
-            <br> Assumes that copies of input types won't throw, regardless of
+            <br> Assume that copying the input types won't throw, regardless of
             their <code class="computeroutput"><span class="keyword">noexcept</span></code> status. This
-            is pretty dangerous, it only makes sense in projects where you already
-            assume that dynamic allocations will never fail and just want to go as
-            fast as possible given that assumption. Probably you are already using
-            <code class="computeroutput"><span class="special">-</span><span class="identifier">fno</span><span class="special">-</span><span class="identifier">exceptions</span></code>
-            anyways and a custom allocator, which you monitor on the side for memory
-            exhaustion, or something like this.
+            is pretty dangerous, it only makes sense in a few situations that I can
+            think of:
+            <div class="itemizedlist"><ul class="itemizedlist" type="circle">
+<li class="listitem">
+                  Your project is a game and speed is more important than correctness.
+                  You pretty much already assume that dynamic allocations will never
+                  fail anyways.
+                </li>
+<li class="listitem">
+                  You are working on a platform with few resources, and you are already
+                  using <code class="computeroutput"><span class="special">-</span><span class="identifier">fno</span><span class="special">-</span><span class="identifier">exceptions</span></code>
+                  and a custom allocator, which you monitor on the side for memory
+                  exhaustion, or something like this.
+                </li>
+</ul></div>
           </li>
 <li class="listitem">
             <code class="computeroutput"><span class="identifier">STRICT_VARIANT_DEBUG</span></code>
