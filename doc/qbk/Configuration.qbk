@@ -3,7 +3,7 @@
 There are three preprocessor defines that `strict_variant` responds to:
 
 * `STRICT_VARIANT_ASSUME_MOVE_NOTHROW`  [br]
-  Assume that moves of input types won't throw, regardless of their `noexcept`
+  Assume that moving the input types won't throw, regardless of their `noexcept`
   status. This might be useful if you are using old versions of the standard
   library and things like `std::string` are not no-throw move constructible for
   you, but you want `strict_variant::variant` to act as though they are. This will
@@ -11,12 +11,14 @@ There are three preprocessor defines that `strict_variant` responds to:
   were move constructible, but if anything actually does throw you get UB.
 
 * `STRICT_VARIANT_ASSUME_COPY_NOTHROW`  [br]
-  Assumes that copies of input types won't throw, regardless of their `noexcept`
-  status. This is pretty dangerous, it only makes sense in projects where you
-  already assume that dynamic allocations will never fail and just want to go
-  as fast as possible given that assumption. Probably you are already using
-  `-fno-exceptions` anyways and a custom allocator, which you monitor on the side
-  for memory exhaustion, or something like this.
+  Assume that copying the input types won't throw, regardless of their `noexcept`
+  status. This is pretty dangerous, it only makes sense in a few situations that
+  I can think of:
+  * Your project is a game and speed is more important than correctness. You
+    pretty much already assume that dynamic allocations will never fail anyways.
+  * You are working on a platform with few resources, and you are already using
+    `-fno-exceptions` and a custom allocator, which you monitor on the side
+    for memory exhaustion, or something like this.
 
 * `STRICT_VARIANT_DEBUG`  [br]
   Turn on debugging assertions.
