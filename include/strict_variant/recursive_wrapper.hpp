@@ -40,18 +40,27 @@ class recursive_wrapper {
 
   void destroy() { delete m_t; }
 
+  template <typename... Args>
+  void init(Args &&... args) {
+    m_t = new T(std::forward<Args>(args)...);
+  }
+
 public:
   ~recursive_wrapper() noexcept { this->destroy(); }
 
   template <typename... Args>
   recursive_wrapper(Args &&... args)
-    : m_t(new T(std::forward<Args>(args)...)) {}
+    : m_t(nullptr) {
+    this->init(std::forward<Args>(args)...);
+  }
 
   recursive_wrapper(recursive_wrapper & rhs)
     : recursive_wrapper(static_cast<const recursive_wrapper &>(rhs)) {}
 
   recursive_wrapper(const recursive_wrapper & rhs)
-    : m_t(new T(rhs.get())) {}
+    : m_t(nullptr) {
+      this->init(rhs.get());
+  }
 
   // Pointer move
   recursive_wrapper(recursive_wrapper && rhs) noexcept //
