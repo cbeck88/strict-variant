@@ -33,7 +33,6 @@
 #include <strict_variant/variant_fwd.hpp>
 #include <strict_variant/variant_storage.hpp>
 
-#include <new>
 #include <type_traits>
 #include <utility>
 
