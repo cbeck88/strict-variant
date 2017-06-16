@@ -502,10 +502,26 @@ get_or_default(variant<Types...> & v,
   return *t;
 }
 
-// Helper for generic programming -- produce a variant, wrapping each type which
-// has a throwing move in `recursive_wrapper`.
+/***
+ * Trait to add the wrapper if a type is not no-throw move constructible
+ */
+
+//[ strict_variant_wrap_if_throwing_move
+template <typename T, typename = mpl::enable_if_t<std::is_nothrow_destructible<T>::value
+                                                  && !std::is_reference<T>::value>>
+struct wrap_if_throwing_move {
+  using type = typename std::conditional<std::is_nothrow_move_constructible<T>::value, T,
+                                         recursive_wrapper<T>>::type;
+};
+
+template <typename T>
+using wrap_if_throwing_move_t = typename wrap_if_throwing_move<T>::type;
+//]
+
+//[ strict_variant_easy_variant
 template <typename... Ts>
 using easy_variant = variant<wrap_if_throwing_move_t<Ts>...>;
+//]
 
 /***
  * Implementation details of private visitors

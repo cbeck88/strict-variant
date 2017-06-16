@@ -153,22 +153,6 @@ struct unwrap_type<T, true> {
 template <typename T>
 using unwrap_type_t = typename unwrap_type<T>::type;
 
-/***
- * Trait to add the wrapper if a type is not no-throw move constructible
- */
-
-//[ strict_variant_wrap_if_throwing_move
-template <typename T, typename = mpl::enable_if_t<std::is_nothrow_destructible<T>::value
-                                                  && !std::is_reference<T>::value>>
-struct wrap_if_throwing_move {
-  using type = typename std::conditional<std::is_nothrow_move_constructible<T>::value, T,
-                                         recursive_wrapper<T>>::type;
-};
-
-template <typename T>
-using wrap_if_throwing_move_t = typename wrap_if_throwing_move<T>::type;
-//]
-
 } // end namespace strict_variant
 
 #undef STRICT_VARIANT_ASSERT
