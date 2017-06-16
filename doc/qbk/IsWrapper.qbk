@@ -1,0 +1,31 @@
+[section:is_wrapper Type trait `is_wrapper`]
+
+The `is_wrapper` type trait is used by the `variant` interface to identify types wrapped with `recursive_wrapper` or similar.
+
+Types that are so wrapped must provide a typedef `value_type` and an accessor `get` which retrieves the value.
+
+Types for which `is_wrapper` is true will be transparently pierced, so that `get` and `apply_visitor` will
+be able to access the `value_type` rather than the wrapper.
+
+[h3 Valid Expressions]
+[table
+  [[expression] [value]]
+  [[`T`] [ any type]]
+  [[`x`] [ any expression]]
+  [[`strict_variant::is_wrapper<T>::value`][ `true` if `T` is a wrapped type, false if not. ]]
+  [[`strict_variant::unwrap_type_t<T>`][ `T` if `T` is not wrapped, `T::value_type` if it is wrapped. ]]
+  [[`strict_variant::pierce_recursive_wrapper(x)`][`x` if `T` is not wrapped, and `x.get()` if `T` is wrapped, where `T` is the type of `x` without CV qualifiers or references. ]]]
+
+[h3 Synopsis]
+
+The default implementation will only return `true` for types of the form `recursive_wrapper<T>` and `alloc_wrapper<T, A>`.
+
+[h3 Notes]
+
+[note You ['may] specialize `is_wrapper` as you please in order to get `strict_variant` to recognize your custom `recursive_wrapper` types.
+
+      The primary reason to do so is to more finely control the dynamic allocations, for instance, to try to place smart pointers to your objects
+      in a `variant` without reallocating them or giving up the ease of use. Or, your code base may use allocators which don't conform to the C++
+      standard allocator concept, and you may wish to use them here.]
+
+[endsect]

@@ -29,6 +29,8 @@ add the `include` folder to your include path. Then use the following includes i
 
   [*Multi-visitation] means that a series of variants are passed along with a visitor, and value of each is determined and forwarded to the visitor.  ]]
 
+[[`#include <strict_variant/alloc_variant.hpp>`] [Defines `alloc_variant`, a version of `variant` which uses your custom stateless allocator in its `recursive_wrapper`'s.]]
+
 ]
 
 

@@ -1,0 +1,24 @@
+[section Alias template `alloc_variant`]
+
+`alloc_variant` is a version of `easy_variant` which allows you to specify a custom
+allocator.
+
+Just like `easy_variant`, it includes generic handling for throwing moves in user-defined types.
+
+It is thus a general-purpose variant type.
+
+[h3 Description]
+
+`alloc_variant<A>::type<T1, T2, ...>` is the same as `variant<T1, T2, ...>`, except that
+if `T` has a throwing move, we substitute `alloc_wrapper<T, A>` for it.
+
+`alloc_wrapper<T, A>` is the same as `recursive_wrapper<T>`, except that where `recursive_wrapper`
+uses `new` and `delete`, `alloc_wrapper` will use the stateless allocator `A`.
+
+[h3 Synopsis]
+
+Defined in file `<strict_variant/alloc_variant.hpp>`:
+
+[strict_variant_alloc_variant]
+
+[endsect]
