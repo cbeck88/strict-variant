@@ -46,6 +46,8 @@ class recursive_wrapper {
   }
 
 public:
+  typedef T value_type;
+
   ~recursive_wrapper() noexcept { this->destroy(); }
 
   template <typename... Args>
@@ -59,7 +61,7 @@ public:
 
   recursive_wrapper(const recursive_wrapper & rhs)
     : m_t(nullptr) {
-      this->init(rhs.get());
+    this->init(rhs.get());
   }
 
   // Pointer move
@@ -89,51 +91,63 @@ public:
 };
 //]
 
+//[ strict_variant_is_recursive_wrapper
+namespace detail {
+
+/***
+ * Trait to identify wrapper types like recursive_wrapper.
+ * Specialize this trait to make strict_variant recognize and automatically
+ * pierce custom wrappers.
+ */
+
+template <typename T>
+struct is_wrapper : std::false_type {};
+
+template <typename T>
+struct is_wrapper<recursive_wrapper<T>> : std::true_type {};
+
+} // end namespace detail
+//]
+
 //[ strict_variant_pierce_recursive_wrapper
 namespace detail {
 
 /***
- * Function to pierce the recursive_wrapper template
+ * Function to pierce a recursive_wrapper
  */
 
 template <typename T>
 inline auto
-pierce_recursive_wrapper(T && t) -> T {
+pierce_recursive_wrapper(T && t)
+  -> mpl::enable_if_t<!is_wrapper<mpl::remove_const_t<mpl::remove_reference_t<T>>>::value, T> {
   return std::forward<T>(t);
 }
 
 template <typename T>
-inline T &
-pierce_recursive_wrapper(recursive_wrapper<T> & t) {
-  return t.get();
-}
-
-template <typename T>
-inline T &&
-pierce_recursive_wrapper(recursive_wrapper<T> && t) {
-  return std::move(t.get());
-}
-
-template <typename T>
-inline const T &
-pierce_recursive_wrapper(const recursive_wrapper<T> & t) {
-  return t.get();
+inline auto
+pierce_recursive_wrapper(T && t)
+  -> mpl::enable_if_t<is_wrapper<mpl::remove_const_t<mpl::remove_reference_t<T>>>::value,
+                      decltype(std::forward<T>(t).get())> {
+  return std::forward<T>(t).get();
 }
 
 } // end namespace detail
   //]
 
 /***
- * Trait to remove the wrapper
+ * Trait to remove a wrapper from a wrapped type
  */
+template <typename T, bool is_wrapped = detail::is_wrapper<T>::value>
+struct unwrap_type;
+
 template <typename T>
-struct unwrap_type {
+struct unwrap_type<T, false> {
   typedef T type;
 };
 
 template <typename T>
-struct unwrap_type<recursive_wrapper<T>> {
-  typedef T type;
+struct unwrap_type<T, true> {
+  typedef typename T::value_type type;
 };
 
 template <typename T>
