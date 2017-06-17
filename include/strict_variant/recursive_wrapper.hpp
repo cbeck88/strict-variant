@@ -8,9 +8,9 @@
 /***
  * For use with strict_variant::variant
  */
+#include <new>
 #include <strict_variant/mpl/std_traits.hpp>
 #include <strict_variant/variant_fwd.hpp>
-#include <new>
 #include <type_traits>
 #include <utility>
 

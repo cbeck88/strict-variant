@@ -26,7 +26,7 @@ struct alloc_variant {
   template <typename T>
   using wrap_throwing_move_t = typename wrap_throwing_move<T>::type;
 
-  template <typename ... Ts>
+  template <typename... Ts>
   using type = variant<wrap_throwing_move_t<Ts>...>;
 };
 //]
