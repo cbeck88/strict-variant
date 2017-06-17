@@ -44,16 +44,38 @@ class alloc_wrapper {
     }
   }
 
+  // To avoid doing explicit try / catch (since some projects use -fno-exceptions),
+  // use a function object to do initialization, which cleans up after itself in the dtor
+  // if initialization was unsuccessful.
+
+  struct initer {
+    Alloc a;
+    bool success;
+    T * m_t;
+
+    initer()
+      : a()
+      , success(false)
+      , m_t(nullptr) {
+      m_t = a.allocate(1);
+    }
+
+    ~initer() {
+      if (!success) { a.deallocate(m_t, 1); }
+    }
+
+    template <typename... Args>
+    void go(Args &&... args) {
+      new (m_t) T(std::forward<Args>(args)...);
+      success = true;
+    }
+  };
+
   template <typename... Args>
   void init(Args &&... args) {
-    Alloc a;
-    m_t = a.allocate(1);
-    try {
-      new (m_t) T(std::forward<Args>(args)...);
-    } catch (...) {
-      a.deallocate(m_t, 1);
-      throw;
-    }
+    initer i;
+    i.go(std::forward<Args>(args)...);
+    m_t = i.m_t;
   }
 
 public:
@@ -77,7 +99,7 @@ public:
 
   // Pointer move
   alloc_wrapper(alloc_wrapper && rhs) noexcept //
-    : m_t(rhs.m_t)                                     //
+    : m_t(rhs.m_t)                             //
   {
     rhs.m_t = nullptr;
   }
