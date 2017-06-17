@@ -8,7 +8,7 @@
 #include <new>
 #include <strict_variant/mpl/max.hpp>
 #include <strict_variant/mpl/typelist.hpp>
-#include <strict_variant/recursive_wrapper.hpp>
+#include <strict_variant/wrapper.hpp>
 #include <utility>
 
 namespace strict_variant {

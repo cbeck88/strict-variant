@@ -8,7 +8,8 @@
 /***
  * For use with strict_variant::variant
  */
-#include <strict_variant/recursive_wrapper.hpp>
+#include <strict_variant/wrapper.hpp>
+#include <type_traits>
 #include <utility>
 
 // #define STRICT_VARIANT_DEBUG

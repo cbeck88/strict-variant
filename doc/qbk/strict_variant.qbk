@@ -26,6 +26,7 @@
 [import ../../include/strict_variant/safe_pointer_conversion.hpp]
 [import ../../include/strict_variant/variant.hpp]
 [import ../../include/strict_variant/variant_compare.hpp]
+[import ../../include/strict_variant/wrapper.hpp]
 
 [/ TODO Fix up this intro more, or make it a copy-paste of the README text.
 [include Intro.qbk]

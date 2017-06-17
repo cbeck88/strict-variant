@@ -6,7 +6,7 @@
 #pragma once
 
 #include <strict_variant/mpl/find_with.hpp>
-#include <strict_variant/recursive_wrapper.hpp>
+#include <strict_variant/wrapper.hpp>
 #include <strict_variant/safely_constructible.hpp>
 #include <strict_variant/variant_fwd.hpp>
 
