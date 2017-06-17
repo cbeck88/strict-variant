@@ -82,11 +82,14 @@ struct proper_subvariant {
  * The trick is that we need to support the case when recursive_wrapper is incomplete.
  */
 
-template <typename T>
-struct is_nothrow_moveable_or_wrapper : std::is_nothrow_move_constructible<T> {};
+template <typename T, bool b = is_wrapper<T>::value>
+struct is_nothrow_moveable_or_wrapper_impl : std::is_nothrow_move_constructible<T> {};
 
 template <typename T>
-struct is_nothrow_moveable_or_wrapper<recursive_wrapper<T>> : std::true_type {};
+struct is_nothrow_moveable_or_wrapper_impl<T, true> : std::true_type {};
+
+template <typename T>
+struct is_nothrow_moveable_or_wrapper : is_nothrow_moveable_or_wrapper_impl<T> {};
 
 // Subtle point:
 // Generally, moving T && into recursive_wrapper<T> is not no-throw, since
@@ -94,35 +97,55 @@ struct is_nothrow_moveable_or_wrapper<recursive_wrapper<T>> : std::true_type {};
 // determining the *variant*'s noexcept status.
 // Trait above is useful for figuring out if assingment can work.
 
-template <typename T>
-struct is_nothrow_default_constructible : std::is_nothrow_default_constructible<T> {};
+template <typename T, bool b = is_wrapper<T>::value>
+struct is_nothrow_default_constructible_impl : std::is_nothrow_default_constructible<T> {};
 
 template <typename T>
-struct is_nothrow_default_constructible<recursive_wrapper<T>> : std::false_type {};
+struct is_nothrow_default_constructible_impl<T, true> : std::false_type {};
 
 template <typename T>
-struct is_nothrow_moveable : std::is_nothrow_move_constructible<T> {};
+struct is_nothrow_default_constructible : is_nothrow_default_constructible_impl<T> {};
+
+
+template <typename T, bool b = is_wrapper<T>::value>
+struct is_nothrow_moveable_impl : std::is_nothrow_move_constructible<T> {};
 
 template <typename T>
-struct is_nothrow_moveable<recursive_wrapper<T>> : std::false_type {};
+struct is_nothrow_moveable_impl<T, true> : std::false_type {};
 
 template <typename T>
-struct is_nothrow_copyable : std::is_nothrow_constructible<T, const T &> {};
+struct is_nothrow_moveable : is_nothrow_moveable_impl<T> {};
+
+
+template <typename T, bool b = is_wrapper<T>::value>
+struct is_nothrow_copyable_impl : std::is_nothrow_constructible<T, const T &> {};
 
 template <typename T> // Just assume it isn't, since it may be incomplete
-struct is_nothrow_copyable<recursive_wrapper<T>> : std::false_type {};
+struct is_nothrow_copyable_impl<T, true> : std::false_type {};
 
 template <typename T>
-struct is_nothrow_move_assignable : std::is_nothrow_move_assignable<T> {};
+struct is_nothrow_copyable : is_nothrow_copyable_impl<T> {};
+
+
+template <typename T, bool b = is_wrapper<T>::value>
+struct is_nothrow_move_assignable_impl : std::is_nothrow_move_assignable<T> {};
 
 template <typename T>
-struct is_nothrow_move_assignable<recursive_wrapper<T>> : std::false_type {};
+struct is_nothrow_move_assignable_impl<T, true> : std::false_type {};
 
 template <typename T>
-struct is_nothrow_copy_assignable : std::is_nothrow_copy_assignable<T> {};
+struct is_nothrow_move_assignable : is_nothrow_move_assignable_impl<T> {};
 
-template <typename T> // Just assume it isn't, since it may be incomplete
-struct is_nothrow_copy_assignable<recursive_wrapper<T>> : std::false_type {};
+
+template <typename T, bool b = is_wrapper<T>::value>
+struct is_nothrow_copy_assignable_impl : std::is_nothrow_copy_assignable<T> {};
+
+template <typename T>
+struct is_nothrow_copy_assignable_impl<T, true> : std::false_type {};
+
+template <typename T>
+struct is_nothrow_copy_assignable : is_nothrow_copy_assignable_impl<T> {};
+
 
 template <typename First, typename... Types>
 struct variant_noexcept_helper {
