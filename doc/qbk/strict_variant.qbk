@@ -1,8 +1,8 @@
 [library Strict Variant
     [quickbook 1.6]
     [id strict_variant]
-    [version 0.3]
-    [copyright 2016 Chris Beck]
+    [version 0.4]
+    [copyright 2017 Chris Beck]
     [authors [Beck, Chris]]
     [category Containers]
     [purpose Safe and efficient discriminated union container]
