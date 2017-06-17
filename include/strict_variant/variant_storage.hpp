@@ -99,17 +99,17 @@ struct storage {
 
   template <size_t index>
   unwrap_type_t<value_t<index>> & get_value(detail::false_) & {
-    return detail::pierce_recursive_wrapper(this->get_value<index>(detail::true_{}));
+    return detail::pierce_wrapper(this->get_value<index>(detail::true_{}));
   }
 
   template <size_t index>
   const unwrap_type_t<value_t<index>> & get_value(detail::false_) const & {
-    return detail::pierce_recursive_wrapper(this->get_value<index>(detail::true_{}));
+    return detail::pierce_wrapper(this->get_value<index>(detail::true_{}));
   }
 
   template <size_t index>
   unwrap_type_t<value_t<index>> && get_value(detail::false_) && {
-    return std::move(detail::pierce_recursive_wrapper(this->get_value<index>(detail::true_{})));
+    return std::move(detail::pierce_wrapper(this->get_value<index>(detail::true_{})));
   }
 };
 

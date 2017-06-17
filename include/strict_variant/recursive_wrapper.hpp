@@ -110,23 +110,23 @@ struct is_wrapper<recursive_wrapper<T>> : std::true_type {};
 } // end namespace detail
 //]
 
-//[ strict_variant_pierce_recursive_wrapper
+//[ strict_variant_pierce_wrapper
 namespace detail {
 
 /***
- * Function to pierce a recursive_wrapper
+ * Function to pierce a wrapper
  */
 
 template <typename T>
 inline auto
-pierce_recursive_wrapper(T && t)
+pierce_wrapper(T && t)
   -> mpl::enable_if_t<!is_wrapper<mpl::remove_const_t<mpl::remove_reference_t<T>>>::value, T> {
   return std::forward<T>(t);
 }
 
 template <typename T>
 inline auto
-pierce_recursive_wrapper(T && t)
+pierce_wrapper(T && t)
   -> mpl::enable_if_t<is_wrapper<mpl::remove_const_t<mpl::remove_reference_t<T>>>::value,
                       decltype(std::forward<T>(t).get())> {
   return std::forward<T>(t).get();

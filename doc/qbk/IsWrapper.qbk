@@ -4,8 +4,12 @@ The `is_wrapper` type trait is used by the `variant` interface to identify types
 
 Types that are so wrapped must provide a typedef `value_type` and an accessor `get` which retrieves the value.
 
-Types for which `is_wrapper` is true will be transparently pierced, so that `get` and `apply_visitor` will
+Types for which `is_wrapper` is true will be transparently pierced if placed in a `variant`, so that `get` and `apply_visitor` will
 be able to access the `value_type` rather than the wrapper.
+
+There are some other consequences. The type `T` is assumed to be incomplete when `recursive_wrapper<T>` is used in `variant`,
+and so changing from `T` to `recursive_wrapper<T>`, or simply changing the value `is_wrapper<T>`,
+can change the `noexcept` status of member functions of the resulting variant.
 
 [h3 Valid Expressions]
 [table
@@ -14,7 +18,7 @@ be able to access the `value_type` rather than the wrapper.
   [[`x`] [ any expression]]
   [[`strict_variant::is_wrapper<T>::value`][ `true` if `T` is a wrapped type, false if not. ]]
   [[`strict_variant::unwrap_type_t<T>`][ `T` if `T` is not wrapped, `T::value_type` if it is wrapped. ]]
-  [[`strict_variant::pierce_recursive_wrapper(x)`][`x` if `T` is not wrapped, and `x.get()` if `T` is wrapped, where `T` is the type of `x` without CV qualifiers or references. ]]]
+  [[`strict_variant::pierce_wrapper(x)`][`x` if `T` is not wrapped, and `x.get()` if `T` is wrapped, where `T` is the type of `x` without CV qualifiers or references. ]]]
 
 [h3 Synopsis]
 

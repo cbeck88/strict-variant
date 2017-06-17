@@ -48,10 +48,10 @@ options?
 The strategy that we've adopted is, `strict_variant::recursive_wrapper`'s move
 ctor is the pointer-move. But in most cases, when visiting a variant, even for
 purposes of copy or move construction of another variant, we call a function
-`detail::pierce_recursive_wrapper` which ensures that we pierce the wrapper and
+`detail::pierce_wrapper` which ensures that we pierce the wrapper and
 move the value rather than the wrapper.
 
-[strict_variant_pierce_recursive_wrapper]
+[strict_variant_pierce_wrapper]
 
 Whenever a user-defined visitor is applied, we use this function to transparently
 remove the wrapper for them.
