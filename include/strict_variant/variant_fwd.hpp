@@ -7,6 +7,8 @@
 
 namespace strict_variant {
 
+struct blank {};
+
 template <typename T>
 class recursive_wrapper;
 

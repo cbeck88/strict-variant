@@ -72,10 +72,18 @@ public:
     rhs.m_t = nullptr;
   }
 
-  // Not assignable, we never actually need this, and it adds complexity
-  // associated to lifetime of `m_t` object.
-  recursive_wrapper & operator=(const recursive_wrapper &) = delete;
-  recursive_wrapper & operator=(recursive_wrapper &&) = delete;
+  recursive_wrapper & operator=(const recursive_wrapper & rhs) {
+    this->destroy();
+    this->init(rhs.get());
+    return *this;
+  }
+
+  recursive_wrapper & operator=(recursive_wrapper && rhs) {
+    this->destroy();
+    m_t = rhs.m_t;
+    rhs.m_t = nullptr;
+    return *this;
+  }
 
   T & get() & {
     STRICT_VARIANT_ASSERT(m_t, "Bad access!");
@@ -89,6 +97,24 @@ public:
     STRICT_VARIANT_ASSERT(m_t, "Bad access!");
     return std::move(*m_t);
   }
+
+  // TODO: This is ugly, it's been added since blank state was added,
+  // to make int assignable from recursive_wrapper<int>, for instance.
+  // Before the blank state patch we would always pierce recursive_wrapper
+  // in assignment, but now sometimes we don't.
+  operator T & () & {
+    return this->get();
+  }
+
+  operator const T & () const & {
+    return this->get();
+  }
+
+  operator T && () && {
+    return std::move(std::move(*this).get());
+  }
+
+
 };
 //]
 

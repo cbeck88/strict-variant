@@ -111,6 +111,15 @@ private:
   void destroy() noexcept {
     destroyer d;
     this->apply_visitor_internal(d);
+
+    // When blank state is enabled, we should always set which and storage to
+    // the blank type when we vacate the storage.
+    // Note that it is okay if we don't call the dtor of blank!
+    // Standard gives us license to end its lifetime by reusing the storage,
+    // because it is trivially destructible.
+    if (std::is_same<First, strict_variant::blank>::value) {
+      this->initialize<0>();
+    }
   }
 
   template <std::size_t index, typename... Args>
@@ -118,7 +127,7 @@ private:
     noexcept(static_cast<storage_t *>(nullptr)->template initialize<index>(
       std::forward<Args>(std::declval<Args>())...))) {
     m_storage.template initialize<index>(std::forward<Args>(args)...);
-    this->m_which = static_cast<int>(index);
+    m_which = static_cast<int>(index);
   }
 
   /***
@@ -126,6 +135,8 @@ private:
    */
   template <std::size_t index, typename Rhs>
   void assign(Rhs && rhs) {
+    constexpr bool have_blank_state = std::is_same<First, strict_variant::blank>::value;
+
     constexpr bool assume_nothrow_init =
       std::is_lvalue_reference<Rhs>::value
         ? detail::variant_noexcept_helper<First, Types...>::assume_copy_nothrow
@@ -142,15 +153,18 @@ private:
     // 3) Must change type, and initializing the new value may throw. Do it on the stack, and then
     // move into storage.
 
+    // Note that if we have a blank state, then after destroy() we are actually in a legal state,
+    // and if an exception is thrown it doesn't matter so these considerations go away.
+
     static_assert(noexcept(this->destroy()), "Noexcept assumption failed!");
 
     if (this->which() == index) {
       m_storage.template get_value<index>(detail::false_{}) = std::forward<Rhs>(rhs);
-    } else if (assume_nothrow_init || noexcept(this->initialize<index>(std::forward<Rhs>(rhs)))) {
+    } else if (have_blank_state || assume_nothrow_init || noexcept(this->initialize<index>(std::forward<Rhs>(rhs)))) {
       this->destroy();
       this->initialize<index>(std::forward<Rhs>(rhs));
     } else {
-      static_assert(detail::variant_noexcept_helper<First, Types...>::assume_move_nothrow
+      static_assert(have_blank_state || detail::variant_noexcept_helper<First, Types...>::assume_move_nothrow
                       || noexcept(this->initialize<index>(std::declval<temp_t>())),
                     "Noexcept assumption failed!");
 
@@ -164,11 +178,20 @@ private:
    * Used for internal visitors
    */
   template <typename Visitor>
-  auto apply_visitor_internal(Visitor & visitor) -> typename Visitor::result_type {
+  auto apply_visitor_internal(Visitor & visitor) & -> typename Visitor::result_type {
     // Implementation note:
     // `detail::true_` here indicates that the visit is internal and we should
     // NOT pierce `recursive_wrapper`.
     return detail::visitor_dispatch<detail::true_, 1 + sizeof...(Types)>{}(m_which, m_storage,
+                                                                           visitor);
+  }
+
+  template <typename Visitor>
+  auto apply_visitor_internal(Visitor & visitor) && -> typename Visitor::result_type {
+    // Implementation note:
+    // `detail::true_` here indicates that the visit is internal and we should
+    // NOT pierce `recursive_wrapper`.
+    return detail::visitor_dispatch<detail::true_, 1 + sizeof...(Types)>{}(m_which, std::move(m_storage),
                                                                            visitor);
   }
 
@@ -242,6 +265,8 @@ private:
   }
 
 public:
+  template <typename OFirst, typename... OTypes> friend class variant;
+
   ~variant() noexcept { this->destroy(); }
 
   // Constructors
@@ -545,6 +570,7 @@ private:
 // assigner
 template <typename First, typename... Types>
 struct variant<First, Types...>::assigner {
+  typedef void result_type;
 
   static_assert(detail::variant_noexcept_helper<First, Types...>::assignable,
                 "All types in this variant must be nothrow move constructible or placed in a "
@@ -606,8 +632,14 @@ template <typename First, typename... Types>
 variant<First, Types...>::variant(variant && rhs) noexcept(
   detail::variant_noexcept_helper<First, Types...>::nothrow_move_ctors) {
   constructor mc(*this);
-  apply_visitor(mc, std::move(rhs));
-  STRICT_VARIANT_ASSERT(rhs.which() == this->which(), "Postcondition failed!");
+  if (std::is_same<First, strict_variant::blank>::value) {
+    std::move(rhs).apply_visitor_internal(mc);
+    STRICT_VARIANT_ASSERT(rhs.which() == this->which(), "Postcondition failed!");
+    rhs.destroy();  
+  } else {
+    apply_visitor(mc, std::move(rhs));
+    STRICT_VARIANT_ASSERT(rhs.which() == this->which(), "Postcondition failed!");
+  }
   STRICT_VARIANT_ASSERT_WHICH_INVARIANT;
 }
 
@@ -628,8 +660,14 @@ variant<First, Types...> &
 variant<First, Types...>::operator=(variant && rhs) noexcept(
   detail::variant_noexcept_helper<First, Types...>::nothrow_move_assign) {
   assigner ma(*this);
-  apply_visitor(ma, std::move(rhs));
-  STRICT_VARIANT_ASSERT(rhs.which() == this->which(), "Postcondition failed!");
+  if (std::is_same<First, strict_variant::blank>::value) {
+    std::move(rhs).apply_visitor_internal(ma);
+    STRICT_VARIANT_ASSERT(rhs.which() == this->which(), "Postcondition failed!");
+    rhs.destroy();  
+  } else {
+    apply_visitor(ma, std::move(rhs));
+    STRICT_VARIANT_ASSERT(rhs.which() == this->which(), "Postcondition failed!");
+  }
   STRICT_VARIANT_ASSERT_WHICH_INVARIANT;
   return *this;
 }
@@ -676,7 +714,12 @@ template <typename OFirst, typename... OTypes, typename Enable>
 variant<First, Types...>::variant(variant<OFirst, OTypes...> && other) noexcept(
   detail::variant_noexcept_helper<OFirst, OTypes...>::nothrow_move_ctors) {
   constructor c(*this);
-  apply_visitor(c, std::move(other));
+  if (std::is_same<OFirst, strict_variant::blank>::value) {
+    std::move(other).apply_visitor_internal(c);
+    other.destroy();
+  } else {
+    apply_visitor(c, std::move(other));
+  }
   STRICT_VARIANT_ASSERT_WHICH_INVARIANT;
 }
 
@@ -698,7 +741,12 @@ variant<First, Types...> &
 variant<First, Types...>::operator=(variant<OFirst, OTypes...> && other) noexcept(
   detail::variant_noexcept_helper<OFirst, OTypes...>::nothrow_move_assign) {
   assigner a(*this);
-  apply_visitor(a, std::move(other));
+  if (std::is_same<OFirst, strict_variant::blank>::value) {
+    std::move(other).apply_visitor_internal(a);
+    other.destroy();
+  } else {
+    apply_visitor(a, std::move(other));
+  }
   STRICT_VARIANT_ASSERT_WHICH_INVARIANT;
   return *this;
 }
