@@ -166,13 +166,14 @@ in your C++ projects?
 
 For an in-depth discussion of the design, check out the documentation.
 
+For a gentle intro to variants, and an overview of strict-variant, see **slides**
+from a talk I gave about this: \[[pptx](https://cbeck88.github.io/strict-variant/strict_variant.pptx)\]\[[pdf](https://cbeck88.github.io/strict-variant/strict_variant_static.pdf)\]
+
+
 Documentation
 =============
 
 On [github pages](https://cbeck88.github.io/strict-variant/index.html).
-
-Also, for a gentle intro to variants, and an overview of strict-variant, see **slides**
-from a talk I gave about this: \[[pptx](https://cbeck88.github.io/strict-variant/strict_variant.pptx)\]\[[pdf](https://cbeck88.github.io/strict-variant/strict_variant_static.pdf)\]
 
 Compiler Compatibility
 ======================
