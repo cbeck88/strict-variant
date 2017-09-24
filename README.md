@@ -171,6 +171,9 @@ Documentation
 
 On [github pages](https://cbeck88.github.io/strict-variant/index.html).
 
+Also, for a gentle intro to variants, and main ideas in strict-variant, see slides
+from a talk I gave about this: [pptx](https://cbeck88.github.io/strict-variant/strict_variant.pdf) [pdf](https://cbeck88.github.io/strict-variant/strict_variant_static.pdf)
+
 Compiler Compatibility
 ======================
 
