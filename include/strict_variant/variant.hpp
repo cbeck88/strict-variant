@@ -223,9 +223,16 @@ private:
   template <typename T, typename UL>
   struct initializer_base;
 
-  template <typename T, unsigned... us>
-  struct initializer_base<T, mpl::ulist<us...>> : initializer_leaf<T, us>... {
-    static_assert(sizeof...(us) > 0, "All value types were inelligible!");
+  template <typename T, unsigned u>
+  struct initializer_base<T, mpl::ulist<u>> : initializer_leaf<T, u> {
+   using initializer_leaf<T, u>::operator();
+  };
+
+  template <typename T, unsigned u, unsigned... us>
+  struct initializer_base<T, mpl::ulist<u, us...>> : initializer_leaf<T, u>,
+                                                     initializer_base<T, mpl::ulist<us...>> {
+    using initializer_leaf<T, u>::operator();
+    using initializer_base<T, mpl::ulist<us...>>::operator();
   };
 
   template <typename T>
