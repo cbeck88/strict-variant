@@ -224,7 +224,7 @@ private:
   struct initializer_base;
 
   template <typename T, unsigned u>
-  struct initializer_base<T< mpl::ulist<u>> : initializer_leaf<T, u> {
+  struct initializer_base<T, mpl::ulist<u>> : initializer_leaf<T, u> {
    using initializer_leaf<T, u>::operator();
   };
 
