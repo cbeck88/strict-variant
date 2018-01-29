@@ -6,9 +6,9 @@
 #pragma once
 
 #include <strict_variant/mpl/find_with.hpp>
-#include <strict_variant/wrapper.hpp>
 #include <strict_variant/safely_constructible.hpp>
 #include <strict_variant/variant_fwd.hpp>
+#include <strict_variant/wrapper.hpp>
 
 #include <type_traits>
 
@@ -106,7 +106,6 @@ struct is_nothrow_default_constructible_impl<T, true> : std::false_type {};
 template <typename T>
 struct is_nothrow_default_constructible : is_nothrow_default_constructible_impl<T> {};
 
-
 template <typename T, bool b = is_wrapper<T>::value>
 struct is_nothrow_moveable_impl : std::is_nothrow_move_constructible<T> {};
 
@@ -115,7 +114,6 @@ struct is_nothrow_moveable_impl<T, true> : std::false_type {};
 
 template <typename T>
 struct is_nothrow_moveable : is_nothrow_moveable_impl<T> {};
-
 
 template <typename T, bool b = is_wrapper<T>::value>
 struct is_nothrow_copyable_impl : std::is_nothrow_constructible<T, const T &> {};
@@ -126,7 +124,6 @@ struct is_nothrow_copyable_impl<T, true> : std::false_type {};
 template <typename T>
 struct is_nothrow_copyable : is_nothrow_copyable_impl<T> {};
 
-
 template <typename T, bool b = is_wrapper<T>::value>
 struct is_nothrow_move_assignable_impl : std::is_nothrow_move_assignable<T> {};
 
@@ -136,7 +133,6 @@ struct is_nothrow_move_assignable_impl<T, true> : std::false_type {};
 template <typename T>
 struct is_nothrow_move_assignable : is_nothrow_move_assignable_impl<T> {};
 
-
 template <typename T, bool b = is_wrapper<T>::value>
 struct is_nothrow_copy_assignable_impl : std::is_nothrow_copy_assignable<T> {};
 
@@ -145,7 +141,6 @@ struct is_nothrow_copy_assignable_impl<T, true> : std::false_type {};
 
 template <typename T>
 struct is_nothrow_copy_assignable : is_nothrow_copy_assignable_impl<T> {};
-
 
 template <typename First, typename... Types>
 struct variant_noexcept_helper {

@@ -6,8 +6,8 @@
 #pragma once
 
 #include <strict_variant/alloc_wrapper.hpp>
-#include <strict_variant/variant.hpp>
 #include <strict_variant/mpl/std_traits.hpp>
+#include <strict_variant/variant.hpp>
 #include <type_traits>
 
 namespace strict_variant {

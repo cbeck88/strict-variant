@@ -71,4 +71,3 @@ template <typename T>
 using unwrap_type_t = typename unwrap_type<T>::type;
 
 } // end namespace strict_variant
-
