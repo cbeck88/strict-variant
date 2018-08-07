@@ -168,7 +168,7 @@ private:
     // Implementation note:
     // `detail::true_` here indicates that the visit is internal and we should
     // NOT pierce `recursive_wrapper`.
-    return detail::visitor_dispatch<detail::true_, 1 + sizeof...(Types)>{}(m_which, m_storage,
+    return detail::visitor_dispatch<detail::true_, 1 + sizeof...(Types)>{}(static_cast<unsigned>(m_which), m_storage,
                                                                            visitor);
   }
 
@@ -406,7 +406,7 @@ public:
   using dispatcher_t = detail::visitor_dispatch<detail::false_, 1 + sizeof...(Types)>;
 
 #define APPLY_VISITOR_IMPL_BODY                                                                    \
-  dispatcher_t{}(visitable.which(), std::forward<Visitable>(visitable).m_storage,                  \
+  dispatcher_t{}(static_cast<unsigned>(visitable.which()), std::forward<Visitable>(visitable).m_storage,                  \
                  std::forward<Visitor>(visitor))
 
   // Visitable is assumed to be, forwarding reference to this type.
