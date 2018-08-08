@@ -9,6 +9,17 @@ in your C++ projects?
 
 `boost::variant` is a great library. I created `strict_variant` in order to address a few things about `boost::variant` that I didn't like.
 
+The tl;dr version is that unlike `boost::variant` or `std::variant`, `strict_variant` will never throw an exception or make a dynamic allocation
+in the effort of supporting types that have throwing moves. The default version will simply fail a static assert if this would happen. The
+`strict_variant::easy_variant` will make allocations in this situation, so you can opt-in to that if you want, and these two versions of variant
+"play nicely" together. This kind of thing is often a major concern in projects with realtime requirements, or in embedded devices, which may not
+allow, or simply may not have these C++ features. If you are making a library that might be used in "conventional" projects that want the ease-of-use
+that comes from `boost::variant`, but might also be used in projects with restrictive requirements, and you want to use a `variant` type as part of the
+API, `strict_variant` might offer a way to keep everyone happy.
+
+Besides this, there are some issues in the interface of variant that were addressed that make it more pleasant to use day-to-day IMHO.
+(These were actually the original motivation of the project.)
+
 - I didn't like that code like this may compile without any warning or error messages:
 
   ```c++
